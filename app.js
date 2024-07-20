@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import {ErrorMiddleware} from './Middlewares/error.js'
 import userRouter from './routes/user.routes.js';
+import questionRouter from "./routes/question.routes.js"
 dotenv.config();
 
 
@@ -19,7 +20,8 @@ app.use(cors({
     origin: process.env.ORIGIN
 }))
 //routes
-app.use("/api/user", userRouter)
+app.use("/api/user", userRouter);
+app.use("/api/question",questionRouter);
 
 app.get("/test", (req, res, next) => {
     res.status(200).json({ success: true , message:"Api is working"
