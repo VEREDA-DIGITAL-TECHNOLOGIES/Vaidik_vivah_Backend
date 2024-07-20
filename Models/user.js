@@ -1,8 +1,11 @@
 import { DataTypes } from 'sequelize';
-import connectDB from '../Utils/db';
+import connectDB from '../Utils/db.js';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
-const sequelize = connectDB(); 
+const sequelize = connectDB();
+
+const emailRegexPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 const User = sequelize.define('User', {
     id: {
@@ -20,15 +23,31 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+        validate: {
+            is: emailRegexPattern,
+            notEmpty: true,
+        },
+    },
+    otp:{
+        type: DataTypes.STRING,
     },
     password: {
         type: DataTypes.STRING,
         allowNull: false,
+        validate: {
+            notEmpty: true,
+            len: [8, 255],
+        },
     },
     usertype: {
         type: DataTypes.ENUM('exclusive', 'normal'),
         allowNull: false,
         defaultValue: 'normal',
+    },
+    isVerified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
     },
     role: {
         type: DataTypes.STRING,
@@ -38,5 +57,29 @@ const User = sequelize.define('User', {
 }, {
     timestamps: true,
 });
+
+// Hash password before creating or updating user
+User.beforeCreate(async (user) => {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+});
+
+User.beforeUpdate(async (user) => {
+    if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+    }
+});
+
+// Compare password
+User.prototype.validPassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+};
+
+await sequelize.sync({ force: false });
+
+
+
+
 
 export default User;

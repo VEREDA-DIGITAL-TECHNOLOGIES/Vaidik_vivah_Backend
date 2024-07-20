@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedlock Account Activation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            max-width: 600px;
+            background-color: #f9f9f9;
+        }
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            color: #007bff;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome to Wedlock</h2>
+        <p>Thank you for signing up! Please use the following 4-digit activation code to activate your account:</p>
+        <div class="code"><%= activationCode %></div>
+        <p>This code will expire in 5 minutes.</p>
+        <p>If you did not sign up for this account, please ignore this email.</p>
+        <p>Best regards,</p>
+        <p>The Team</p>
+        <div class="footer">
+            <p>&copy; <%= new Date().getFullYear() %> Wedlock. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
