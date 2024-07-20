@@ -1,6 +1,10 @@
 import { DataTypes } from 'sequelize';
+import dotenv from 'dotenv';
 import connectDB from '../Utils/db.js';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+dotenv.config();
+
 import bcrypt from 'bcryptjs';
 
 const sequelize = connectDB();
@@ -53,7 +57,9 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
         defaultValue: 'user',
-    }
+    },
+
+
 }, {
     timestamps: true,
 });
@@ -63,6 +69,16 @@ User.beforeCreate(async (user) => {
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
 });
+
+//signed access token
+User.prototype.signAccessToken = function () {
+    return jwt.sign({ userId: this.userId }, process.env.ACCESSTOKEN|| '');
+};
+
+//signed refresh token
+User.prototype.signRefreshToken = function () {
+    return jwt.sign({ userId: this.userId }, process.env.REFRESHTOKEN|| '');
+};
 
 User.beforeUpdate(async (user) => {
     if (user.changed('password')) {
