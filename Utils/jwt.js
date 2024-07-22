@@ -4,7 +4,7 @@ import User from '../Models/user.js';
 import { redis } from "./redis.js";
 dotenv.config();
 
-export const sendToken = (user, statusCode, res) => {
+export const sendToken = (user, statusCode, res,message) => {
 
     
     const accessToken = user.signAccessToken();
@@ -42,11 +42,11 @@ export const sendToken = (user, statusCode, res) => {
     res.cookie('refresh_token', refreshToken, refreshTokenOptions);
 
 
-
     res.status(statusCode).json({
         success: true,
         user,
         accessToken,
-        refreshToken
+        refreshToken,
+        message
     })
 }

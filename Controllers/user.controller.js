@@ -79,36 +79,6 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
     }
 });
 
-export const setPassword1 = catchAsyncError(async (req, res, next) => {
-    try {
-        const {password } = req.body;
-        const token = req.cookies.token;
-
-        if (!token) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-        const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
-        const { email } = user;
-
-
-        if (password.length < 8) {
-            return next(new errorhandler("Password must be at least 8 characters!", 400));
-        }
-        
-         User.create({
-            email,
-            password,
-            isVerified: true,
-            otp: null
-        });
-
-        res.clearCookie("token");
-        res.status(200).json({ success: true, message: "Password set successfully!" });
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
-    }
-});
 
 
 export const setPassword = catchAsyncError(async (req, res, next) => {
@@ -147,9 +117,12 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
                 });
             }
         }
+       console.log(existingUser,"existing user")
+
 
         res.clearCookie("token");
-        res.status(200).json({ success: true, message: "Password set and answers stored successfully!" });
+        sendToken(existingUser, 200, res,"Password set successfully!");        
+
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
@@ -159,6 +132,8 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
     try{
         const { email, password } = req.body;
         const user = await User.findOne({ where: { email } });
+        console.log(email,password,"email password");
+        console.log(user)
 
         if (!user) {
             return next(new errorhandler("You are not registered!", 400));
@@ -180,12 +155,14 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
             role: user.role,
             isVerified: user.isVerified
         }
-        sendToken(user, 200, res);        
+        sendToken(user, 200, res,"Login successfull!");        
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 
 });
+
+
 
 export const logoutUser = catchAsyncError(async (req, res, next) => {
     try {
