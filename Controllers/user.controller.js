@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import sendEmail from "../Utils/sendmail.js";
 import { sendToken } from "../Utils/jwt.js";
 import { redis } from "../Utils/redis.js";
+import Answer from '../Models/answer.model.js';
+
 
 dotenv.config();
 
@@ -77,7 +79,7 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
     }
 });
 
-export const setPassword = catchAsyncError(async (req, res, next) => {
+export const setPassword1 = catchAsyncError(async (req, res, next) => {
     try {
         const {password } = req.body;
         const token = req.cookies.token;
@@ -103,6 +105,51 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
 
         res.clearCookie("token");
         res.status(200).json({ success: true, message: "Password set successfully!" });
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+});
+
+
+export const setPassword = catchAsyncError(async (req, res, next) => {
+    try {
+        const { password, answer } = req.body;
+        const token = req.cookies.token;
+
+        if (!token) {
+            return next(new errorhandler("Please Verify your email first!", 400));
+        }
+
+        const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
+        const { email } = user;
+
+        if (password.length < 8) {
+            return next(new errorhandler("Password must be at least 8 characters!", 400));
+        }
+
+        const existingUser = await User.create({
+            email,
+            password,
+            isVerified: true,
+            otp: null
+        });
+
+        if (Array.isArray(answer)) {
+            for (const ans of answer) {
+                const { questionId, answerValue } = ans;
+
+                console.log(`Saving answer for question ID ${questionId}:`, answerValue);
+
+                await Answer.create({
+                    userId: existingUser.userId,
+                    questionId,
+                    answer: answerValue
+                });
+            }
+        }
+
+        res.clearCookie("token");
+        res.status(200).json({ success: true, message: "Password set and answers stored successfully!" });
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }

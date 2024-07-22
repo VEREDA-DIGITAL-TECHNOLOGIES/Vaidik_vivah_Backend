@@ -14,11 +14,11 @@ const emailRegexPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)
 const User = sequelize.define('User', {
     id: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
         autoIncrement: true,
     },
     userId: {
         type: DataTypes.UUID,
+        primaryKey: true,
         defaultValue: () => uuidv4(),
         allowNull: false,
         unique: true,
