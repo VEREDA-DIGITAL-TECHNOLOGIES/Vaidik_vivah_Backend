@@ -50,11 +50,11 @@ const personal  = sequelize.define('personal', {
         type: DataTypes.ENUM('Yes', 'No', ),
         allowNull: false,
     },
-    numberOfChildren: {
+    numberOfChildren: { 
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    AboutYourself: {
+    aboutYourSelf: {
         type: DataTypes.STRING,
         allowNull: false,
     },

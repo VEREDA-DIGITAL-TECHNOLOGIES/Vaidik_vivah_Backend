@@ -85,6 +85,7 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
+        console.log(req.body);
         const token = req.cookies.token;
 
         if (!token) {
@@ -119,16 +120,12 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             }
         }
 
-        const userResponse = existingUser.toJSON();
-        delete userResponse.password;
-        delete userResponse.otp;
-        delete userResponse.id
-
-
+      
         res.clearCookie("token");
-        sendToken(userResponse, 200, res,"Password set successfully!");        
+        sendToken(existingUser, 200, res,"Password set successfully!");        
 
     } catch (error) {
+        console.log(error);
         return next(new errorhandler(error.message, 500));
     }
 });

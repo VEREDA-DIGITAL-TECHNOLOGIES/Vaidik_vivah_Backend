@@ -6,9 +6,10 @@ import jwt from "jsonwebtoken";
 //authenticated user
 
 export const isAuthenticated = catchAsyncError(async (req, res, next) => {
+    console.log(req.cookies)
     const accessToken = req.cookies.access_token;
-    console.log(accessToken)
-    
+   
+
     if (!accessToken) {
         return next(new errorhandler("Please login to Find perfect matches", 400));
     }
@@ -22,4 +23,4 @@ export const isAuthenticated = catchAsyncError(async (req, res, next) => {
     }
     req.user = JSON.parse(user);
     next();
-})
+}) 

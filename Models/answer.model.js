@@ -3,8 +3,6 @@ import connectDB from '../Utils/db.js';
 import User from './user.js'; 
 import { v4 as uuidv4 } from 'uuid';
 
-
-
 const sequelize = connectDB();
 
 const Answer = sequelize.define('Answer', {
@@ -12,10 +10,10 @@ const Answer = sequelize.define('Answer', {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        allowNull: false,
+        allowNull: false, 
     },
     questionId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.INTEGER, 
         allowNull: false,
     },
     userId: {

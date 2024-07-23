@@ -16,8 +16,8 @@ export const sendToken = (user, statusCode, res,message) => {
 
 
     //parse environment variable to integrate fall back values
-    const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || '5m');
-    const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || '7d');
+    const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || '300000'); // 5 minutes in ms
+    const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || '604800000'); // 7 days in ms
 
 
     //we have to add secure :true in production
@@ -38,8 +38,11 @@ export const sendToken = (user, statusCode, res,message) => {
         //secure: true
     }
 
+
+   
     res.cookie('access_token', accessToken, accessTokenOptions);
     res.cookie('refresh_token', refreshToken, refreshTokenOptions);
+    
 
 
     res.status(statusCode).json({

@@ -52,9 +52,6 @@ const otherDetails = sequelize.define('otherDetails', {
     }
 
 
-
-    
-
 });
 
 export default otherDetails;
