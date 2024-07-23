@@ -7,8 +7,6 @@ import sendEmail from "../Utils/sendmail.js";
 import { sendToken } from "../Utils/jwt.js";
 import { redis } from "../Utils/redis.js";
 import Answer from '../Models/answer.model.js';
-
-
 dotenv.config();
 
 // Register user
@@ -39,7 +37,9 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
 
 
         try {
+
             await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
+
             res.status(200).json({ success: true, message: `Please check your email: ${email} to activate your account!`,         
                 activationToken: activationToken.token,
             });
@@ -60,6 +60,7 @@ export const createActivationToken = (email) => {
 
     return { activationCode, token };
 };
+
 
 export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
@@ -117,11 +118,15 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
                 });
             }
         }
-       console.log(existingUser,"existing user")
+
+        const userResponse = existingUser.toJSON();
+        delete userResponse.password;
+        delete userResponse.otp;
+        delete userResponse.id
 
 
         res.clearCookie("token");
-        sendToken(existingUser, 200, res,"Password set successfully!");        
+        sendToken(userResponse, 200, res,"Password set successfully!");        
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
