@@ -2,9 +2,11 @@ import personal from "../Models/personal.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
 import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
+import imageUpload from "../Models/imageUpload.model.js";
 import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
+import {uploadCloudinary} from "../Utils/cloudinary.js"
 import { redis } from "../Utils/redis.js";
 
 dotenv.config();
@@ -27,9 +29,6 @@ export const personalDetailsRegister = catchAsyncError(async (req, res, next) =>
 
 
     const personalDetails = await personal.create({firstName,lastName,displayName,contactNumber,martialStatus,numberOfChildren,aboutYourSelf,userId});
-
-
-    
 
     res.status(201).json({
         success: true, 
@@ -93,7 +92,6 @@ export const locationDetailsRegister = catchAsyncError(async(req, res, next)=>{
     })
 }) 
 
-
 export const otherDetailsRegister = catchAsyncError(async(req,res,next)=>{
     
     const userId = req.user.userId;
@@ -120,7 +118,35 @@ export const otherDetailsRegister = catchAsyncError(async(req,res,next)=>{
 export const imageUploadRegister = catchAsyncError(async(req,res,next)=>{
     const userId = req.user.userId;
 
+    if(!req.files){
+        return next(new errorhandler("Please upload an image!", 400));
+    }
+    console.log(req.files,"req.file")
+
+    const imageUploadExist = await imageUpload.findOne({where:{userId}});
+
+    if(imageUploadExist){
+        return next(new errorhandler("Image already uploaded!", 400));
+    }
+
+    let userImageUrls;
+
+    if(req.files && req.files.length > 0){
+       const userImagesLocal = req.files.map((file)=>file.path);
+
+       const userImages = await uploadCloudinary(userImagesLocal);
+
+       userImageUrls = Array.isArray(userImages)? userImages.map((image)=>image.url)
+       :[userImages.url];
+    }
     
+    const imageUploadData = await imageUpload.create({image:userImageUrls,userId});
+
+    res.status(201).json({
+        success: true,
+        message: "Image uploaded successfully",
+        imageUploadData
+    })
 
 })
 

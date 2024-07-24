@@ -61,7 +61,6 @@ export const createActivationToken = (email) => {
     return { activationCode, token };
 };
 
-
 export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
@@ -79,8 +78,6 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 });
-
-
 
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
@@ -164,8 +161,6 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
 
 });
 
-
-
 export const logoutUser = catchAsyncError(async (req, res, next) => {
     try {
        
@@ -178,3 +173,23 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 }) 
+
+export const forgotPassword = catchAsyncError(async (req, res, next) => {
+    try{
+
+        const { email } = req.body;
+        const user = await User.findOne({ where: { email } });
+
+        if(!user){
+            return next(new errorhandler("Email not found!", 400));
+        }
+        
+    
+    }
+    catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+
+
+
+})
