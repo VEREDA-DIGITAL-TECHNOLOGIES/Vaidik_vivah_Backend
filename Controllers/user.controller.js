@@ -2,6 +2,7 @@ import User from "../Models/user.js";
 import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
+import personal from "../Models/personal.model.js";
 import jwt from "jsonwebtoken";
 import sendEmail from "../Utils/sendmail.js";
 import { sendToken } from "../Utils/jwt.js";
@@ -40,7 +41,8 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
 
             await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
 
-            res.status(200).json({ success: true, message: `Please check your email: ${email} to activate your account!`,         
+            res.status(200).json({
+                success: true, message: `Please check your email: ${email} to activate your account!`,
                 activationToken: activationToken.token,
             });
         } catch (error) {
@@ -65,16 +67,16 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
         const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
-        
+
         if (newUser.activationCode !== activationCode) {
             return next(new errorhandler("Invalid activation code!", 400));
         }
-        const token = jwt.sign({email: newUser.email}, process.env.ACTIVATION_SECRET, {expiresIn: "5min"});
+        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
 
         res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
 
-        return res.status(200).json({ success: true, message: "Otp verified successfully!"});
-    } catch (error) {        
+        return res.status(200).json({ success: true, message: "Otp verified successfully!" });
+    } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 });
@@ -117,9 +119,9 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             }
         }
 
-      
+
         res.clearCookie("token");
-        sendToken(existingUser, 200, res,"Password set successfully!");        
+        sendToken(existingUser, 200, res, "Password set successfully!");
 
     } catch (error) {
         console.log(error);
@@ -128,33 +130,33 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
 });
 
 export const loginUser = catchAsyncError(async (req, res, next) => {
-    try{
+    try {
         const { email, password } = req.body;
         const user = await User.findOne({ where: { email } });
-        console.log(email,password,"email password");
+        console.log(email, password, "email password");
         console.log(user)
 
         if (!user) {
             return next(new errorhandler("You are not registered!", 400));
         }
-        if(!email || !password ){
+        if (!email || !password) {
             return next(new errorhandler("Please enter email and password!", 400));
         }
-        
+
         const isPasswordMatched = await user.validPassword(password);
 
         if (!isPasswordMatched) {
             return next(new errorhandler("Invalid email or password!", 400));
         }
-        
+
         const userData = {
-            userid : user.userId,
+            userid: user.userId,
             email: user.email,
             usertype: user.usertype,
             role: user.role,
             isVerified: user.isVerified
         }
-        sendToken(user, 200, res,"Login successfull!");        
+        sendToken(user, 200, res, "Login successfull!");
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
@@ -163,33 +165,105 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
 
 export const logoutUser = catchAsyncError(async (req, res, next) => {
     try {
-       
-        res.cookie("access_token", "",{maxAge: 1});
-        res.cookie("refresh_token", "",{maxAge: 1});
+
+        res.cookie("access_token", "", { maxAge: 1 });
+        res.cookie("refresh_token", "", { maxAge: 1 });
         redis.del(req.user.userId);
         res.status(200).json({ success: true, message: "Logout successful!" });
-      
+
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
-}) 
+})
 
 export const forgotPassword = catchAsyncError(async (req, res, next) => {
-    try{
-
+    try {
         const { email } = req.body;
+
+
+        if (!email) {
+            return next(new errorhandler("Email is required!", 400));
+        }
+
         const user = await User.findOne({ where: { email } });
 
-        if(!user){
+         
+        if (!user) {
             return next(new errorhandler("Email not found!", 400));
         }
-        
-    
+
+        const activationToken = createActivationToken(email);
+        const activationCode = activationToken.activationCode;
+
+        const data = {
+            activationCode,
+            email,
+        };
+
+
+
+        try {
+            await sendEmail({ email, subject: "Reset Your Password", template: "forgotPassword-mail.ejs", data });
+
+            res.status(200).json({
+                success: true, message: `Please check your email: ${email} to Reset your Password!`,
+                activationToken: activationToken.token,
+            });
+        } catch (error) {
+            return next(new errorhandler(error.message, 500));
+        }
+
     }
-    catch(error){
+    catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 
+})
 
+export const verifyOtp = catchAsyncError(async (req, res, next) => {
+    try {
+        const { activationToken, activationCode } = req.body;
+        const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
+
+        if (newUser.activationCode !== activationCode) {
+            return next(new errorhandler("Invalid Reset code!", 400));
+        }
+        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
+
+        res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
+
+        return res.status(200).json({ success: true, message: "Reset Otp verified successfully!" });
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+})
+
+export const resetPassword = catchAsyncError(async (req, res, next) => {
+    try {
+        const { password } = req.body;
+
+        const token = req.cookies.token;
+
+        if (!token) {
+            return next(new errorhandler("Please Verify your email first!", 400));
+        }
+
+        const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+
+        if (!verifiedUser) {
+            return next(new errorhandler("Please Verify your email first!", 400));
+        }
+        const user = await User.findOne({ where: { email:verifiedUser.email } });
+
+        user.password = password;
+
+        const updatedUser = await user.save();
+
+        res.clearCookie("token");
+        sendToken(updatedUser, 200, res, "Password changed successfully!");
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
 
 })
