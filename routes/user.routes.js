@@ -1,17 +1,21 @@
 import express from "express";
 const userRouter = express.Router();
 
-import { registrationUser,activateUser,setPassword,loginUser,logoutUser,forgotPassword,verifyOtp,resetPassword } from "../Controllers/user.controller.js";
+import { registrationUser,activateUser,setPassword,loginUser,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile} from "../Controllers/user.controller.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
 
 
 userRouter.post("/registration", registrationUser);
 userRouter.post("/activate-user", activateUser);
+userRouter.post('/activate-user-mobile',activateUserForMobile);
+userRouter.post('/set-password-mobile',setPasswordForMobile);
 userRouter.post("/set-password", setPassword);
 userRouter.post("/login", loginUser);
 userRouter.get("/logout", isAuthenticated,logoutUser);
 userRouter.post("/forgot-password", forgotPassword);
 userRouter.post("/verify-otp", verifyOtp);
+userRouter.post("/verify-otp-for-mobile", verifyOtpForMobile);
 userRouter.post("/reset-password", resetPassword);
+userRouter.post("/reset-password-for-mobile", resetPasswordForMobile);
 
 export default userRouter

@@ -58,6 +58,8 @@ const personal  = sequelize.define('personal', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    
+  
 
 });
 

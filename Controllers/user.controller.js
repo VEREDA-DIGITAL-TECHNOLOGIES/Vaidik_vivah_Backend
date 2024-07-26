@@ -63,6 +63,8 @@ export const createActivationToken = (email) => {
     return { activationCode, token };
 };
 
+//for web app activate user
+
 export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
@@ -76,15 +78,18 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
         res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
 
         return res.status(200).json({ success: true, message: "Otp verified successfully!" });
+
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 });
 
+
+//for web app set password
+
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
-        console.log(req.body);
         const token = req.cookies.token;
 
         if (!token) {
@@ -124,10 +129,77 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
         sendToken(existingUser, 200, res, "Password set successfully!");
 
     } catch (error) {
-        console.log(error);
         return next(new errorhandler(error.message, 500));
     }
 });
+
+//for mobile app activation
+export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
+    try {
+        const { activationToken, activationCode } = req.body;
+        const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
+
+        if (newUser.activationCode !== activationCode) {
+            return next(new errorhandler("Invalid activation code!", 400));
+        }
+        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
+
+        return res.status(200).json({ success: true, message: "Otp verified successfully!" ,token});
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+});
+
+//set password for mobile app
+export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
+    try {
+        const { password, answer,token } = req.body;
+
+
+        
+        if (!token) {
+            return next(new errorhandler("Please Verify your email first!", 400));
+        }
+
+        const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
+        const { email } = user;
+
+        if (password.length < 8) {
+            return next(new errorhandler("Password must be at least 8 characters!", 400));
+        }
+
+        const existingUser = await User.create({
+            email,
+            password,
+            isVerified: true,
+            otp: null
+        });
+
+        if (Array.isArray(answer)) {
+            for (const ans of answer) {
+                const { questionId, answerValue } = ans;
+
+                console.log(`Saving answer for question ID ${questionId}:`, answerValue);
+
+                await Answer.create({
+                    userId: existingUser.userId,
+                    questionId,
+                    answer: answerValue
+                });
+            }
+        }
+
+        sendToken(existingUser, 200, res, "Password set successfully!");
+
+    }catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+
+});
+
+
+
 
 export const loginUser = catchAsyncError(async (req, res, next) => {
     try {
@@ -220,6 +292,8 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
 })
 
+//for web app verify otp
+
 export const verifyOtp = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
@@ -239,6 +313,28 @@ export const verifyOtp = catchAsyncError(async (req, res, next) => {
     }
 })
 
+//for app verify otp
+export const verifyOtpForMobile = catchAsyncError(async (req, res, next) => {
+
+    try {
+        const { activationToken, activationCode } = req.body;
+        const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
+
+        if (newUser.activationCode !== activationCode) {
+            return next(new errorhandler("Invalid Reset code!", 400));
+        }
+        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
+
+
+        return res.status(200).json({ success: true, message: "Reset Otp verified successfully!" ,token});
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+    
+})
+
+//for web app reset password
 export const resetPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password } = req.body;
@@ -261,6 +357,33 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
         const updatedUser = await user.save();
 
         res.clearCookie("token");
+        sendToken(updatedUser, 200, res, "Password changed successfully!");
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+
+})
+
+//for app reset password
+export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => {
+    try {
+        const { password,token } = req.body;
+
+        if (!token) {
+            return next(new errorhandler("Please Verify your email first!", 400));
+        }
+
+        const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+
+        if (!verifiedUser) {
+            return next(new errorhandler("Please Verify your email first!", 400));
+        }
+        const user = await User.findOne({ where: { email:verifiedUser.email } });
+
+        user.password = password;
+
+        const updatedUser = await user.save();
+
         sendToken(updatedUser, 200, res, "Password changed successfully!");
     } catch (error) {
         return next(new errorhandler(error.message, 500));

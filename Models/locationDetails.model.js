@@ -40,8 +40,24 @@ const locationDetails = sequelize.define('locationDetails', {
         type: DataTypes.STRING,
         enum: ['yes', 'no'],
         allowNull: false,
-    }
-
+    },
+    currentLocation: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    cityOfResidence: {
+        type: DataTypes.STRING,
+        allowNull:true,
+    },
+    nationality:{
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    residencyVisaStatus: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    
 })
 
 
