@@ -8,7 +8,7 @@ dotenv.config();
 const sequelize = connectDB();
 
 
-const personal  = sequelize.define('personal', {
+const personalDetails  = sequelize.define('personalDetails', {
 
     id: {
         type: DataTypes.INTEGER,
@@ -63,4 +63,4 @@ const personal  = sequelize.define('personal', {
 
 });
 
-export default personal;
+export default personalDetails;

@@ -2,7 +2,6 @@ import User from "../Models/user.js";
 import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
-import personal from "../Models/personal.model.js";
 import jwt from "jsonwebtoken";
 import sendEmail from "../Utils/sendmail.js";
 import { sendToken } from "../Utils/jwt.js";

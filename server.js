@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import {app} from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer , personal, otherDetails, locationDetails, imageUpload, qualificationDetails} from './Models/association.js';
+import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails} from './Models/association.js';
 
 dotenv.config();
 
@@ -14,7 +14,7 @@ const startServer = async () => {
 
         await User.sync({ force: false });
         await Answer.sync({ force: false });
-        await personal.sync({ force: false });
+        await personalDetails.sync({ force: false });
         await otherDetails.sync({ force: false });
         await locationDetails.sync({ force: false });
         await imageUpload.sync({ force: false });

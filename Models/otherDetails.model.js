@@ -32,10 +32,12 @@ const otherDetails = sequelize.define('otherDetails', {
     community: {
         type: DataTypes.STRING,
         allowNull: false,
+        
     },
     subCommunity: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
     },
     dateOfBirth:{
         type: DataTypes.STRING,
@@ -56,58 +58,84 @@ const otherDetails = sequelize.define('otherDetails', {
     gothra:{
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
     },  
     motherTongue:{
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     height: {
         type: DataTypes.STRING,
         allowNull:true,
+        defaultValue:"Not Specified"
+
     },
     weight:{
         type: DataTypes.STRING,
         allowNull:true,
+        defaultValue:"Not Specified"
     },
     bodyType:{
         type: DataTypes.STRING,
         allowNull:true,
+        defaultValue:"Not Specified"
+
     },
     language: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
-    smokingHabit: {
+    smokingHabbit: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
-    drinkingHabit: {
+    drinkingHabbit: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     diet: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     complexion: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     fatherOccupation: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     motherOccupation: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     numberOfSiblings: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
-    livingwithFamily: {
+    livingWithFamily: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
+
     },
    
 });

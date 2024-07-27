@@ -44,6 +44,7 @@ const locationDetails = sequelize.define('locationDetails', {
     currentLocation: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:"Not Specified"
     },
     cityOfResidence: {
         type: DataTypes.STRING,
@@ -51,11 +52,14 @@ const locationDetails = sequelize.define('locationDetails', {
     },
     nationality:{
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue:"Not Specified"
+
     },
     residencyVisaStatus: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue:"Not Specified"
     },
     
 })
