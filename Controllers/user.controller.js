@@ -89,6 +89,8 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
+       
+
         const token = req.cookies.token;
 
         if (!token) {
@@ -154,6 +156,7 @@ export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
 export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer,token } = req.body;
+
 
 
         

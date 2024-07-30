@@ -1,4 +1,5 @@
 import personalDetails from "../Models/personalDetails.model.js";
+import User from "../Models/user.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
 import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
@@ -29,6 +30,8 @@ export const personalDetailsRegister = catchAsyncError(async (req, res, next) =>
 
 
         const personal = await personalDetails.create({ firstName, lastName, displayName, contactNumber, martialStatus, numberOfChildren, aboutYourSelf, userId });
+        await User.update({isPersonalFormFilled: true}, { where: { userId } });
+
 
         res.status(201).json({
             success: true,
@@ -58,6 +61,9 @@ export const qualificationDetailsRegister = catchAsyncError(async (req, res, nex
         }
 
         const qualificationData = await qualificationDetails.create({ qualification, currentWorkingStatus, occupation, income, userId });
+        await User.update({isQualificationFormFilled: true}, { where: { userId } });
+
+
         res.status(201).json({
             success: true,
             message: "Qualification details added successfully",
@@ -85,6 +91,8 @@ export const locationDetailsRegister = catchAsyncError(async (req, res, next) =>
     }
 
     const locationDetailsData = await locationDetails.create({ citizenShip, country, state, austrailanVisaStatus, userId });
+
+    await User.update({isLocationFormFilled: true}, { where: { userId } });
     res.status(201).json({
         success: true,
         message: "Location details added successfully",
@@ -109,6 +117,7 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
     }
 
     const otherDetailsData = await otherDetails.create({ caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth, userId });
+    await User.update({isOtherFormFilled: true}, { where: { userId } });
     res.status(201).json({
         success: true,
         message: "Other details added successfully",
@@ -142,6 +151,8 @@ export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
     }
 
     const imageUploadData = await imageUpload.create({ image: userImageUrls, userId });
+
+    await User.update({isImageFormFilled: true}, { where: { userId } });
 
     res.status(201).json({
         success: true,

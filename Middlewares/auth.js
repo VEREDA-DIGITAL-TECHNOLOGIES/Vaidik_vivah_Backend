@@ -6,8 +6,7 @@ import jwt from "jsonwebtoken";
 //authenticated user
 
 export const isAuthenticated = catchAsyncError(async (req, res, next) => {
-    console.log(req.cookies)
-    const accessToken = req.cookies.access_token;
+    const accessToken = req.cookies.access_token || req.header("Authorization");
    
 
     if (!accessToken) {

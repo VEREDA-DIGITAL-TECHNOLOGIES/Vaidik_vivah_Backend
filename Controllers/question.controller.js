@@ -6,6 +6,7 @@ import Constants from "../Utils/constant.js";
 export const addQuestion = catchAsyncError(async(req ,res ,next) => {
     const { question } = req.body;
 
+
     if (!question) {
         return next( errorhandler(Constants.ERROR_MESSAGES.MISSING_REQUIRED_FIELD, Constants.STATUS_CODE.BAD_REQUEST));
     }

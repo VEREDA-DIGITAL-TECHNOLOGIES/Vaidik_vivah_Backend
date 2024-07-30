@@ -53,6 +53,32 @@ const User = sequelize.define('User', {
         allowNull: false,
         defaultValue: false,
     },
+    isPersonalFormFilled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    isQualificationFormFilled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    isLocationFormFilled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    isOtherFormFilled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    isImageFormFilled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+
     role: {
         type: DataTypes.STRING,
         allowNull: false,

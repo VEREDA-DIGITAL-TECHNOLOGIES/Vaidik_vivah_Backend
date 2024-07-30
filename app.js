@@ -7,7 +7,7 @@ import {ErrorMiddleware} from './Middlewares/error.js'
 import userRouter from './routes/user.routes.js';
 import questionRouter from "./routes/question.routes.js"
 import formRouter from "./routes/forms.routes.js"
-import { isAuthenticated } from './Middlewares/auth.js';
+import profileRouter from './routes/profile.routes.js';
 dotenv.config();
 
 
@@ -27,10 +27,11 @@ app.use(cors({
 app.use("/api/v1/user",userRouter);
 app.use("/api/v1/question",questionRouter);
 app.use("/api/v1/form",formRouter);
+app.use("/api/v1/profile",profileRouter);
+ 
 
-
-app.get("/test", (req, res, next) => {
-    res.status(200).json({ success: true , message:"Api is working"
+app.get("/test", async (req, res, next) => {
+    res.status(200).json({ success: true , data,message:"Api is working"
     })
 })
 
