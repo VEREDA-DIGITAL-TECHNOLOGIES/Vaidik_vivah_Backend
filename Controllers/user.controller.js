@@ -63,7 +63,6 @@ export const createActivationToken = (email) => {
 };
 
 //for web app activate user
-
 export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
@@ -83,9 +82,7 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
     }
 });
 
-
 //for web app set password
-
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
@@ -157,9 +154,6 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer,token } = req.body;
 
-
-
-        
         if (!token) {
             return next(new errorhandler("Please Verify your email first!", 400));
         }
@@ -200,9 +194,6 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
 
 });
 
-
-
-
 export const loginUser = catchAsyncError(async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -223,13 +214,13 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
             return next(new errorhandler("Invalid email or password!", 400));
         }
 
-        const userData = {
-            userid: user.userId,
-            email: user.email,
-            usertype: user.usertype,
-            role: user.role,
-            isVerified: user.isVerified
-        }
+        // const userData = {
+        //     userid: user.userId,
+        //     email: user.email,
+        //     usertype: user.usertype,
+        //     role: user.role,
+        //     isVerified: user.isVerified
+        // }
         sendToken(user, 200, res, "Login successfull!");
     } catch (error) {
         return next(new errorhandler(error.message, 500));
@@ -295,7 +286,6 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 })
 
 //for web app verify otp
-
 export const verifyOtp = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;

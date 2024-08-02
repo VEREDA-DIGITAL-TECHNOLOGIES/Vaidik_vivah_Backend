@@ -44,7 +44,7 @@ const User = sequelize.define('User', {
         },
     },
     usertype: {
-        type: DataTypes.ENUM('exclusive', 'normal'),
+        type: DataTypes.ENUM('exclusive', 'normal','premium'),
         allowNull: false,
         defaultValue: 'normal',
     },

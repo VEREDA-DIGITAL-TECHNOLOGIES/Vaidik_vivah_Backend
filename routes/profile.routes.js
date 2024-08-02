@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated} from '../Middlewares/auth.js';
-import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails} from '../Controllers/profile.controller.js'
+import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles} from '../Controllers/profile.controller.js'
 
 
 
@@ -14,5 +14,5 @@ profileRouter.put('/updatePersonalBackground',isAuthenticated,updatePersonalBack
 profileRouter.put('/updateReligiousBackground',isAuthenticated,updateReligiousBackground);
 profileRouter.put('/updateLocationDetails',isAuthenticated,updateLocationDetails);
 profileRouter.put('/updateEducationAndFinancialDetails',isAuthenticated,updateEducationAndFinancialDetails);
-
+profileRouter.get('/getProfiles',isAuthenticated,MatchedProfiles)
 export default profileRouter
