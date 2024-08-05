@@ -7,6 +7,11 @@ import sendEmail from "../Utils/sendmail.js";
 import { sendToken } from "../Utils/jwt.js";
 import { redis } from "../Utils/redis.js";
 import Answer from '../Models/answer.model.js';
+import locationDetails from "../Models/locationDetails.model.js";
+import otherDetails from "../Models/otherDetails.model.js";
+import personalDetails from "../Models/personalDetails.model.js";
+import qualificationDetails from "../Models/qualificationDetails.model.js";
+import imageUpload from "../Models/imageUpload.model.js";
 dotenv.config();
 
 // Register user
@@ -382,3 +387,124 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
     }
 
 })
+
+
+export const deleteUser = catchAsyncError(async (req, res, next) => {
+    try {
+        const user = await User.findOne({ where: { id: req.user.id } });
+        if (!user) {
+            return next(new errorhandler("User not found!", 404));
+        }
+
+        await User.destroy({ where: { id: req.user.id } });
+        await Answer.destroy({ where: { userId: req.user.id } });
+        await locationDetails.destroy({ where: { userId: req.user.id } });
+        await otherDetails.destroy({ where: { userId: req.user.id } });
+        await personalDetails.destroy({ where: { userId: req.user.id } });
+        await qualificationDetails.destroy({ where: { userId: req.user.id } });
+        await imageUpload.destroy({ where: { userId: req.user.id } });
+
+        res.status(200).json({ success: true, message: "User deleted successfully!" });
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+})
+
+
+export const dummyRegister = catchAsyncError(async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        console.log(email);
+
+        if (!email) {
+            return next(new errorhandler("Email is required!", 400));
+        }
+
+        const isEmailExist = await User.findOne({ where: { email } });
+
+        if (isEmailExist) {
+            return next(new errorhandler("You are already registered!", 400));
+        }
+
+        const activationToken = createActivationToken(email);
+        const activationCode = activationToken.activationCode;
+
+
+
+        const data = {
+            activationCode,
+            email
+        };
+
+
+        try {
+            res.status(200).json({
+                success: true, message: `Please check your email: ${email} to activate your account!`,
+                activationToken: activationToken.token,
+            });
+        } catch (error) {
+            return next(new errorhandler(error.message, 500));
+        }
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+})
+
+
+export const dummyactivateUserForMobile = catchAsyncError(async (req, res, next) => {
+    try {
+        const { activationToken, activationCode } = req.body;
+
+        // if (newUser.activationCode !== activationCode) {
+        //     return next(new errorhandler("Invalid activation code!", 400));
+        // }
+        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
+
+        return res.status(200).json({ success: true, message: "Otp verified successfully!" ,token});
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+});
+
+
+export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => {
+    try {
+        const { password, answer,token } = req.body;
+
+        const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
+        const { email } = user;
+
+        if (password.length < 8) {
+            return next(new errorhandler("Password must be at least 8 characters!", 400));
+        }
+
+        const existingUser = await User.create({
+            email,
+            password,
+            isVerified: true,
+            otp: null
+        });
+
+        if (Array.isArray(answer)) {
+            for (const ans of answer) {
+                const { questionId, answerValue } = ans;
+
+                console.log(`Saving answer for question ID ${questionId}:`, answerValue);
+
+                await Answer.create({
+                    userId: existingUser.userId,
+                    questionId,
+                    answer: answerValue
+                });
+            }
+        }
+
+        sendToken(existingUser, 200, res, "Password set successfully!");
+
+    }catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+
+});

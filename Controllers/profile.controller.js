@@ -287,9 +287,9 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
         const userLookingFor = userAnswers.find(a => a.questionId === 2)?.answer;
         const userAge = userAnswers.find(a => a.questionId === 7)?.answer;
         const userAgeRange = userAnswers.find(a => a.questionId === 8)?.answer;
-
+ 
         const profileData = [];
-
+            
         for (let user of users) {
             const userAnswer = answers.filter(a => a.userId === user.userId);
             const gender = userAnswer.find(a => a.questionId === 1)?.answer;
@@ -334,6 +334,74 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
         return next(new ErrorHandler(error.message, 500));
     }
 });
+
+export const filterProfiles = catchAsyncError(async (req, res, next) => {
+    try {
+    const userId = req.user.userId
+
+    const {ageRange, heightRange , income, hasChildren,religion,ethenticity,hightestQualifcation,smokingHabbit,workingwith, maritalStatus,eatingHabbit,community,relative}=req.body
+
+    const data = await User.findAll({
+        where: {
+            userId: { [Op.ne]: userId }
+        }
+    });
+
+    const userIds = data.map(user => user.userId);
+
+    const answers = await Answer.findAll({
+        where: { userId: { [Op.in]: userIds } }
+    });
+
+    const userAnswers = await Answer.findAll({ where: { userId } });
+
+    const profileData = [];
+
+    for (let user of data) {
+
+        const userAnswer = answers.filter(a => a.userId === user.userId);
+        const age = userAnswer.find(a => a.questionId === 7)?.answer;
+        const ageRange = userAnswer.find(a => a.questionId === 8)?.answer;
+
+        if (age > ageRange[0] || age <= ageRange[1]) {
+
+            const personal = await personalDetails.findOne({ where: { userId: user.userId } });
+            const other = await otherDetails.findOne({ where: { userId: user.userId } });
+            const location = await locationDetails.findOne({ where: { userId: user.userId } });
+            const qualification = await qualificationDetails.findOne({ where: { userId: user.userId } });
+
+            profileData.push({
+                userType: user.usertype,
+
+                userId: user.userId,
+                firstName: personal?.firstName || null,
+                martialStatus: personal?.martialStatus || null,
+                lastName: personal?.lastName || null,
+                displayName: personal?.displayName || null,
+                state: location?.state || null,
+                country: location?.country || null,
+                religion: other?.religion || null,
+                age: age || null,
+                gender: personal?.gender || null,
+                occupation: qualification?.occupation || null   
+            });
+        }
+    }
+
+    return res.status(200).json({
+        success: true,
+        data: {
+            profiles: profileData
+        }
+    });
+
+    } catch (error) {
+        return next(new errorHandler(error.message, 500));
+    }
+
+})
+
+
 
 
 export const UserDetails = catchAsyncError(async (req, res, next) => {
