@@ -3,8 +3,11 @@ import qualificationDetails from "../Models/qualificationDetails.model.js";
 import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
 import imageUpload from "../Models/imageUpload.model.js";
+import question from '../Models/question.model.js';
 import Answer from '../Models/answer.model.js';
+import User from "../Models/user.js";
 import dotenv from 'dotenv';
+import { Op } from 'sequelize';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
@@ -260,6 +263,155 @@ export const updateInterstAndHobbies = catchAsyncError(async (req, res, next) =>
         message: "Interst and Hobbies updated successfully",
         updateInterstAndHobbies
     })
+
+})
+
+export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
+    try {
+        const { userId } = req.user;
+
+        const users = await User.findAll({
+            where: {
+                userId: { [Op.ne]: userId }
+            }
+        });
+
+        const userIds = users.map(user => user.userId);
+
+        const answers = await Answer.findAll({
+            where: { userId: { [Op.in]: userIds } }
+        });
+
+        const userAnswers = await Answer.findAll({ where: { userId } });
+        const userGender = userAnswers.find(a => a.questionId === 1)?.answer;
+        const userLookingFor = userAnswers.find(a => a.questionId === 2)?.answer;
+        const userAge = userAnswers.find(a => a.questionId === 7)?.answer;
+        const userAgeRange = userAnswers.find(a => a.questionId === 8)?.answer;
+
+        const profileData = [];
+
+        for (let user of users) {
+            const userAnswer = answers.filter(a => a.userId === user.userId);
+            const gender = userAnswer.find(a => a.questionId === 1)?.answer;
+            const lookingFor = userAnswer.find(a => a.questionId === 2)?.answer;
+            const age = userAnswer.find(a => a.questionId === 7)?.answer;
+            const ageRange = userAnswer.find(a => a.questionId === 8)?.answer;
+
+            console.log(userLookingFor, gender,lookingFor,userLookingFor === gender,"userLookingFor === gender",ageRange,userAgeRange[0])
+            
+
+            if (userLookingFor === gender && lookingFor === gender && age > userAgeRange[0] || age <= userAgeRange[1]) {
+
+                const personal = await personalDetails.findOne({ where: { userId: user.userId } });
+                const other = await otherDetails.findOne({ where: { userId: user.userId } });
+                const location = await locationDetails.findOne({ where: { userId: user.userId } });
+                const qualification = await qualificationDetails.findOne({ where: { userId: user.userId } });
+
+                profileData.push({
+                    userType: user.usertype,
+                    userId: user.userId,
+                    firstName: personal?.firstName || null,
+                    martialStatus: personal?.martialStatus || null,
+                    lastName: personal?.lastName || null,
+                    displayName: personal?.displayName || null,
+                    state: location?.state || null,
+                    country: location?.country || null,
+                    religion: other?.religion || null,
+                    age: age || null,
+                    gender: gender || null,
+                    occupation: qualification?.occupation || null
+                });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                profiles: profileData
+            }
+        });
+    } catch (error) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
+
+export const UserDetails = catchAsyncError(async (req, res, next) => {
+    try {
+        const {userId } = req.body;
+
+        const personalData = await personalDetails.findOne({ where: { userId } });
+        const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+        const locationDetailsData = await locationDetails.findOne({ where: { userId } });
+        const otherDetailsData = await otherDetails.findOne({ where: { userId } });
+        const imageUploadData = await imageUpload.findOne({ where: { userId } }) || "";
+        const answerData = await Answer.findOne({ where: { userId }, questionId: 12 });
+        const answer = answerData.answer;
+        const data = [
+            {
+                "profileImage": imageUploadData,
+                "basic_&_lifestye": {
+                    "firstName": personalData.firstName,
+                    "lastName": personalData.lastName,
+                    "displayName": personalData.displayName,
+                },
+                "family_details": {
+                    "fatherOccupation": otherDetailsData.fatherOccupation,
+                    "motherOccupation": otherDetailsData.motherOccupation,
+                    "numberOfSiblings": otherDetailsData.numberOfSiblings,
+                    "livingWithFamily": otherDetailsData.livingWithFamily,
+                },
+                "personal_background": {
+                    "height": otherDetailsData.height,
+                    "weight": otherDetailsData.weight,
+                    "bodyType": otherDetailsData.bodyType,
+                    "language": otherDetailsData.language,
+                    "smokingHabbit": otherDetailsData.smokingHabbit,
+                    "drinkingHabbit": otherDetailsData.drinkingHabbit,
+                    "diet": otherDetailsData.diet,
+                    "complexion": otherDetailsData.complexion,
+                },
+                "religious_background": {
+                    "religion": otherDetailsData.religion,
+                    "caste": otherDetailsData.caste,
+                    "community": otherDetailsData.community,
+                    "subCommunity": otherDetailsData.subCommunity,
+                    "gothra": otherDetailsData.gothra,
+                    "timeOfBirth": otherDetailsData.timeOfBirth,
+                    "dateOfBirth": otherDetailsData.dateOfBirth,
+                    "placeOfBirth": otherDetailsData.placeOfBirth,
+                    "motherTongue": otherDetailsData.motherTongue,
+                },
+                "location_background": {
+                    "currentLocation": otherDetailsData.currentLocation,
+                    "cityOfResidence": otherDetailsData.cityOfResidence,
+                    "nationality": locationDetailsData.nationality,
+                    "citizenShip": locationDetailsData.citizenShip,
+                    "residencyVisaStatus": locationDetailsData.residencyVisaStatus,
+                },
+                "education_and_financial": {
+                    "qualification": qualificationDetailsData.qualification,
+                    "workingStatus": qualificationDetailsData.currentWorkingStatus,
+                    "income": qualificationDetailsData.income,
+                },
+                "interest_and_hobbies": {
+                    answer
+                }
+
+            }
+
+        ]
+
+        res.status(200).json({
+            success: true,
+            data,
+            message: "Profile fetched successfully!"
+        })
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+
 
 })
 

@@ -44,7 +44,6 @@ export const personalDetailsRegister = catchAsyncError(async (req, res, next) =>
 
 });
 
-
 export const qualificationDetailsRegister = catchAsyncError(async (req, res, next) => {
     try {
         const userId = req.user.userId;
