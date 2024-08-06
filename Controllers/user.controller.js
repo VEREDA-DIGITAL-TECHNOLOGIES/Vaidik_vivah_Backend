@@ -388,6 +388,39 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
 
 })
 
+export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>{
+    try {
+        const userId = req.user.userId;
+
+        const { fcmToken } = req.body;
+
+        let user = await User.findOne({ where: { userId } });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        
+       const token = user.fcmToken = fcmToken;
+       console.log(token);
+
+        // Save the changes
+        await user.save();
+        res.status(201).json({
+            success: true,
+            message: "FCM token updated successfully",
+            user
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        })
+    }
+
+})
+
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
     try {
@@ -508,3 +541,4 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
     }
 
 });
+
