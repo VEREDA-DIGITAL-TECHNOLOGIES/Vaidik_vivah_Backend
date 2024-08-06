@@ -403,7 +403,6 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
 
 
 
-
 export const UserDetails = catchAsyncError(async (req, res, next) => {
     try {
         const {userId } = req.body;
@@ -482,6 +481,38 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
 
 })
+
+
+
+
+export const dummyMatchedProfiles = catchAsyncError(async (req, res, next) => {
+    try {
+        const { userId } = req.user;
+
+        const users = await User.findAll({
+            where: {
+                userId: { [Op.ne]: userId }
+            }
+        });
+
+       const data = users.map(user => {
+            return {
+                userId: user.userId,
+                firstName: user.firstName,
+                email: user.email,
+                fcmToken: user.fcmToken
+            }
+        })
+        return res.status(200).json({
+            success: true,
+            data: {
+                userdata: data
+            }
+        });
+    } catch (error) {
+        return next(new errorHandler(error.message, 500));
+    }
+});
 
 
 
