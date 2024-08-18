@@ -33,17 +33,15 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
         const activationToken = createActivationToken(email);
         const activationCode = activationToken.activationCode;
 
-
-
         const data = {
             activationCode,
             email
         };
+   
 
-
-        try {
-
-            await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
+   
+    try {
+         await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
 
             res.status(200).json({
                 success: true, message: `Please check your email: ${email} to activate your account!`,
@@ -71,11 +69,13 @@ export const createActivationToken = (email) => {
 export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
+
         const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
 
         if (newUser.activationCode !== activationCode) {
             return next(new errorhandler("Invalid activation code!", 400));
         }
+
         const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
 
         res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
@@ -87,11 +87,23 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
     }
 });
 
+
+
 //for web app set password
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
-       
+
+        console.log(req.body);
+
+        if(!password ) {
+            return next(new errorhandler("Password is required!", 400));
+        }
+        if(!answer ) {
+            return next(new errorhandler("Answer is required!", 400));
+        }
+    
+
 
         const token = req.cookies.token;
 
