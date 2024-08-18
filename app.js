@@ -8,6 +8,7 @@ import userRouter from './routes/user.routes.js';
 import questionRouter from "./routes/question.routes.js"
 import formRouter from "./routes/forms.routes.js"
 import profileRouter from './routes/profile.routes.js';
+
 dotenv.config();
 
 
@@ -19,9 +20,12 @@ app.use(cookieParser());
 
 
 
-app.use(cors({
-    origin: process.env.ORIGIN
-}))
+app.use(cors(
+    {
+        origin:["http://localhost:3000"],
+        credentials:true
+    }
+))
 
 //routes
 app.use("/api/v1/user",userRouter);

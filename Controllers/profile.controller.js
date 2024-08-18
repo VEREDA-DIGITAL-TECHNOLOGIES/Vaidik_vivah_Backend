@@ -401,8 +401,6 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
 
 })
 
-
-
 export const UserDetails = catchAsyncError(async (req, res, next) => {
     try {
         const {userId } = req.body;
@@ -481,9 +479,6 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
 
 })
-
-
-
 
 export const dummyMatchedProfiles = catchAsyncError(async (req, res, next) => {
     try {

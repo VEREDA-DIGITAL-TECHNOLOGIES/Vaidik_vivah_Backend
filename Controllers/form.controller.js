@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
-import { redis } from "../Utils/redis.js";
+import { redis } from "../Utils/redis.js"; 
 
 dotenv.config();
 
@@ -16,10 +16,11 @@ export const personalDetailsRegister = catchAsyncError(async (req, res, next) =>
     try {
         const userId = req.user.userId;
         console.log(userId, "userId")
-        const { firstName, lastName, displayName, contactNumber, martialStatus, numberOfChildren, aboutYourSelf } = req.body;
+        const { firstName, lastName, displayName, contactNumber, maritalStatus,numberOfChildren, aboutYourSelf } = req.body;
         console.log("req.body", req.body)
 
-        if (!firstName || !lastName || !displayName || !contactNumber || !martialStatus || !numberOfChildren || !aboutYourSelf) {
+        if (!firstName || !lastName || !displayName || !contactNumber || !maritalStatus
+            || !numberOfChildren || !aboutYourSelf) {
             return next(new errorhandler("All fields are required!", 400));
         }
         const personalDetailsExist = await personalDetails.findOne({ where: { userId } });
@@ -29,7 +30,7 @@ export const personalDetailsRegister = catchAsyncError(async (req, res, next) =>
         }
 
 
-        const personal = await personalDetails.create({ firstName, lastName, displayName, contactNumber, martialStatus, numberOfChildren, aboutYourSelf, userId });
+        const personal = await personalDetails.create({ firstName, lastName, displayName, contactNumber, maritalStatus, numberOfChildren, aboutYourSelf, userId });
         await User.update({isPersonalFormFilled: true}, { where: { userId } });
 
 
