@@ -17,22 +17,33 @@ dotenv.config();
 export const myDetails = catchAsyncError(async (req, res, next) => {
     try {
         const userId = req.user.userId;
-        console.log(userId, "userId")
 
         const personalData = await personalDetails.findOne({ where: { userId } });
+        
         const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
         const locationDetailsData = await locationDetails.findOne({ where: { userId } });
         const otherDetailsData = await otherDetails.findOne({ where: { userId } });
         const imageUploadData = await imageUpload.findOne({ where: { userId } }) || "";
-        const answerData = await Answer.findOne({ where: { userId }, questionId: 12 });
-        const answer = answerData.answer;
+        const basic_lifestyle = await Answer.findOne({  where:{ userId } && {questionId: 12} });
+        const gender = await Answer.findOne({  where:{ userId } && {questionId: 1} });
+        const age = await Answer.findOne({  where:{ userId } && {questionId: 7} });
+        const postedby = await Answer.findOne({  where:{ userId } && {questionId: 6} });
+        const answer = basic_lifestyle.answer;
         const data = [
             {
-                "profileImage": imageUploadData,
+                "profileImage": imageUploadData.image,
                 "basic_&_lifestye": {
                     "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
+                    "gender":gender.answer,
+                    "age": age.answer,
+                    "about":personalData.aboutYourSelf,
+                    "maritalStatus":personalData.martialStatus,
+                    "numberOfChildren": personalData.numberOfChildren,
+                    "postedBy":postedby.answer
+                    
+
                 },
                 "family_details": {
                     "fatherOccupation": otherDetailsData.fatherOccupation,
@@ -62,8 +73,8 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
                     "motherTongue": otherDetailsData.motherTongue,
                 },
                 "location_background": {
-                    "currentLocation": otherDetailsData.currentLocation,
-                    "cityOfResidence": otherDetailsData.cityOfResidence,
+                    "currentLocation": locationDetailsData.currentLocation,
+                    "cityOfResidence": locationDetailsData.cityOfResidence || "",
                     "nationality": locationDetailsData.nationality,
                     "citizenShip": locationDetailsData.citizenShip,
                     "residencyVisaStatus": locationDetailsData.residencyVisaStatus,
@@ -73,15 +84,13 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
                     "workingStatus": qualificationDetailsData.currentWorkingStatus,
                     "income": qualificationDetailsData.income,
                 },
-                "interest_and_hobbies": {
-                    answer
-                }
+                "interest_and_hobbies": answer
 
             }
 
         ]
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             data,
             message: "Profile fetched successfully!"
@@ -405,20 +414,32 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     try {
         const {userId } = req.body;
 
+       
         const personalData = await personalDetails.findOne({ where: { userId } });
         const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
         const locationDetailsData = await locationDetails.findOne({ where: { userId } });
         const otherDetailsData = await otherDetails.findOne({ where: { userId } });
         const imageUploadData = await imageUpload.findOne({ where: { userId } }) || "";
-        const answerData = await Answer.findOne({ where: { userId }, questionId: 12 });
-        const answer = answerData.answer;
+        const basic_lifestyle = await Answer.findOne({  where:{ userId } && {questionId: 12} });
+        const gender = await Answer.findOne({  where:{ userId } && {questionId: 1} });
+        const age = await Answer.findOne({  where:{ userId } && {questionId: 7} });
+        const postedby = await Answer.findOne({  where:{ userId } && {questionId: 6} });
+        const answer = basic_lifestyle.answer;
         const data = [
             {
-                "profileImage": imageUploadData,
+                "profileImage": imageUploadData.image,
                 "basic_&_lifestye": {
                     "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
+                    "gender":gender.answer,
+                    "age": age.answer,
+                    "about":personalData.aboutYourSelf,
+                    "maritalStatus":personalData.martialStatus,
+                    "numberOfChildren": personalData.numberOfChildren,
+                    "postedBy":postedby.answer
+                    
+
                 },
                 "family_details": {
                     "fatherOccupation": otherDetailsData.fatherOccupation,
@@ -448,8 +469,8 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
                     "motherTongue": otherDetailsData.motherTongue,
                 },
                 "location_background": {
-                    "currentLocation": otherDetailsData.currentLocation,
-                    "cityOfResidence": otherDetailsData.cityOfResidence,
+                    "currentLocation": locationDetailsData.currentLocation,
+                    "cityOfResidence": locationDetailsData.cityOfResidence || "",
                     "nationality": locationDetailsData.nationality,
                     "citizenShip": locationDetailsData.citizenShip,
                     "residencyVisaStatus": locationDetailsData.residencyVisaStatus,
@@ -459,9 +480,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
                     "workingStatus": qualificationDetailsData.currentWorkingStatus,
                     "income": qualificationDetailsData.income,
                 },
-                "interest_and_hobbies": {
-                    answer
-                }
+                "interest_and_hobbies": answer
 
             }
 
