@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
+import recommendation from "../Models/recommendation.model.js";
 import { redis } from "../Utils/redis.js"; 
 
 dotenv.config();
@@ -32,6 +33,8 @@ export const personalDetailsRegister = catchAsyncError(async (req, res, next) =>
 
         const personal = await personalDetails.create({ firstName, lastName, displayName, contactNumber, martialStatus, numberOfChildren, aboutYourSelf, userId });
         await User.update({isPersonalFormFilled: true}, { where: { userId } });
+
+            await recommendation.update({firstName, lastName, displayName, contactNumber,   martialStatus, numberOfChildren, aboutYourSelf}, { where: { userId } });
 
 
         res.status(201).json({
@@ -61,6 +64,11 @@ export const qualificationDetailsRegister = catchAsyncError(async (req, res, nex
         }
 
         const qualificationData = await qualificationDetails.create({ qualification, currentWorkingStatus, occupation, income, userId });
+
+                            await recommendation.update({qualification, currentWorkingStatus, occupation, income}, { where: { userId } });
+
+
+
         await User.update({isQualificationFormFilled: true}, { where: { userId } });
 
 
@@ -92,6 +100,8 @@ export const locationDetailsRegister = catchAsyncError(async (req, res, next) =>
 
     const locationDetailsData = await locationDetails.create({ citizenShip, country, state, austrailanVisaStatus, userId });
 
+    await recommendation.update({citizenShip, country, state, austrailanVisaStatus}, { where: { userId } });
+
     await User.update({isLocationFormFilled: true}, { where: { userId } });
     res.status(201).json({
         success: true,
@@ -117,6 +127,10 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
     }
 
     const otherDetailsData = await otherDetails.create({ caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth, userId });
+
+    await recommendation.update({caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth}, { where: { userId } });
+
+     
     await User.update({isOtherFormFilled: true}, { where: { userId } });
     res.status(201).json({
         success: true,
@@ -151,6 +165,8 @@ export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
     }
 
     const imageUploadData = await imageUpload.create({ image: userImageUrls, userId });
+
+       await recommendation.update({image: userImageUrls}, { where: { userId } });
 
     await User.update({isImageFormFilled: true}, { where: { userId } });
 

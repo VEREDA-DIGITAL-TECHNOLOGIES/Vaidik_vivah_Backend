@@ -11,6 +11,7 @@ import { Op } from 'sequelize';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
+import recommendation from "../Models/recommendation.model.js";
 import { redis } from "../Utils/redis.js";
 dotenv.config();
 
@@ -32,7 +33,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         const data = [
             {
                 "profileImage": imageUploadData.image,
-                "basic_&_lifestye": {
+                "basic_and_lifestye": {
                     "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
@@ -119,6 +120,8 @@ export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
 
     const updatePersonalDetails = await personalDetails.update({ firstName, lastName, displayName }, { where: { userId } });
 
+                          await recommendation.update({firstName, lastName, displayName}, { where: { userId }});
+
     res.status(201).json({
         success: true,
         message: "Personal details updated successfully",
@@ -142,6 +145,8 @@ export const updateFamilyDetails = catchAsyncError(async (req, res, next) => {
     }
 
     const updateOtherDetails = await otherDetails.update({ fatherOccupation, motherOccupation, numberOfSiblings, livingWithFamily }, { where: { userId } });
+
+     await recommendation.update({fatherOccupation, motherOccupation, numberOfSiblings, livingWithFamily}, { where: { userId }});
 
     res.status(201).json({
         success: true,
@@ -167,6 +172,8 @@ export const updatePersonalBackground = catchAsyncError(async (req, res, next) =
 
     const updateOtherDetails = await otherDetails.update({ height, weight, bodyType, language, smokingHabbit, drinkingHabbit, diet, diet }, { where: { userId } });
 
+     await recommendation.update({height, weight, bodyType, language, smokingHabbit, drinkingHabbit, diet, complexion}, { where: { userId }});
+
     res.status(201).json({
         success: true,
         message: "Personal Background details updated successfully",
@@ -190,6 +197,8 @@ export const updateReligiousBackground = catchAsyncError(async (req, res, next) 
     }
 
     const updateOtherDetails = await otherDetails.update({ religion, caste, community, subCommunity, gothra, timeOfBirth, dateOfBirth, placeOfBirth, motherTongue }, { where: { userId } });
+
+     await recommendation.update({religion, caste, community, subCommunity, gothra, timeOfBirth, dateOfBirth, placeOfBirth, motherTongue}, { where: { userId }});
 
     res.status(201).json({
         success: true,
@@ -217,6 +226,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
 
     const updateLocationDetails = await locationDetails.update({ nationality, citizenShip, residencyVisaStatus }, { where: { userId } });
 
+     await recommendation.update({currentLocation, cityOfResidence, nationality, citizenShip, residencyVisaStatus}, { where: { userId }});
+
     const data = [...updateOtherDetails, ...updateLocationDetails]
 
     res.status(201).json({
@@ -243,6 +254,8 @@ export const updateEducationAndFinancialDetails = catchAsyncError(async (req, re
 
     const updateQualificationDetails = await qualificationDetails.update({ qualification, currentWorkingStatus, income }, { where: { userId } });
 
+    await recommendation.update({qualification, currentWorkingStatus, income}, { where: { userId }});
+
     res.status(201).json({
         success: true,
         message: "Education and Financial details updated successfully",
@@ -266,6 +279,8 @@ export const updateInterstAndHobbies = catchAsyncError(async (req, res, next) =>
     }
 
     const updateInterstAndHobbies = await Answer.update({ answer: hobbies }, { where: { userId }, questionId: 12 });
+
+    await recommendation.update({hobbies}, { where: { userId }});
 
     res.status(201).json({
         success: true,
@@ -340,7 +355,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
             }
         });
     } catch (error) {
-        return next(new ErrorHandler(error.message, 500));
+        return next(new errorhandler(error.message, 500));
     }
 });
 
@@ -405,7 +420,7 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
     });
 
     } catch (error) {
-        return next(new errorHandler(error.message, 500));
+        return next(new errorhandler(error.message, 500));
     }
 
 })

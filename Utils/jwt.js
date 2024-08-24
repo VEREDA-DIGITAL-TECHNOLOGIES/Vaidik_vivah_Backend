@@ -24,7 +24,7 @@ export const sendToken = (user, statusCode, res,message) => {
     const accessTokenOptions ={
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'lax'
         //secure: true
     }

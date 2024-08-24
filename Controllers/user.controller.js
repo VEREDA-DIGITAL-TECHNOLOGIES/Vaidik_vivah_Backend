@@ -12,6 +12,7 @@ import otherDetails from "../Models/otherDetails.model.js";
 import personalDetails from "../Models/personalDetails.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
 import imageUpload from "../Models/imageUpload.model.js";
+import recommendation from "../Models/recommendation.model.js";
 dotenv.config();
 
 // Register user
@@ -124,6 +125,7 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             isVerified: true,
             otp: null
         });
+             
 
         if (Array.isArray(answer)) {
             for (const ans of answer) {
@@ -138,6 +140,22 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
                 });
             }
         }
+        await recommendation.create({
+            userId: existingUser.userId,
+            email: existingUser.email,
+            gender: answerValue[0],
+            lookingFor: answerValue[1],
+            triedOnlineBefore: answerValue[2],
+            weddingGoles: answerValue[3],
+            longlookingBefore: answerValue[4],
+            whomlookingFor: answerValue[5],
+            age: answerValue[6],
+            lookingPartnerage: answerValue[7],
+            livinginAustralia: answerValue[8],
+            horoscopeMatch: answerValue[9],
+            castReligionMatterOrNot: answerValue[10],
+            interest_and_hobbies: answerValue[11],
+        })
 
 
         res.clearCookie("token");
@@ -202,6 +220,25 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
                 });
             }
         }
+
+        await recommendation.create({
+            userId: existingUser.userId,
+            email: existingUser.email,
+            gender: answerValue[0],
+            lookingFor: answerValue[1],
+            triedOnlineBefore: answerValue[2],
+            weddingGoles: answerValue[3],
+            longlookingBefore: answerValue[4],
+            whomlookingFor: answerValue[5],
+            age: answerValue[6],
+            lookingPartnerage: answerValue[7],
+            livinginAustralia: answerValue[8],
+            horoscopeMatch: answerValue[9],
+            castReligionMatterOrNot: answerValue[10],
+            interest_and_hobbies: answerValue[11],
+        })
+
+
 
         sendToken(existingUser, 200, res, "Password set successfully!");
 
