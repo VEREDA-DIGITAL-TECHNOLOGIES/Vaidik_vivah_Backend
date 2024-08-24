@@ -138,24 +138,31 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
                     questionId,
                     answer: answerValue
                 });
+
+                   
             }
         }
-        await recommendation.create({
+        const recommendationData = {
             userId: existingUser.userId,
             email: existingUser.email,
-            gender: answerValue[0],
-            lookingFor: answerValue[1],
-            triedOnlineBefore: answerValue[2],
-            weddingGoles: answerValue[3],
-            longlookingBefore: answerValue[4],
-            whomlookingFor: answerValue[5],
-            age: answerValue[6],
-            lookingPartnerage: answerValue[7],
-            livinginAustralia: answerValue[8],
-            horoscopeMatch: answerValue[9],
-            castReligionMatterOrNot: answerValue[10],
-            interest_and_hobbies: answerValue[11],
-        })
+            gender: answer[0]?.answerValue, 
+            lookingFor: answer[1]?.answerValue,
+            triedOnlineBefore: answer[2]?.answerValue,
+            weddingGoals: answer[3]?.answerValue,
+            longLookingBefore: answer[4]?.answerValue,
+            whomLookingFor: answer[5]?.answerValue,
+            age: answer[6]?.answerValue,
+            lookingPartnerAge: answer[7]?.answerValue,
+            livingInAustralia: answer[8]?.answerValue,
+            horoscopeMatch: answer[9]?.answerValue,
+            castReligionMatterOrNot: answer[10]?.answerValue,
+            interestAndHobbies: answer[11]?.answerValue
+        };
+
+      
+
+
+        await recommendation.create(recommendationData);
 
 
         res.clearCookie("token");
@@ -221,22 +228,27 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             }
         }
 
-        await recommendation.create({
+        const recommendationData = {
             userId: existingUser.userId,
             email: existingUser.email,
-            gender: answerValue[0],
-            lookingFor: answerValue[1],
-            triedOnlineBefore: answerValue[2],
-            weddingGoles: answerValue[3],
-            longlookingBefore: answerValue[4],
-            whomlookingFor: answerValue[5],
-            age: answerValue[6],
-            lookingPartnerage: answerValue[7],
-            livinginAustralia: answerValue[8],
-            horoscopeMatch: answerValue[9],
-            castReligionMatterOrNot: answerValue[10],
-            interest_and_hobbies: answerValue[11],
-        })
+            gender: answer[0]?.answerValue, 
+            lookingFor: answer[1]?.answerValue,
+            triedOnlineBefore: answer[2]?.answerValue,
+            weddingGoals: answer[3]?.answerValue,
+            longLookingBefore: answer[4]?.answerValue,
+            whomLookingFor: answer[5]?.answerValue,
+            age: answer[6]?.answerValue,
+            lookingPartnerAge: answer[7]?.answerValue,
+            livingInAustralia: answer[8]?.answerValue,
+            horoscopeMatch: answer[9]?.answerValue,
+            castReligionMatterOrNot: answer[10]?.answerValue,
+            interestAndHobbies: answer[11]?.answerValue
+        };
+
+      
+
+
+        await recommendation.create(recommendationData);
 
 
 
