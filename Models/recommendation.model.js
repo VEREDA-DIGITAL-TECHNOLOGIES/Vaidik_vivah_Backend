@@ -12,83 +12,82 @@ const Recommendation = sequelize.define('Recommendation', {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        allowNull: false,
+        allowNull: true
     },
     fcmToken: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
 
     userId: {
         type: DataTypes.UUID,
-        allowNull: false,
+        allowNull: true
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
 
     usertype: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
 
     qualification: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     currentWorkingStatus: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     occupation: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     income: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     firstName: {
         type: DataTypes.STRING,
-        allowNull: false,
-
+        allowNull: true
     },
     lastName: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
 
     displayName: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     contactNumber: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         min: 10,
         max: 10
     },
     martialalStatus: {
-        type: DataTypes.ENUM('Yes', 'No', ),
-        allowNull: false,
+        type: DataTypes.ENUM('Yes', 'No',),
+        allowNull: true
     },
     numberOfChildren: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
 
     aboutYourSelf: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
-    caste : {
+    caste: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     community: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     subCommunity: {
         type: DataTypes.STRING,
@@ -97,121 +96,121 @@ const Recommendation = sequelize.define('Recommendation', {
     },
     dateOfBirth: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     timeOfBirth: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     religion: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     placeOfBirth: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     motherTongue: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     gotra: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
-    height : {
+    height: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     weight: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     bodyType: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     language: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     smokingHabbit: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     drinkingHabbit: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
-   diet: {
+    diet: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     complexion: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     fatherOccupation: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     motherOccupation: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     siblings: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
 
     numberOfSiblings: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue:"Not Specified"
+        defaultValue: "Not Specified"
 
     },
     livingWithFamily: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue:"Not Specified"
+        defaultValue: "Not Specified"
 
     },
     citizenShip: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
-    country:{
+    country: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
-    state:{
+    state: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true
     },
     austrailanVisaStatus: {
         type: DataTypes.STRING,
         enum: ['yes', 'no'],
-        allowNull: false,
+        allowNull: true
     },
     currentLocation: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue:"Not Specified"
+        defaultValue: "Not Specified"
     },
     cityOfResidence: {
         type: DataTypes.STRING,
-        allowNull:true,
+        allowNull: true,
     },
-    nationality:{
+    nationality: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue:"Not Specified"
+        defaultValue: "Not Specified"
 
     },
     residencyVisaStatus: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue:"Not Specified"
+        defaultValue: "Not Specified"
     },
     gender:
     {
@@ -228,7 +227,7 @@ const Recommendation = sequelize.define('Recommendation', {
         allowNull: true,
 
     },
-    weddingGoles:{
+    weddingGoles: {
         type: DataTypes.STRING,
         allowNull: true,
     },
@@ -241,19 +240,19 @@ const Recommendation = sequelize.define('Recommendation', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    age:{
+    age: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    lookingPartnerage:{
+    lookingPartnerage: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    livinginAustralia:{
+    livinginAustralia: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    horoscopeMatch:{
+    horoscopeMatch: {
         type: DataTypes.STRING,
         allowNull: true,
     },
@@ -267,9 +266,9 @@ const Recommendation = sequelize.define('Recommendation', {
     },
     image: {
         type: DataTypes.JSON,
-        allowNull: false,
+        allowNull: true
     },
-   
+
 
 }, {
     timestamps: true,
