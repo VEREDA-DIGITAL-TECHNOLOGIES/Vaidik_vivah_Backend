@@ -69,7 +69,7 @@ const Recommendation = sequelize.define('Recommendation', {
         min: 10,
         max: 10
     },
-    maritalStatus: {
+    martialalStatus: {
         type: DataTypes.ENUM('Yes', 'No', ),
         allowNull: false,
     },
