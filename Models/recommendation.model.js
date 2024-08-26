@@ -222,21 +222,7 @@ const Recommendation = sequelize.define('Recommendation', {
         allowNull: true,
 
     },
-    triedOnlineBefore: {
-        type: DataTypes.STRING,
-        allowNull: true,
-
-    },
-    weddingGoles: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    longlookingBefore: {
-        type: DataTypes.STRING,
-        allowNull: true,
-
-    },
-    whomlookingFor: {
+    weddingGoals: {
         type: DataTypes.STRING,
         allowNull: true,
     },
@@ -244,11 +230,11 @@ const Recommendation = sequelize.define('Recommendation', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    lookingPartnerage: {
+    lookingPartnerAge: {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    livinginAustralia: {
+    livingInAustralia: {
         type: DataTypes.STRING,
         allowNull: true,
     },
@@ -261,7 +247,7 @@ const Recommendation = sequelize.define('Recommendation', {
         allowNull: true,
     },
     interest_and_hobbies: {
-        type: DataTypes.JSON,
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true,
     },
     image: {

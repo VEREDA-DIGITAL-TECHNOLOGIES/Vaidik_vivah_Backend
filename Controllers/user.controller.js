@@ -88,14 +88,14 @@ export const activateUser = catchAsyncError(async (req, res, next) => {
     }
 });
 
-
-
 //for web app set password
 export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
 
-        console.log(req.body);
+
+        
+
 
         if(!password ) {
             return next(new errorhandler("Password is required!", 400));
@@ -147,16 +147,13 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             email: existingUser.email,
             gender: answer[0]?.answerValue, 
             lookingFor: answer[1]?.answerValue,
-            triedOnlineBefore: answer[2]?.answerValue,
             weddingGoals: answer[3]?.answerValue,
-            longLookingBefore: answer[4]?.answerValue,
-            whomLookingFor: answer[5]?.answerValue,
             age: answer[6]?.answerValue,
             lookingPartnerAge: answer[7]?.answerValue,
             livingInAustralia: answer[8]?.answerValue,
             horoscopeMatch: answer[9]?.answerValue,
             castReligionMatterOrNot: answer[10]?.answerValue,
-            interestAndHobbies: answer[11]?.answerValue
+            interest_and_hobbies: answer[11]?.answerValue
         };
 
       
@@ -233,16 +230,13 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             email: existingUser.email,
             gender: answer[0]?.answerValue, 
             lookingFor: answer[1]?.answerValue,
-            triedOnlineBefore: answer[2]?.answerValue,
             weddingGoals: answer[3]?.answerValue,
-            longLookingBefore: answer[4]?.answerValue,
-            whomLookingFor: answer[5]?.answerValue,
             age: answer[6]?.answerValue,
             lookingPartnerAge: answer[7]?.answerValue,
             livingInAustralia: answer[8]?.answerValue,
             horoscopeMatch: answer[9]?.answerValue,
             castReligionMatterOrNot: answer[10]?.answerValue,
-            interestAndHobbies: answer[11]?.answerValue
+            interest_and_hobbies: answer[11]?.answerValue
         };
 
       
@@ -477,8 +471,8 @@ export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>
         res.status(500).json({
             success: false,
             message: "Internal server error",
-        })
-    }
+    })
+}
 
 })
 
