@@ -11,12 +11,12 @@ const connectDB = () => {
         {
             host: process.env.HOST,
             dialect: 'postgres',
-            dialectOptions: {
-                ssl: {
-                    require: true,
-                    rejectUnauthorized: false 
-                }
-            }
+            // dialectOptions: {
+            //     ssl: {
+            //         require: true,
+            //         rejectUnauthorized: false 
+            //     }
+            // }
         }
     );
 

@@ -18,8 +18,8 @@ userRouter.post("/verify-otp-for-mobile", verifyOtpForMobile);
 userRouter.post("/reset-password", resetPassword);
 userRouter.post("/reset-password-for-mobile", resetPasswordForMobile);
 userRouter.post("/updateFcmToken", isAuthenticated,createOrUpdateFCMToken);
-userRouter.post("dummy-register",dummyRegister);
-userRouter.post("dummy-activate-user",dummyactivateUserForMobile);
-userRouter.post("dummy-set-password",dummyPasswordForMobile);
+userRouter.post("/dummy-register",dummyRegister);
+userRouter.post("/dummy-activate-user",dummyactivateUserForMobile);
+userRouter.post("/dummy-set-password",dummyPasswordForMobile);
 
 export default userRouter

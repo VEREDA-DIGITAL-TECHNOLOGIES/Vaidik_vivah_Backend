@@ -171,7 +171,7 @@ export const updatePersonalBackground = catchAsyncError(async (req, res, next) =
         return next(new errorhandler("Other details not found!", 400));
     }
 
-    const updateOtherDetails = await otherDetails.update({ height, weight, bodyType, language, smokingHabbit, drinkingHabbit, diet, diet }, { where: { userId } });
+    const updateOtherDetails = await otherDetails.update({ height, weight, bodyType, language, smokingHabbit, drinkingHabbit, diet, complexion }, { where: { userId } });
 
      await recommendation.update({height, weight, bodyType, language, smokingHabbit, drinkingHabbit, diet, complexion}, { where: { userId }});
 
@@ -185,9 +185,9 @@ export const updatePersonalBackground = catchAsyncError(async (req, res, next) =
 
 export const updateReligiousBackground = catchAsyncError(async (req, res, next) => {
     const userId = req.user.userId
-    const { religion, caste, community, subCommunity, gothra, timeOfBirth, dateOfBirth, placeOfBirth, motherTongue } = req.body;
+    const { religion, community, subCommunity, gothra, motherTongue } = req.body;
 
-    if (!religion || !caste || !community || !subCommunity || !gothra || !timeOfBirth || !dateOfBirth || !placeOfBirth || !motherTongue) {
+    if (!religion || !community || !subCommunity || !gothra || !motherTongue) {
         return next(new errorhandler("All fields are required!", 400));
     }
 
@@ -197,9 +197,9 @@ export const updateReligiousBackground = catchAsyncError(async (req, res, next) 
         return next(new errorhandler("Other details not found!", 400));
     }
 
-    const updateOtherDetails = await otherDetails.update({ religion, caste, community, subCommunity, gothra, timeOfBirth, dateOfBirth, placeOfBirth, motherTongue }, { where: { userId } });
+    const updateOtherDetails = await otherDetails.update({ religion, community, subCommunity, gothra, motherTongue }, { where: { userId } });
 
-     await recommendation.update({religion, caste, community, subCommunity, gothra, timeOfBirth, dateOfBirth, placeOfBirth, motherTongue}, { where: { userId }});
+     await recommendation.update({religion, community, subCommunity, gothra, motherTongue}, { where: { userId }});
 
     res.status(201).json({
         success: true,
@@ -225,7 +225,7 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
 
     const updateOtherDetails = await otherDetails.update({ currentLocation, cityOfResidence }, { where: { userId } });
 
-    const updateLocationDetails = await locationDetails.update({ nationality, citizenShip, residencyVisaStatus }, { where: { userId } });
+    const updateLocationDetails = await locationDetails.update({currentLocation, cityOfResidence, nationality, citizenShip, residencyVisaStatus }, { where: { userId } });
 
      await recommendation.update({currentLocation, cityOfResidence, nationality, citizenShip, residencyVisaStatus}, { where: { userId }});
 

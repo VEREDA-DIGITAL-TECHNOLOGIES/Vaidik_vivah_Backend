@@ -47,12 +47,13 @@ const personalDetails  = sequelize.define('personalDetails', {
         max: 10
     },
     martialStatus: {
-        type: DataTypes.ENUM('Yes', 'No', ),
+        type: DataTypes.STRING,
         allowNull: false,
     },
     numberOfChildren: { 
         type: DataTypes.INTEGER,
         allowNull: false,
+        defaultValue: 0,
     },
     aboutYourSelf: {
         type: DataTypes.STRING,
