@@ -188,10 +188,12 @@ export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
     }
 });
 
-//set password for mobile app
+
+
+
 export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
-        const { password, answer,token } = req.body;
+        const { password, answer, token } = req.body;
 
         if (!token) {
             return next(new errorhandler("Please Verify your email first!", 400));
@@ -211,6 +213,7 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             otp: null
         });
 
+        // Store answers in the database
         if (Array.isArray(answer)) {
             for (const ans of answer) {
                 const { questionId, answerValue } = ans;
@@ -228,31 +231,37 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
         const recommendationData = {
             userId: existingUser.userId,
             email: existingUser.email,
-            gender: answer[0]?.answerValue, 
-            lookingFor: answer[1]?.answerValue,
-            weddingGoals: answer[3]?.answerValue,
-            age: answer[6]?.answerValue,
-            lookingPartnerAge: answer[7]?.answerValue,
-            livingInAustralia: answer[8]?.answerValue,
-            horoscopeMatch: answer[9]?.answerValue,
-            castReligionMatterOrNot: answer[10]?.answerValue,
-            interest_and_hobbies: answer[11]?.answerValue
+            gender: answer.find(a => a.questionId === 1)?.answerValue, 
+            lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
+            weddingGoals: answer.find(a => a.questionId === 4)?.answerValue,
+            age: answer.find(a => a.questionId === 7)?.answerValue,
+            lookingPartnerAge: answer.find(a => a.questionId === 8)?.answerValue,
+            livingInAustralia: answer.find(a => a.questionId === 9)?.answerValue,
+            horoscopeMatch: answer.find(a => a.questionId === 10)?.answerValue,
+            castReligionMatterOrNot: answer.find(a => a.questionId === 11)?.answerValue,
+            interest_and_hobbies: answer.find(a => a.questionId === 12)?.answerValue
         };
 
-      
+        console.log(`Recommendation Data: ${JSON.stringify(recommendationData)}`);
 
+        const existingRecommendation = await recommendation.findOne({ where: { userId: existingUser.userId } });
 
-        await recommendation.create(recommendationData);
-
-
+        if (existingRecommendation) {
+            await recommendation.update(recommendationData, { where: { userId: existingUser.userId } });
+        } else {
+            await recommendation.create(recommendationData);
+        }
 
         sendToken(existingUser, 200, res, "Password set successfully!");
 
-    }catch(error){
+    } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
-
 });
+
+
+
+
 
 export const loginUser = catchAsyncError(async (req, res, next) => {
     try {
