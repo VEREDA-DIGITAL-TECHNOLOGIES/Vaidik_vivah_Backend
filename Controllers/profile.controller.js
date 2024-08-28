@@ -13,6 +13,7 @@ import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
 import recommendation from "../Models/recommendation.model.js";
 import { redis } from "../Utils/redis.js";
+import axios from "axios";
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
@@ -290,74 +291,101 @@ export const updateInterstAndHobbies = catchAsyncError(async (req, res, next) =>
 
 })
 
+// export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
+//     try {
+//         const { userId } = req.user;
+
+//         const users = await User.findAll({
+//             where: {
+//                 userId: { [Op.ne]: userId }
+//             }
+//         });
+
+//         const userIds = users.map(user => user.userId);
+
+//         const answers = await Answer.findAll({
+//             where: { userId: { [Op.in]: userIds } }
+//         });
+
+//         const userAnswers = await Answer.findAll({ where: { userId } });
+//         const userGender = userAnswers.find(a => a.questionId === 1)?.answer;
+//         const userLookingFor = userAnswers.find(a => a.questionId === 2)?.answer;
+//         const userAge = userAnswers.find(a => a.questionId === 7)?.answer;
+//         const userAgeRange = userAnswers.find(a => a.questionId === 8)?.answer;
+ 
+//         const profileData = [];
+            
+//         for (let user of users) {
+//             const userAnswer = answers.filter(a => a.userId === user.userId);
+//             const gender = userAnswer.find(a => a.questionId === 1)?.answer;
+//             const lookingFor = userAnswer.find(a => a.questionId === 2)?.answer;
+//             const age = userAnswer.find(a => a.questionId === 7)?.answer;
+//             const ageRange = userAnswer.find(a => a.questionId === 8)?.answer;
+
+//             console.log(userLookingFor, gender,lookingFor,userLookingFor === gender,"userLookingFor === gender",ageRange,userAgeRange[0])
+            
+
+//             if (userLookingFor === gender && lookingFor === gender && age > userAgeRange[0] || age <= userAgeRange[1]) {
+
+//                 const personal = await personalDetails.findOne({ where: { userId: user.userId } });
+//                 const other = await otherDetails.findOne({ where: { userId: user.userId } });
+//                 const location = await locationDetails.findOne({ where: { userId: user.userId } });
+//                 const qualification = await qualificationDetails.findOne({ where: { userId: user.userId } });
+
+//                 profileData.push({
+//                     userType: user.usertype,
+//                     userId: user.userId,
+//                     firstName: personal?.firstName || null,
+//                     martialStatus: personal?.martialStatus || null,
+//                     lastName: personal?.lastName || null,
+//                     displayName: personal?.displayName || null,
+//                     state: location?.state || null,
+//                     country: location?.country || null,
+//                     religion: other?.religion || null,
+//                     age: age || null,
+//                     gender: gender || null,
+//                     occupation: qualification?.occupation || null
+//                 });
+//             }
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             data: {
+//                 profiles: profileData
+//             }
+//         });
+//     } catch (error) {
+//         return next(new errorhandler(error.message, 500));
+//     }
+// });
+
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     try {
         const { userId } = req.user;
 
-        const users = await User.findAll({
-            where: {
-                userId: { [Op.ne]: userId }
-            }
+     const data = await axios.post('http://localhost:8000/get_matches/', { userId : userId })
+
+     if(data.data.length === 0){
+        return res.status(400).json({
+            success: false,
+             profiles: [],
+             message: "No matches found"
         });
-
-        const userIds = users.map(user => user.userId);
-
-        const answers = await Answer.findAll({
-            where: { userId: { [Op.in]: userIds } }
-        });
-
-        const userAnswers = await Answer.findAll({ where: { userId } });
-        const userGender = userAnswers.find(a => a.questionId === 1)?.answer;
-        const userLookingFor = userAnswers.find(a => a.questionId === 2)?.answer;
-        const userAge = userAnswers.find(a => a.questionId === 7)?.answer;
-        const userAgeRange = userAnswers.find(a => a.questionId === 8)?.answer;
- 
-        const profileData = [];
-            
-        for (let user of users) {
-            const userAnswer = answers.filter(a => a.userId === user.userId);
-            const gender = userAnswer.find(a => a.questionId === 1)?.answer;
-            const lookingFor = userAnswer.find(a => a.questionId === 2)?.answer;
-            const age = userAnswer.find(a => a.questionId === 7)?.answer;
-            const ageRange = userAnswer.find(a => a.questionId === 8)?.answer;
-
-            console.log(userLookingFor, gender,lookingFor,userLookingFor === gender,"userLookingFor === gender",ageRange,userAgeRange[0])
-            
-
-            if (userLookingFor === gender && lookingFor === gender && age > userAgeRange[0] || age <= userAgeRange[1]) {
-
-                const personal = await personalDetails.findOne({ where: { userId: user.userId } });
-                const other = await otherDetails.findOne({ where: { userId: user.userId } });
-                const location = await locationDetails.findOne({ where: { userId: user.userId } });
-                const qualification = await qualificationDetails.findOne({ where: { userId: user.userId } });
-
-                profileData.push({
-                    userType: user.usertype,
-                    userId: user.userId,
-                    firstName: personal?.firstName || null,
-                    martialStatus: personal?.martialStatus || null,
-                    lastName: personal?.lastName || null,
-                    displayName: personal?.displayName || null,
-                    state: location?.state || null,
-                    country: location?.country || null,
-                    religion: other?.religion || null,
-                    age: age || null,
-                    gender: gender || null,
-                    occupation: qualification?.occupation || null
-                });
-            }
-        }
+     }
 
         return res.status(200).json({
             success: true,
-            data: {
-                profiles: profileData
-            }
+             profiles: data
+
         });
-    } catch (error) {
+
+
+    }catch(error){
         return next(new errorhandler(error.message, 500));
     }
-});
+})
+
 
 export const filterProfiles = catchAsyncError(async (req, res, next) => {
     try {
