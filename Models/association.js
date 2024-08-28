@@ -5,6 +5,7 @@ import locationDetails from './locationDetails.model.js';
 import imageUpload from './imageUpload.model.js';
 import qualificationDetails from './qualificationDetails.model.js';
 import personalDetails from './personalDetails.model.js';
+import FavProfile from './favProfile.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -29,6 +30,14 @@ User.hasMany(qualificationDetails, { foreignKey: 'userId', as: 'qualificationDet
 qualificationDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
+User.hasMany(FavProfile, { foreignKey: 'favoritingUserId', as: 'FavoritingProfiles' });
+FavProfile.belongsTo(User, { foreignKey: 'favoritingUserId', as: 'FavoritingUser' });
+
+User.hasMany(FavProfile, { foreignKey: 'favoritedUserId', as: 'FavoritedProfiles' });
+FavProfile.belongsTo(User, { foreignKey: 'favoritedUserId', as: 'FavoritedUser' });
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails };
+
+
+
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile};
