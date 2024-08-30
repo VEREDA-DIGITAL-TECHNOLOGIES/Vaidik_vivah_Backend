@@ -69,8 +69,8 @@ const Recommendation = sequelize.define('Recommendation', {
         max: 10
     },
     maritalStatus: {
-        type: DataTypes.ENUM('Yes', 'No',),
-        allowNull: true
+        type: DataTypes.STRING,
+        allowNull: false,
     },
     numberOfChildren: {
         type: DataTypes.STRING,
@@ -189,7 +189,6 @@ const Recommendation = sequelize.define('Recommendation', {
     },
     austrailanVisaStatus: {
         type: DataTypes.STRING,
-        enum: ['yes', 'no'],
         allowNull: true
     },
     currentLocation: {

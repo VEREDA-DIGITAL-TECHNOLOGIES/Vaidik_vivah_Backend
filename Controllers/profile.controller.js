@@ -34,7 +34,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         const data = [
             {
                 "profileImage": imageUploadData.image,
-                "basic_&_lifestye": {
+                "basic_and_lifestye": {
                    "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
@@ -107,27 +107,24 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
 })
 
 export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
+
     const userId = req.user.userId
-    const { firstName, lastName, displayName } = req.body;
 
-    if (!firstName || !lastName || !displayName) {
-        return next(new errorhandler("All fields are required!", 400));
-    }
-
+    const { firstName, lastName,displayName,maritalStatus,aboutYourSelf } = req.body;
+   
     const personalData = await personalDetails.findOne({ where: { userId } });
 
     if (!personalData) {
         return next(new errorhandler("Personal details not found!", 400));
     }
 
-    const updatePersonalDetails = await personalDetails.update({ firstName, lastName, displayName }, { where: { userId } });
-
-                          await recommendation.update({firstName, lastName, displayName}, { where: { userId }});
+     await personalDetails.update({ firstName, lastName, displayName,aboutYourSelf,maritalStatus }, { where: { userId } });
+   
+       await recommendation.update({firstName, lastName, displayName}, { where: { userId }});
 
     res.status(201).json({
         success: true,
         message: "Personal details updated successfully",
-        updatePersonalDetails
     })
 
 })
@@ -363,30 +360,39 @@ export const updateInterstAndHobbies = catchAsyncError(async (req, res, next) =>
 
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     try {
-        const { userId } = req.user;
+        const { userId } = req.user; // Get userId from the request context
+        const { page = 1, pageSize = 20 } = req.query; // Extract pagination parameters from query
 
-     const response = await axios.post('http://localhost:8000/get_matches/', { userId : userId })
-     console.log(response.data)
-     
-     if(response.data.length === 0 ||!response.data) {
-        return res.status(400).json({
-            success: false,
-             profiles: [],
-             message: "No matches found"
+        // Make the POST request to the external service with pagination parameters in the body
+        const response = await axios.post('http://0.0.0.0:9000/get_matches2/', {
+            userId,
+            page,
+            pageSize
         });
-     }
 
+        // Extract data from the response
+        const profiles = response.data;
+
+        // Check if any matches were found
+        if (!profiles || profiles.length === 0) {
+            return res.status(404).json({
+                success: false,
+                profiles: [],
+                message: "No matches found"
+            });
+        }
+
+        // Return successful response with the profiles
         return res.status(200).json({
             success: true,
-             profiles: response.data
-
+            profiles
         });
 
-
-    }catch(error){
+    } catch (error) {
+        // Pass the error to the custom error handler
         return next(new errorhandler(error.message, 500));
     }
-})
+});
 
 
 export const filterProfiles = catchAsyncError(async (req, res, next) => {
@@ -474,7 +480,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
         const data = [
             {
                 "profileImage": imageUploadData.image,
-                "basic_&_lifestye": {
+                "basic_and_lifestye": {
                     "userId": userId,
                    "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
