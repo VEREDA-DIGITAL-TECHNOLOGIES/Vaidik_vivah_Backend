@@ -100,8 +100,6 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             return next(new errorhandler("Answer is required!", 400));
         }
     
-
-
         const token = req.cookies.token;
 
         if (!token) {

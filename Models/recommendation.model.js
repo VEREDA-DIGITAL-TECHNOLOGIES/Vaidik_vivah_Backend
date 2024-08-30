@@ -249,7 +249,7 @@ const Recommendation = sequelize.define('Recommendation', {
     interest_and_hobbies: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: true,
-    },
+    },    
     image: {
         type: DataTypes.JSON,
         allowNull: true
