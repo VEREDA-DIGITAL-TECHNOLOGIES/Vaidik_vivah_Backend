@@ -70,7 +70,7 @@ const Recommendation = sequelize.define('Recommendation', {
     },
     maritalStatus: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     numberOfChildren: {
         type: DataTypes.STRING,

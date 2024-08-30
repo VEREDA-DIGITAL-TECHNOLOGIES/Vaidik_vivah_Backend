@@ -154,7 +154,7 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
       
 
 
-        await recommendation.create(recommendationData);
+    await recommendation.create(recommendationData);
 
 
         res.clearCookie("token");
