@@ -38,7 +38,6 @@ const locationDetails = sequelize.define('locationDetails', {
     },
     austrailanVisaStatus: {
         type: DataTypes.STRING,
-        enum: ['yes', 'no'],
         allowNull: false,
     },
     currentLocation: {
