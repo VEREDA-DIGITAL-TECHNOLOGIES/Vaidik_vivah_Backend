@@ -34,7 +34,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         const data = [
             {
                 "profileImage": imageUploadData.image,
-                "basic_&_lifestye": {
+                "basic_and_lifestye": {
                    "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
@@ -107,27 +107,24 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
 })
 
 export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
+
     const userId = req.user.userId
-    const { firstName, lastName, displayName } = req.body;
 
-    if (!firstName || !lastName || !displayName) {
-        return next(new errorhandler("All fields are required!", 400));
-    }
-
+    const { firstName, lastName,displayName,maritalStatus,aboutYourSelf } = req.body;
+   
     const personalData = await personalDetails.findOne({ where: { userId } });
 
     if (!personalData) {
         return next(new errorhandler("Personal details not found!", 400));
     }
 
-    const updatePersonalDetails = await personalDetails.update({ firstName, lastName, displayName }, { where: { userId } });
-
-                          await recommendation.update({firstName, lastName, displayName}, { where: { userId }});
+     await personalDetails.update({ firstName, lastName, displayName,aboutYourSelf,maritalStatus }, { where: { userId } });
+   
+       await recommendation.update({firstName, lastName, displayName}, { where: { userId }});
 
     res.status(201).json({
         success: true,
         message: "Personal details updated successfully",
-        updatePersonalDetails
     })
 
 })
@@ -474,7 +471,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
         const data = [
             {
                 "profileImage": imageUploadData.image,
-                "basic_&_lifestye": {
+                "basic_and_lifestye": {
                     "userId": userId,
                    "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
