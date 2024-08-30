@@ -46,7 +46,7 @@ const personalDetails  = sequelize.define('personalDetails', {
         min: 10,
         max: 10
     },
-    martialStatus: {
+    maritalStatus: {
         type: DataTypes.STRING,
         allowNull: false,
     },

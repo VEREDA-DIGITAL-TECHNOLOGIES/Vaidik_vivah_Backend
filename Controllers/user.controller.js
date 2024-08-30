@@ -93,10 +93,6 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
 
-
-        
-
-
         if(!password ) {
             return next(new errorhandler("Password is required!", 400));
         }
@@ -144,6 +140,7 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
         }
         const recommendationData = {
             userId: existingUser.userId,
+            usertype: existingUser.usertype,
             email: existingUser.email,
             gender: answer[0]?.answerValue, 
             lookingFor: answer[1]?.answerValue,
@@ -188,9 +185,6 @@ export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
     }
 });
 
-
-
-
 export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer, token } = req.body;
@@ -230,6 +224,7 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
 
         const recommendationData = {
             userId: existingUser.userId,
+            usertype: existingUser.usertype,
             email: existingUser.email,
             gender: answer.find(a => a.questionId === 1)?.answerValue, 
             lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
@@ -258,10 +253,6 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 });
-
-
-
-
 
 export const loginUser = catchAsyncError(async (req, res, next) => {
     try {

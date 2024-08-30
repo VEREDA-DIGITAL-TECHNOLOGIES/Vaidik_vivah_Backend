@@ -34,18 +34,18 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         const data = [
             {
                 "profileImage": imageUploadData.image,
-                "basic_and_lifestye": {
-                    "firstName": personalData.firstName,
+                "basic_&_lifestye": {
+                   "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
                     "gender":gender.answer,
                     "age": age.answer,
                     "about":personalData.aboutYourSelf,
-                    "maritalStatus":personalData.martialStatus,
+                    "religion":otherDetailsData.religion,
+                    "maritalStatus":personalData.maritalStatus,
                     "numberOfChildren": personalData.numberOfChildren,
                     "postedBy":postedby.answer
-                    
-
+    
                 },
                 "family_details": {
                     "fatherOccupation": otherDetailsData.fatherOccupation,
@@ -65,7 +65,6 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
                 },
                 "religious_background": {
                     "religion": otherDetailsData.religion,
-                    "caste": otherDetailsData.caste,
                     "community": otherDetailsData.community,
                     "subCommunity": otherDetailsData.subCommunity,
                     "gothra": otherDetailsData.gothra,
@@ -83,6 +82,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
                 },
                 "education_and_financial": {
                     "qualification": qualificationDetailsData.qualification,
+                    "education": qualificationDetailsData.occupation,
                     "workingStatus": qualificationDetailsData.currentWorkingStatus,
                     "income": qualificationDetailsData.income,
                 },
@@ -91,6 +91,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
             }
 
         ]
+
 
         return res.status(200).json({
             success: true,
@@ -364,9 +365,10 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     try {
         const { userId } = req.user;
 
-     const data = await axios.post('http://localhost:8000/get_matches/', { userId : userId })
-
-     if(data.data.length === 0){
+     const response = await axios.post('http://localhost:8000/get_matches/', { userId : userId })
+     console.log(response.data)
+     
+     if(response.data.length === 0 ||!response.data) {
         return res.status(400).json({
             success: false,
              profiles: [],
@@ -376,7 +378,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-             profiles: data
+             profiles: response.data
 
         });
 
@@ -427,7 +429,7 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
 
                 userId: user.userId,
                 firstName: personal?.firstName || null,
-                martialStatus: personal?.martialStatus || null,
+                maritalStatus: personal?.maritalStatus || null,
                 lastName: personal?.lastName || null,
                 displayName: personal?.displayName || null,
                 state: location?.state || null,
@@ -453,6 +455,7 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
 
 })
 
+
 export const UserDetails = catchAsyncError(async (req, res, next) => {
     try {
         const {userId } = req.body;
@@ -472,17 +475,18 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
             {
                 "profileImage": imageUploadData.image,
                 "basic_&_lifestye": {
-                    "firstName": personalData.firstName,
+                    "userId": userId,
+                   "firstName": personalData.firstName,
                     "lastName": personalData.lastName,
                     "displayName": personalData.displayName,
                     "gender":gender.answer,
                     "age": age.answer,
                     "about":personalData.aboutYourSelf,
-                    "maritalStatus":personalData.martialStatus,
+                    "religion":otherDetailsData.religion,
+                    "maritalStatus":personalData.maritalStatus,
                     "numberOfChildren": personalData.numberOfChildren,
                     "postedBy":postedby.answer
-                    
-
+    
                 },
                 "family_details": {
                     "fatherOccupation": otherDetailsData.fatherOccupation,
@@ -502,7 +506,6 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
                 },
                 "religious_background": {
                     "religion": otherDetailsData.religion,
-                    "caste": otherDetailsData.caste,
                     "community": otherDetailsData.community,
                     "subCommunity": otherDetailsData.subCommunity,
                     "gothra": otherDetailsData.gothra,
@@ -520,6 +523,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
                 },
                 "education_and_financial": {
                     "qualification": qualificationDetailsData.qualification,
+                    "education": qualificationDetailsData.occupation,
                     "workingStatus": qualificationDetailsData.currentWorkingStatus,
                     "income": qualificationDetailsData.income,
                 },
@@ -541,6 +545,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
 
 })
+
 
 export const dummyMatchedProfiles = catchAsyncError(async (req, res, next) => {
     try {

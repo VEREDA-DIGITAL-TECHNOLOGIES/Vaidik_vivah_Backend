@@ -8,6 +8,7 @@ import userRouter from './routes/user.routes.js';
 import questionRouter from "./routes/question.routes.js"
 import formRouter from "./routes/forms.routes.js"
 import profileRouter from './routes/profile.routes.js';
+import favProfileRouter from './routes/favProfile.routes.js';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use("/api/v1/user",userRouter);
 app.use("/api/v1/question",questionRouter);
 app.use("/api/v1/form",formRouter);
 app.use("/api/v1/profile",profileRouter);
+app.use("/api/v1/profile/favorite",favProfileRouter);
  
 
 app.get("/test", async (req, res, next) => {

@@ -20,8 +20,7 @@ const FavProfile = sequelize.define('FavProfile', {
             key: 'userId',
         },
     },
-
-    profileId: {
+    favoritedUserId: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
@@ -29,7 +28,11 @@ const FavProfile = sequelize.define('FavProfile', {
             key: 'userId',
         },
     },
-    
+    profile:{
+        type:DataTypes.ARRAY(DataTypes.JSON),
+        allowNull: false,
+        defaultValue: [],
+    }  
 },
 {
     timestamps: true
