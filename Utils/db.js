@@ -12,7 +12,7 @@ console.log({
 const connectDB = () => {
     const sequelize = new Sequelize(
         process.env.DATABASE,
-        process.env.USER,
+        'postgres',
         process.env.PASSWORD,
         {
             host: process.env.HOST,
