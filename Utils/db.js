@@ -34,10 +34,7 @@ const connectDB = () => {
         .then(() => {
 
             console.log('Database Connection has been established successfully.');
-            return sequelize;
-
-
-            
+            return sequelize;       
         })
         .catch((error) => {
             console.log(error.message);

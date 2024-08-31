@@ -37,7 +37,7 @@ app.use("/api/v1/profile/favorite",favProfileRouter);
  
 
 app.get("/test", async (req, res, next) => {
-    res.status(200).json({ success: true , data,message:"Api is working"
+    res.status(200).json({ success: true ,message:"Api is working"
     })
 })
 
