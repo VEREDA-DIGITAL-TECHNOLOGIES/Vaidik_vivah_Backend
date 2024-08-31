@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import jwt from "jsonwebtoken";
-import sendEmail from "../Utils/sendmail.js";
+import sendEmail from "../Utils/sendMail.js";
 import { sendToken } from "../Utils/jwt.js";
 import { redis } from "../Utils/redis.js";
 import Answer from '../Models/answer.model.js';
