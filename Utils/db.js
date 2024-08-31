@@ -15,7 +15,7 @@ const connectDB = () => {
 
             dialectOptions: {
                 ssl: {
-                    require: true,
+                    require: false,
                     rejectUnauthorized: false 
                 }
             }
