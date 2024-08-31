@@ -1,7 +1,13 @@
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 dotenv.config();
-console.log(process.env.PASSWORD);
+
+console.log({
+    DATABASE: process.env.DATABASE,
+    USER: process.env.USER,
+    PASSWORD: process.env.PASSWORD,
+    HOST: process.env.HOST
+});
 
 const connectDB = () => {
     const sequelize = new Sequelize(
