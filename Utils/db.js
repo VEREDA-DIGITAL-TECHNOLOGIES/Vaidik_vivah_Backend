@@ -10,14 +10,16 @@ const connectDB = () => {
         process.env.PASSWORD,
         {
             host: process.env.HOST,
+            port: 5432,
             dialect: 'postgres',
+
             dialectOptions: {
                 ssl: {
                     require: true,
                     rejectUnauthorized: false 
                 }
             }
-        }
+        },
     );
 
     sequelize.authenticate()
