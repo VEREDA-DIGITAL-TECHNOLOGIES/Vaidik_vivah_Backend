@@ -1,23 +1,31 @@
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 dotenv.config();
-console.log(process.env.PASSWORD);
+
+console.log({
+    DATABASE: process.env.DATABASE,
+    USER: process.env.USER,
+    PASSWORD: process.env.PASSWORD,
+    HOST: process.env.HOST
+});
 
 const connectDB = () => {
     const sequelize = new Sequelize(
         process.env.DATABASE,
-        process.env.USER,
+        'postgres',
         process.env.PASSWORD,
         {
             host: process.env.HOST,
+            port: 5432,
             dialect: 'postgres',
+
             dialectOptions: {
                 ssl: {
-                    require: true,
+                    require: false,
                     rejectUnauthorized: false 
                 }
             }
-        }
+        },
     );
 
     sequelize.authenticate()
@@ -26,10 +34,7 @@ const connectDB = () => {
         .then(() => {
 
             console.log('Database Connection has been established successfully.');
-            return sequelize;
-
-
-            
+            return sequelize;       
         })
         .catch((error) => {
             console.log(error.message);

@@ -140,40 +140,47 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
 
 export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
     const userId = req.user.userId;
+    try{
+        if (!req.files) {
+            return next(new errorhandler("Please upload an image!", 400));
+        }
+        console.log(req.files, "req.file")
+    
+        const imageUploadExist = await imageUpload.findOne({ where: { userId } });
+    
+        if (imageUploadExist) {
+            return next(new errorhandler("Image already uploaded!", 400));
+        }
+    
+        let userImageUrls;
+    
+        if (req.files && req.files.length > 0) {
+            const userImagesLocal = req.files.map((file) => file.path);
+    
+            const userImages = await uploadCloudinary(userImagesLocal);
+    
+            userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
+                : [userImages.url];
+        }
+    
+        const imageUploadData = await imageUpload.create({ image: userImageUrls, userId });
+    
+           await recommendation.update({image: userImageUrls}, { where: { userId } });
+    
+        await User.update({isImageFormFilled: true}, { where: { userId } });
+    
+          res.status(201).json({
+            success: true,
+            message: "Image uploaded successfully",
+            imageUploadData
+        })
 
-    if (!req.files) {
-        return next(new errorhandler("Please upload an image!", 400));
+    }catch(error){
+        return next(new errorhandler(error.message, 500));
+
     }
-    console.log(req.files, "req.file")
 
-    const imageUploadExist = await imageUpload.findOne({ where: { userId } });
-
-    if (imageUploadExist) {
-        return next(new errorhandler("Image already uploaded!", 400));
-    }
-
-    let userImageUrls;
-
-    if (req.files && req.files.length > 0) {
-        const userImagesLocal = req.files.map((file) => file.path);
-
-        const userImages = await uploadCloudinary(userImagesLocal);
-
-        userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
-            : [userImages.url];
-    }
-
-    const imageUploadData = await imageUpload.create({ image: userImageUrls, userId });
-
-       await recommendation.update({image: userImageUrls}, { where: { userId } });
-
-    await User.update({isImageFormFilled: true}, { where: { userId } });
-
-    res.status(201).json({
-        success: true,
-        message: "Image uploaded successfully",
-        imageUploadData
-    })
+   
 
 })
 
