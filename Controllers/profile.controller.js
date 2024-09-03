@@ -369,7 +369,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
             page,
             pageSize
         });
-
+        console.log(response,"response");
         // Extract data from the response
         const profiles = response.data;
 
