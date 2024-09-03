@@ -25,8 +25,8 @@ export const sendToken = (user, statusCode, res,message) => {
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
         httpOnly: false,
-        sameSite: 'lax'
-        //secure: true
+        sameSite: 'lax',
+        secure: true
     }
         //we have to add secure :true in production
 
@@ -34,8 +34,8 @@ export const sendToken = (user, statusCode, res,message) => {
         expires: new Date(Date.now() + refreshTokenExpire),
         maxAge: refreshTokenExpire,
         httpOnly: true,
-        sameSite: 'lax'
-        //secure: true
+        sameSite: 'lax',
+        secure: true
     }
 
 
