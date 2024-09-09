@@ -582,7 +582,7 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
     const recommendedUsers = await recommendation.findAll({
       where: {
         userId: { [Op.in]: userIds },
-        lookingFor: lookingFor,
+        gender: lookingFor,
         [Op.or]: [
           { age: { [Op.between]: [age1, age2] } } ,
           { height: { [Op.between]: [height1, height2] } },
