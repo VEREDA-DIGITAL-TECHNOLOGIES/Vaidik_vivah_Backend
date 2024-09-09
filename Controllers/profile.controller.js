@@ -542,6 +542,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 export const filterProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user.userId;
+   
 
     const {
       ageRange,
@@ -558,7 +559,10 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
     } = req.body;
 
 
-    const currentUser = await User.findOne({ where: { userId } });
+    const currentUser = await recommendation.findOne({ where: { userId } });
+     const lookingFor = currentUser?.lookingFor;
+ 
+
 
     const Users = await User.findAll({
       where: {
@@ -566,17 +570,19 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
       },
     });
 
+
     const userIds = Users.map((user) => user.userId);
-    const age1 = String(ageRange.min);
-    const age2 = String(ageRange.max);
-    const height1 = String(heightRange.min);
-    const height2 = String(heightRange.max);
+    const age1 = ageRange.split("-")[0];
+    const age2 = ageRange.split("-")[1];
+    const height1 = heightRange.split("-")[0];
+    const height2 = heightRange.split("-")[1];
     console.log(userIds, "userIds");
 
    
     const recommendedUsers = await recommendation.findAll({
       where: {
         userId: { [Op.in]: userIds },
+        lookingFor: lookingFor,
         [Op.or]: [
           { age: { [Op.between]: [age1, age2] } } ,
           { height: { [Op.between]: [height1, height2] } },
@@ -593,19 +599,19 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
       },
     });
 
-    const totalScore = 10; 
+    const totalScore = 100; 
     const weights = {
-      religion: 2,
-      age: 2,
-      height: 1,
-      income: 1,
-      ethnicity: 1,
-      highestQualification: 1,
-      smokingHabbit: 1,
-      occupation: 1,
-      maritalStatus: 1,
-      eatingHabbits: 1,
-      community: 1,
+      religion: 10,
+      age: 10,
+      height: 10,
+      income: 10,
+      ethnicity: 10,
+      highestQualification: 10,
+      smokingHabbit: 10,
+      occupation: 10,
+      maritalStatus: 10,
+      eatingHabbits: 10,
+      community: 10,
     };
 
 
