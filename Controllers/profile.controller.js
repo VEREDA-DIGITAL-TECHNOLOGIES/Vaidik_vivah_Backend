@@ -662,3 +662,86 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler(error.message, 500));
   }
 });
+
+
+export const filterFieldCount = catchAsyncError(async (req, res, next) => {
+
+  try {
+
+   const data = [];
+
+
+   const Religion ={
+    Hinduism: await otherDetails.count({ where:  { religion: 'Hinduism' }, }),
+    Islam: await otherDetails.count({ where: { religion: 'Islamic' } }),
+    Buddhism: await otherDetails.count({ where: { religion: 'Buddhism' } }),
+    Christian: await otherDetails.count({ where: { religion: 'Christianity' } }),
+    judaism: await otherDetails.count({ where: { religion: 'Judaism' } }),
+
+   }
+
+   const Ethinicity = {
+    Indian: await locationDetails.count({ where: { nationality: 'Indian' } }),
+    American: await locationDetails.count({ where: { nationality: 'American' } }),
+    Africaners: await locationDetails.count({ where: { nationality: 'African' } }),
+    Japanese: await locationDetails.count({ where: { nationality: 'Japanese' } }),
+   }
+
+   const HighestQualification = {
+    Masters: await qualificationDetails.count({ where: { qualification: 'Masters' } }),
+    Bachelor: await qualificationDetails.count({ where: { qualification: 'Bachelors' } }),
+    Tenth: await qualificationDetails.count({ where: { qualification: '10th' } }),
+    Tweleventh: await qualificationDetails.count({ where: { qualification: '12th' } }),
+   }
+
+   const workingwith = {
+    Private: await qualificationDetails.count({ where: { occupation: 'Private' } }),
+    Non_Working: await qualificationDetails.count({ where: { occupation: 'Non_Working' } }),
+    Businness: await qualificationDetails.count({ where: { occupation: 'Business' } }),
+    Government: await qualificationDetails.count({ where: { occupation: 'Government' } }),
+    Defense: await qualificationDetails.count({ where: { occupation: 'Defense' } }),
+   }
+
+   const maritalStatus = {
+    NeverMarried: await personalDetails.count({ where: { maritalStatus: 'NeverMarried' } }),
+    Married: await personalDetails.count({ where: { maritalStatus: 'Married' } }),
+    Divorced: await personalDetails.count({ where: { maritalStatus: 'Divorced' } }),
+    Widowed: await personalDetails.count({ where: { maritalStatus: 'Widowed' } }),
+    AwatingDivorce: await personalDetails.count({ where: { maritalStatus: 'Awaiting Divorce' } }),
+    Annualed: await personalDetails.count({ where: { maritalStatus: 'Annualed' } }),
+   }
+
+   const eatingHabbits = {
+    Vegetarian: await otherDetails.count({ where: { diet: 'Vegetarian' } }),
+    Non_Vegetarian: await otherDetails.count({ where: { diet: 'Non-Vegetarian' } }),
+    Eggetarian: await otherDetails.count({ where: { diet: 'Eggetarian' } }),
+    Jain: await otherDetails.count({ where: { diet: 'Jain' } }),
+    Vegan: await otherDetails.count({ where: { diet: 'Vegan' } }),
+   }
+
+
+   const community = {
+    Gujarati: await otherDetails.count({ where: { community: 'Gujarati' } }),
+    Vaishnav: await otherDetails.count({ where: { community: 'Vaishnav' } }),
+    Brahmin: await otherDetails.count({ where: { community: 'Brahmin' } }),
+    Patel: await otherDetails.count({ where: { community: 'Patel' } }),
+    Lohana: await otherDetails.count({ where: { community: 'Lohana' } }),
+    Vania: await otherDetails.count({ where: { community: 'Vania' } }),
+    Suthar: await otherDetails.count({ where: { community: 'Suthar' } }),
+   }
+
+   data.push(Religion, Ethinicity, HighestQualification, workingwith, maritalStatus, eatingHabbits, community);
+   return res.status(200).json({
+    success: true,
+    message: "Filter count fetched successfully!",
+    data: data
+   })
+
+
+   
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+  
+})
