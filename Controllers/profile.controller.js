@@ -439,91 +439,6 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       profiles,
     });
   } catch (error) {
-
-    return next(new errorhandler(error.message, 500));
-  }
-});
-
-export const filterProfiles = catchAsyncError(async (req, res, next) => {
-  try {
-    const userId = req.user.userId;
-
-    const {
-      ageRange,
-      heightRange,
-      income,
-      hasChildren,
-      religion,
-      ethenticity,
-      hightestQualifcation,
-      smokingHabbit,
-      workingwith,
-      maritalStatus,
-      eatingHabbit,
-      community,
-      relative,
-    } = req.body;
-
-    const data = await User.findAll({
-      where: {
-        userId: { [Op.ne]: userId },
-      },
-    });
-
-    const userIds = data.map((user) => user.userId);
-
-    const answers = await Answer.findAll({
-      where: { userId: { [Op.in]: userIds } },
-    });
-
-    const userAnswers = await Answer.findAll({ where: { userId } });
-
-    const profileData = [];
-
-    for (let user of data) {
-      const userAnswer = answers.filter((a) => a.userId === user.userId);
-      const age = userAnswer.find((a) => a.questionId === 7)?.answer;
-      const ageRange = userAnswer.find((a) => a.questionId === 8)?.answer;
-
-      if (age > ageRange[0] || age <= ageRange[1]) {
-        const personal = await personalDetails.findOne({
-          where: { userId: user.userId },
-        });
-        const other = await otherDetails.findOne({
-          where: { userId: user.userId },
-        });
-        const location = await locationDetails.findOne({
-          where: { userId: user.userId },
-        });
-        const qualification = await qualificationDetails.findOne({
-          where: { userId: user.userId },
-        });
-
-        profileData.push({
-          userType: user.usertype,
-
-          userId: user.userId,
-          firstName: personal?.firstName || null,
-          maritalStatus: personal?.maritalStatus || null,
-          lastName: personal?.lastName || null,
-          displayName: personal?.displayName || null,
-          state: location?.state || null,
-          country: location?.country || null,
-          religion: other?.religion || null,
-          age: age || null,
-          gender: personal?.gender || null,
-          occupation: qualification?.occupation || null,
-        });
-      }
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        profiles: profileData,
-      },
-    });
-  } catch (error) {
     return next(new errorhandler(error.message, 500));
   }
 });
@@ -543,16 +458,16 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const imageUploadData =
       (await imageUpload.findOne({ where: { userId } })) || "";
     const basic_lifestyle = await Answer.findOne({
-      where: { userId , questionId: 12},
+      where: { userId, questionId: 12 },
     });
     const gender = await Answer.findOne({
-      where: { userId,questionId: 1},
+      where: { userId, questionId: 1 },
     });
     const age = await Answer.findOne({
-      where: { userId,questionId: 7},
+      where: { userId, questionId: 7 },
     });
     const postedby = await Answer.findOne({
-      where: { userId,questionId: 6  },
+      where: { userId, questionId: 6 },
     });
     const answer = basic_lifestyle.answer;
     const data = [
@@ -618,6 +533,124 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
       success: true,
       data,
       message: "Profile fetched successfully!",
+    });
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+export const filterProfiles = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+
+    const {
+      ageRange,
+      heightRange,
+      income,
+      religion,
+      ethnicity,
+      highestQualification,
+      smokingHabbit,
+      workingwith,
+      maritalStatus,
+      eatingHabbits,
+      community,
+    } = req.body;
+
+
+    const currentUser = await User.findOne({ where: { userId } });
+
+    const Users = await User.findAll({
+      where: {
+        userId: { [Op.ne]: userId },
+      },
+    });
+
+    const userIds = Users.map((user) => user.userId);
+    const age1 = String(ageRange.min);
+    const age2 = String(ageRange.max);
+    const height1 = String(heightRange.min);
+    const height2 = String(heightRange.max);
+    console.log(userIds, "userIds");
+
+   
+    const recommendedUsers = await recommendation.findAll({
+      where: {
+        userId: { [Op.in]: userIds },
+        [Op.or]: [
+          { age: { [Op.between]: [age1, age2] } } ,
+          { height: { [Op.between]: [height1, height2] } },
+          { income: income ? income : { [Op.ne]: null } },
+          { nationality: ethnicity ? ethnicity : { [Op.ne]: null } }, 
+          { religion: religion ? religion : { [Op.ne]: null } }, 
+          { qualification: highestQualification ? highestQualification : { [Op.ne]: null } }, 
+          { smokingHabbit: smokingHabbit ? smokingHabbit : { [Op.ne]: null } }, 
+          { diet: eatingHabbits ? eatingHabbits : { [Op.ne]: null } },
+          { occupation: workingwith ? workingwith : { [Op.ne]: null } }, 
+          { maritalStatus: maritalStatus ? maritalStatus : { [Op.ne]: null } },
+          { community: community ? community : { [Op.ne]: null } }, 
+        ],
+      },
+    });
+
+    const totalScore = 10; 
+    const weights = {
+      religion: 2,
+      age: 2,
+      height: 1,
+      income: 1,
+      ethnicity: 1,
+      highestQualification: 1,
+      smokingHabbit: 1,
+      occupation: 1,
+      maritalStatus: 1,
+      eatingHabbits: 1,
+      community: 1,
+    };
+
+
+    const data = recommendedUsers.map((user) => {
+      let matchScore = 0;
+
+      if (user.religion === currentUser.religion) matchScore += weights.religion;
+      if (user.age >= ageRange.min && user.age <= ageRange.max) matchScore += weights.age;
+      if (user.height >= heightRange.min && user.height <= heightRange.max) matchScore += weights.height;
+      if (user.income === income) matchScore += weights.income;
+      if (user.nationality === ethnicity) matchScore += weights.ethnicity;
+      if (user.qualification === highestQualification) matchScore += weights.highestQualification;
+      if (user.smokingHabbit === smokingHabbit) matchScore += weights.smokingHabbit;
+      if (user.occupation === workingwith) matchScore += weights.occupation;
+      if (user.maritalStatus === maritalStatus) matchScore += weights.maritalStatus;
+      if (user.diet === eatingHabbits) matchScore += weights.eatingHabbits;
+      if (user.community === community) matchScore += weights.community;
+
+      const matchPercentage = (matchScore / totalScore) * 100;
+      return {
+        userId: user.userId,
+        gender: user.gender,
+        religion: user.religion,
+        age: user.age,
+        firstName : user.firstName,
+        lastName : user.lastName,
+        displayName : user.displayName,
+        occupation : user.occupation,
+        state : user.state,
+        country : user.country,
+        userType  : user.usertype,
+        profileImage : user.image,
+        matchPercentage: matchPercentage,
+
+      };
+    });
+
+
+
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        profiles: data,
+      },
     });
   } catch (error) {
     return next(new errorhandler(error.message, 500));
