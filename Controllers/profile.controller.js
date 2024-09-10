@@ -655,7 +655,7 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: {
-        profiles: recommendedUsers,
+        profiles: data,
       },
     });
   } catch (error) {
