@@ -40,8 +40,8 @@ export const sendToken = (user, statusCode, res,message) => {
 
 
    
-    // res.cookie('access_token', accessToken, accessTokenOptions);
-    // res.cookie('refresh_token', refreshToken, refreshTokenOptions);
+    res.cookie('access_token', accessToken, accessTokenOptions);
+    res.cookie('refresh_token', refreshToken, refreshTokenOptions);
     
 
 
