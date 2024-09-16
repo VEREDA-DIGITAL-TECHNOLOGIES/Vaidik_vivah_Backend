@@ -28,8 +28,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       where: { userId },
     });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData =
-      (await imageUpload.findOne({ where: { userId } })) || "";
+    const imageUploadData =(await imageUpload.findOne({ where: { userId } })) || "";
     const basic_lifestyle = await Answer.findOne({
       where: { userId, questionId: 12 },
     });
@@ -409,6 +408,43 @@ export const updateInterstAndHobbies = catchAsyncError(
   }
 );
 
+export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
+  try{
+    const userId = req.user.userId;
+
+        if (!req.files) {
+            return next(new errorhandler("Please upload an image!", 400));
+        }
+    
+    
+        let userImageUrls;
+    
+        if (req.files && req.files.length > 0) {
+            const userImagesLocal = req.files.map((file) => file.path);
+    
+            const userImages = await uploadCloudinary(userImagesLocal);
+    
+            userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
+                : [userImages.url];
+        }
+    
+        const imageUploadData = await imageUpload.update({ image: userImageUrls, userId });
+    
+           await recommendation.update({image: userImageUrls}, { where: { userId } });
+    
+           await User.update({isImageFormFilled: true}, { where: { userId } });
+    
+          res.status(201).json({
+            success: true,
+            message: "Image uploaded successfully",
+            imageUploadData
+        })
+  }catch(error){
+    return next(new errorhandler(error.message, 500));
+  }
+  
+})
+
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.user; // Get userId from the request context
@@ -745,3 +781,4 @@ export const filterFieldCount = catchAsyncError(async (req, res, next) => {
   }
   
 })
+

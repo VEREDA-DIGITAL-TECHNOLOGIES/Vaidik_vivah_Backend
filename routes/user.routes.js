@@ -1,7 +1,7 @@
 import express from "express";
 const userRouter = express.Router();
 
-import { registrationUser,activateUser,setPassword,loginUser,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile,createOrUpdateFCMToken,dummyRegister,dummyactivateUserForMobile,dummyPasswordForMobile} from "../Controllers/user.controller.js";
+import { registrationUser,activateUser,setPassword,loginUser,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile,createOrUpdateFCMToken,dummyRegister,dummyactivateUserForMobile,dummyPasswordForMobile,deleteUser} from "../Controllers/user.controller.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
 
 
@@ -12,6 +12,7 @@ userRouter.post('/set-password-mobile',setPasswordForMobile);
 userRouter.post("/set-password", setPassword);
 userRouter.post("/login", loginUser);
 userRouter.get("/logout", isAuthenticated,logoutUser);
+userRouter.delete("/delete-user:")
 userRouter.post("/forgot-password", forgotPassword);
 userRouter.post("/verify-otp", verifyOtp);
 userRouter.post("/verify-otp-for-mobile", verifyOtpForMobile);
@@ -21,5 +22,6 @@ userRouter.post("/updateFcmToken", isAuthenticated,createOrUpdateFCMToken);
 userRouter.post("/dummy-register",dummyRegister);
 userRouter.post("/dummy-activate-user",dummyactivateUserForMobile);
 userRouter.post("/dummy-set-password",dummyPasswordForMobile);
+
 
 export default userRouter

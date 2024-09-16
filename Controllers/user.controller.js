@@ -476,6 +476,7 @@ export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>
 
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
+     
     try {
         const user = await User.findOne({ where: { id: req.user.id } });
         if (!user) {
