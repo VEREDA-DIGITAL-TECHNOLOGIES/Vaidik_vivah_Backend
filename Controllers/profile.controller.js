@@ -375,38 +375,41 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
   }
 );
 
-export const updateInterstAndHobbies = catchAsyncError(
+export const updateInterestAndHobbies = catchAsyncError(
   async (req, res, next) => {
     const userId = req.user.userId;
     const { hobbies } = req.body;
 
     if (!hobbies) {
-      return next(new errorhandler("All fields are required!", 400));
+      return next(new errorhandler("Hobbies field is required!", 400));
     }
 
-    const interstAndHobbiesData = await Answer.findOne({
-      where: { userId },
-      questionId: 12,
+    // Check if the Answer exists for the given question and user
+    const interestAndHobbiesData = await Answer.findOne({
+      where: { userId, questionId: 12 },
     });
 
-    if (!interstAndHobbiesData) {
-      return next(new errorhandler("Interst and Hobbies not found!", 400));
+
+    if (!interestAndHobbiesData) {
+      return next(new errorhandler("Interest and Hobbies not found!", 404));
     }
 
-    const updateInterstAndHobbies = await Answer.update(
+    // Update the hobbies in the Answer table
+    const updateInterestAndHobbies = await Answer.update(
       { answer: hobbies },
-      { where: { userId }, questionId: 12 }
+      { where: { userId, questionId: 12 } }
     );
 
-    await recommendation.update({ hobbies }, { where: { userId } });
+    await recommendation.update({ hobbies },{ where: { userId } });
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "Interst and Hobbies updated successfully",
-      updateInterstAndHobbies,
+      message: "Interest and Hobbies updated successfully",
+      updateInterestAndHobbies,
     });
   }
 );
+
 
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   try{
