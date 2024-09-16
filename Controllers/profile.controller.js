@@ -7,7 +7,7 @@ import question from "../Models/question.model.js";
 import Answer from "../Models/answer.model.js";
 import User from "../Models/user.js";
 import dotenv from "dotenv";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js";
@@ -400,7 +400,7 @@ export const updateInterstAndHobbies = catchAsyncError(
       { where: { userId, questionId: 12 } }
     );
 
-    await recommendation.update({ hobbies },{ where: { userId } });
+    await recommendation.update({interest_and_hobbies: hobbies },{ where: { userId, } });
 
     res.status(200).json({
       success: true,
@@ -414,6 +414,8 @@ export const updateInterstAndHobbies = catchAsyncError(
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   try{
     const userId = req.user.userId;
+
+    console.log(userId)
 
         if (!req.files) {
             return next(new errorhandler("Please upload an image!", 400));
@@ -431,7 +433,8 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
                 : [userImages.url];
         }
     
-        const imageUploadData = await imageUpload.update({ image: userImageUrls, userId });
+        const imageUploadData = await imageUpload.update({ image: userImageUrls},{ where: { userId } });
+
     
            await recommendation.update({image: userImageUrls}, { where: { userId } });
     
@@ -440,7 +443,6 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
           res.status(201).json({
             success: true,
             message: "Image uploaded successfully",
-            imageUploadData
         })
   }catch(error){
     return next(new errorhandler(error.message, 500));
