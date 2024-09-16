@@ -375,7 +375,7 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
   }
 );
 
-export const updateInterestAndHobbies = catchAsyncError(
+export const updateInterstAndHobbies = catchAsyncError(
   async (req, res, next) => {
     const userId = req.user.userId;
     const { hobbies } = req.body;
