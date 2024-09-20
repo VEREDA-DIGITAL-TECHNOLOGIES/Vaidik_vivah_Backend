@@ -4,6 +4,32 @@ import User from '../Models/user.js';
 import { redis } from "./redis.js";
 dotenv.config();
 
+
+
+    //parse environment variable to integrate fall back values
+   const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || '300000'); // 5 minutes in ms
+   const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || '604800000'); // 7 days in ms
+
+
+    //we have to add secure :true in production
+ export  const accessTokenOptions ={
+        expires: new Date(Date.now() + accessTokenExpire),
+        maxAge: accessTokenExpire,
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true
+    }
+        //we have to add secure :true in production
+
+ export   const refreshTokenOptions ={
+        expires: new Date(Date.now() + refreshTokenExpire),
+        maxAge: refreshTokenExpire,
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true
+    }
+
+
 export const sendToken = (user, statusCode, res,message) => {
 
     
@@ -13,30 +39,6 @@ export const sendToken = (user, statusCode, res,message) => {
     //upload session to redis
     redis.set(user.userId,JSON.stringify(user))
 
-
-
-    //parse environment variable to integrate fall back values
-    const accessTokenExpire = parseInt(process.env.ACCESS_TOKEN_EXPIRE || '300000'); // 5 minutes in ms
-    const refreshTokenExpire = parseInt(process.env.REFRESH_TOKEN_EXPIRE || '604800000'); // 7 days in ms
-
-
-    //we have to add secure :true in production
-    const accessTokenOptions ={
-        expires: new Date(Date.now() + accessTokenExpire),
-        maxAge: accessTokenExpire,
-        httpOnly: true,
-        sameSite: 'None',
-        secure: true
-    }
-        //we have to add secure :true in production
-
-    const refreshTokenOptions ={
-        expires: new Date(Date.now() + refreshTokenExpire),
-        maxAge: refreshTokenExpire,
-        httpOnly: true,
-        sameSite: 'None',
-        secure: true
-    }
 
 
    

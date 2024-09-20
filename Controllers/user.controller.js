@@ -4,7 +4,7 @@ import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import jwt from "jsonwebtoken";
 import sendEmail from "../Utils/sendMail.js";
-import { sendToken } from "../Utils/jwt.js";
+import { accessTokenOptions, refreshTokenOptions, sendToken } from "../Utils/jwt.js";
 import { redis } from "../Utils/redis.js";
 import Answer from '../Models/answer.model.js';
 import locationDetails from "../Models/locationDetails.model.js";
@@ -298,6 +298,41 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 })
+
+export const updateAccessToken = catchAsyncError(async (req, res, next) => {
+    try{
+        const refresh_token = req.cookies.refresh_token;
+        const decoded = jwt.verify(refresh_token, process.env.REFRESHTOKEN);
+        console.log(decoded, "decoded");
+        const message = 'Could not refresh token';
+        if(!decoded) {
+            return next(new errorhandler(message, 401));
+        }
+        const session = await redis.get(decoded.userId);
+        console.log(session);
+        if(!session) {
+            return next(new errorhandler(message, 401));
+        }
+        const user = JSON.parse(session);
+
+        const accessToken = jwt.sign({ userId: user.userId }, process.env.ACCESSTOKEN,{
+            expiresIn: "5m",
+        });
+
+        const refreshToken = jwt.sign({ userId: user.userId }, process.env.REFRESHTOKEN,{
+            expiresIn: "7d",
+        });
+        res.cookie("access_token", accessToken, accessTokenOptions);
+        res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+        res.status(200).json({ success: true, accessToken, refreshToken });
+        
+    }catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+})
+
+
+
 
 export const forgotPassword = catchAsyncError(async (req, res, next) => {
     try {
@@ -595,4 +630,6 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
     }
 
 });
+
+
 

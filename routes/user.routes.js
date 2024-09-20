@@ -1,7 +1,7 @@
 import express from "express";
 const userRouter = express.Router();
 
-import { registrationUser,activateUser,setPassword,loginUser,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile,createOrUpdateFCMToken,dummyRegister,dummyactivateUserForMobile,dummyPasswordForMobile,deleteUser} from "../Controllers/user.controller.js";
+import { registrationUser,activateUser,setPassword,loginUser,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile,createOrUpdateFCMToken,dummyRegister,dummyactivateUserForMobile,dummyPasswordForMobile,deleteUser, updateAccessToken} from "../Controllers/user.controller.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
 
 
@@ -11,6 +11,7 @@ userRouter.post('/activate-user-mobile',activateUserForMobile);
 userRouter.post('/set-password-mobile',setPasswordForMobile);
 userRouter.post("/set-password", setPassword);
 userRouter.post("/login", loginUser);
+userRouter.get("/refresh",updateAccessToken)
 userRouter.get("/logout", isAuthenticated,logoutUser);
 userRouter.delete("/delete-user:")
 userRouter.post("/forgot-password", forgotPassword);

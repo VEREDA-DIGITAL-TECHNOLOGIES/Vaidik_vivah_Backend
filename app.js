@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["https://wedlock.au", "http://localhost:3000"], 
+    origin: ["https://wedlock.vigorify.in", "http://localhost:3000"], 
     credentials: true,  
   }));
   
