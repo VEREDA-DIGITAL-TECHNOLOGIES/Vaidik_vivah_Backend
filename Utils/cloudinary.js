@@ -18,20 +18,28 @@ const uploadCloudinary = async (localFilePaths) => {
       return errorhandler(new Error("Local file paths are missing."), 400);
     }
 
+    console.log(localFilePaths);
+
     const files = Array.isArray(localFilePaths)
       ? localFilePaths
       : [localFilePaths];
 
+
     const uploadedImages = [];
+    console.log(uploadedImages,'uploadedImages')
 
     for (const localFilePath of files) {
       const res = await cloudinary.uploader.upload(localFilePath, {
         resource_type: "auto",
       });
 
+      console.log(res, "res");
+
       uploadedImages.push(res);
       fs.unlinkSync(localFilePath);
     }
+
+
 
     return uploadedImages.length === 1 ? uploadedImages[0] : uploadedImages;
 

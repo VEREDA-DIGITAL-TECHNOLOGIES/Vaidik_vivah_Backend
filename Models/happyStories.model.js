@@ -12,13 +12,22 @@ const happyStories = sequelize.define('happyStories', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
-        primaryKey: true,
-        allowNull: false,
     },
-
+    userId: {
+        type: DataTypes.UUID,
+        defaultValue: () => uuidv4(),
+        allowNull: false,
+        references: {
+            model: User,
+            key: 'userId',
+        },
+    },
     storyId: {
         type: DataTypes.UUID,
+        primaryKey: true,
+        defaultValue: () => uuidv4(),
         allowNull: false,
+        unique: true,
     },
     image : {
         type: DataTypes.STRING,

@@ -303,6 +303,7 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
 export const updateAccessToken = catchAsyncError(async (req, res, next) => {
     try{
         const refresh_token = req.cookies.refresh_token;
+        
         const decoded = jwt.verify(refresh_token, process.env.REFRESHTOKEN);
         console.log(decoded, "decoded");
         const message = 'Could not refresh token';

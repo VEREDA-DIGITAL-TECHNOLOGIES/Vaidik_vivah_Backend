@@ -6,16 +6,18 @@ import { uploadCloudinary } from "../Utils/cloudinary.js";
 
 export const addStory = catchAsyncError(async (req, res, next) => {
     try {
+        const UserId = req.user.userId;
        console.log(req.body)
-        const  {customerName, partnerName, Description} = req.body;
-        console.log(customerName, partnerName, Description)
+        const  {customerName, partnerName, description} = req.body;
+        console.log(customerName, partnerName, description)
 
 
-        if (!customerName || !partnerName || !Description) {
+        if (!customerName || !partnerName || !description) {
             return next(new errorhandler("Please enter all fields", 400)); 
         }
 
         console.log(req.files)
+ 
 
         if (!req.files) {
             return next(new errorhandler("Please upload Customer's Story image!", 400));
@@ -24,14 +26,16 @@ export const addStory = catchAsyncError(async (req, res, next) => {
         let userImageUrl;
     
         if (req.files && req.files.length > 0) {
-            const userImageLocal = req.files;
+            const userImageLocal = req.files[0].path;
+            console.log(userImageLocal)
     
-            const userImage = await uploadCloudinary(userImageLocal);
+            const userImage = await uploadCloudinary(userImageLocal); 
+            console.log(userImage.url)
     
             userImageUrl = userImage.url;
         }
 
-         await happyStories.create({customerName, partnerName, Description, image: userImageUrl});
+         await happyStories.create({userId: UserId, customerName, partnerName, description, image: userImageUrl});
 
         res.status(201).json({
             success: true,
@@ -47,11 +51,26 @@ export const addStory = catchAsyncError(async (req, res, next) => {
 
 export const  getAllStories = catchAsyncError(async (req, res, next) => {
     try {
-        const stories = await happyStories.findAll();
+        const stories = await happyStories.findAll(
+            {
+                order: [["createdAt", "DESC"]],
+            }
+        );
+
+        const data = stories.map((story) => {
+            return {
+                id: story.id,
+                customerName: story.customerName,
+                partnerName: story.partnerName,
+                description: story.description,
+                image: story.image,
+                createdDate: story.createdAt.toISOString().split('T')[0],
+            }
+        })
 
         res.status(200).json({
             success: true,
-            stories
+            stories: data,
         })
 
     } catch (error) {

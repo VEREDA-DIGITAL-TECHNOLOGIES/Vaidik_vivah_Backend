@@ -7,7 +7,7 @@ import { upload } from "../Middlewares/multer.js";
 const happyStoryRouter = express.Router();
 
 
-happyStoryRouter.post('/addHappyStory',isAuthenticated,addStory,upload.array('image',1));
+happyStoryRouter.post('/addHappyStory',isAuthenticated,upload.array('profileImage',1),addStory);
 happyStoryRouter.get('/getAllHappyStory',isAuthenticated,getAllStories);
 
 
