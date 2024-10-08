@@ -40,4 +40,7 @@ FavProfile.belongsTo(User, { foreignKey: 'favoritedUserId', as: 'FavoritedUser' 
 
 
 
+
+
+
 export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile};

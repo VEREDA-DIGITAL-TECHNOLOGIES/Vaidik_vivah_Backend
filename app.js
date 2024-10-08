@@ -8,6 +8,7 @@ import userRouter from './routes/user.routes.js';
 import questionRouter from "./routes/question.routes.js"
 import formRouter from "./routes/forms.routes.js"
 import profileRouter from './routes/profile.routes.js';
+import happyStoryRouter from './routes/happyStory.routes.js';
 import favProfileRouter from './routes/favProfile.routes.js';
 
 dotenv.config();
@@ -22,7 +23,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["https://wedlock.vigorify.in", "http://localhost:3000"], 
+    origin: ["https://wedlock.vigorify.in", "http://localhost:3000","http://localhost:5173"], 
     credentials: true,  
   }));
   
@@ -33,6 +34,7 @@ app.use("/api/v1/question",questionRouter);
 app.use("/api/v1/form",formRouter);
 app.use("/api/v1/profile",profileRouter);
 app.use("/api/v1/profile/favorite",favProfileRouter);
+app.use("/api/v1/happyStories",happyStoryRouter);
  
 
 app.get("/test", async (req, res, next) => {

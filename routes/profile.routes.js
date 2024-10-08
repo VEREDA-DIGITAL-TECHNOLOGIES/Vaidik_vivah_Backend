@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated} from '../Middlewares/auth.js';
-import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterProfiles,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload} from '../Controllers/profile.controller.js'
+import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterProfiles,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload,adminProfileImage,matrimonialProfiles} from '../Controllers/profile.controller.js'
 import { upload } from "../Middlewares/multer.js";
 
 
@@ -10,6 +10,8 @@ const profileRouter = express.Router();
 
 
 profileRouter.get('/mydetails',isAuthenticated,myDetails);
+profileRouter.get('/get-profile-img',isAuthenticated,adminProfileImage);
+profileRouter.get('/get-matrimonial-profiles',isAuthenticated,matrimonialProfiles);
 profileRouter.put('/updatePersonalDetails',isAuthenticated,updatePersonalDetails);
 profileRouter.put('/updateFamilyDetails',isAuthenticated,updateFamilyDetails);
 profileRouter.put('/updatePersonalBackground',isAuthenticated,updatePersonalBackground);
