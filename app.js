@@ -23,6 +23,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
+    origin: ["https://wedlock.au", "https://admin.wedlock.au"], 
     credentials: true,  
   }));
   
