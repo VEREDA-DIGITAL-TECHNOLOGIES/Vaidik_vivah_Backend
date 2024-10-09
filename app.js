@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["https://kashishmashala.com"], 
+    origin: ["https://wedlock.au", "http://localhost:3000"], 
     credentials: true,  
   }));
   
