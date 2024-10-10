@@ -48,9 +48,9 @@ const User = sequelize.define('User', {
         },
     },
     usertype: {
-        type: DataTypes.ENUM('exclusive', 'normal','premium'),
+        type: DataTypes.ENUM('Exclusive', 'Standard','Premium'),
         allowNull: false,
-        defaultValue: 'normal',
+        defaultValue: 'Standard',
     },
     isVerified: {
         type: DataTypes.BOOLEAN,
