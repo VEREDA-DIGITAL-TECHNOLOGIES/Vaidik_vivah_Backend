@@ -173,8 +173,9 @@ export const updateFamilyDetails = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const updatePersonalBackground = catchAsyncError(
-  async (req, res, next) => {
+export const updatePersonalBackground = catchAsyncError( async (req, res, next) => {
+  try {
+
     const userId = req.user.userId;
     const {
       height,
@@ -187,18 +188,7 @@ export const updatePersonalBackground = catchAsyncError(
       complexion,
     } = req.body;
 
-    if (
-      !height ||
-      !weight ||
-      !bodyType ||
-      !language ||
-      !smokingHabbit ||
-      !drinkingHabbit ||
-      !diet ||
-      !complexion
-    ) {
-      return next(new errorhandler("All fields are required!", 400));
-    }
+    
 
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
 
@@ -240,17 +230,18 @@ export const updatePersonalBackground = catchAsyncError(
       updateOtherDetails,
     });
   }
-);
+  catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
 
-export const updateReligiousBackground = catchAsyncError(
-  async (req, res, next) => {
+export const updateReligiousBackground = catchAsyncError(async (req, res, next) => {
+
+  try{
     const userId = req.user.userId;
     const { religion, community, subCommunity, gothra, motherTongue } =
       req.body;
 
-    if (!religion || !community || !subCommunity || !gothra || !motherTongue) {
-      return next(new errorhandler("All fields are required!", 400));
-    }
 
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
 
@@ -274,7 +265,9 @@ export const updateReligiousBackground = catchAsyncError(
       updateOtherDetails,
     });
   }
-);
+catch (error) {
+  return next(new errorhandler(error.message, 500));
+}});
 
 export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
   const userId = req.user.userId;
@@ -286,16 +279,7 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     residencyVisaStatus,
   } = req.body;
 
-  if (
-    !currentLocation ||
-    !cityOfResidence ||
-    !nationality ||
-    !citizenShip ||
-    !residencyVisaStatus
-  ) {
-    return next(new errorhandler("All fields are required!", 400));
-  }
-
+ 
   const locationDetailsData = await locationDetails.findOne({
     where: { userId },
   });
@@ -345,9 +329,6 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
     const userId = req.user.userId;
     const { qualification, currentWorkingStatus, income } = req.body;
 
-    if (!qualification || !currentWorkingStatus || !income) {
-      return next(new errorhandler("All fields are required!", 400));
-    }
 
     const qualificationDetailsData = await qualificationDetails.findOne({
       where: { userId },

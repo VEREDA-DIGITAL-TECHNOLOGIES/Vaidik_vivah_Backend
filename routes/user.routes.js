@@ -16,7 +16,7 @@ userRouter.get('/get-All-users',isAuthenticated,AllUsers)
 userRouter.get('/get-All-Customers',isAuthenticated,AllCustomers)
 userRouter.get("/refresh",updateAccessToken)
 userRouter.get("/logout", isAuthenticated,logoutUser);
-userRouter.delete("/delete-user:")
+userRouter.delete("/delete-user", isAuthenticated,deleteUser);
 userRouter.post("/forgot-password", forgotPassword);
 userRouter.post("/verify-otp", verifyOtp);
 userRouter.post("/verify-otp-for-mobile", verifyOtpForMobile);
