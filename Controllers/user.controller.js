@@ -511,23 +511,21 @@ export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>
 
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
-     
+    const UserId = req.user.userId;
     try {
-        const user = await User.findOne({ where: { id: req.user.id } });
+        const user = await User.findOne({ where: { UserId } });
         if (!user) {
             return next(new errorhandler("User not found!", 404));
         }
-
-        await User.destroy({ where: { id: req.user.id } });
-        await Answer.destroy({ where: { userId: req.user.id } });
-        await locationDetails.destroy({ where: { userId: req.user.id } });
-        await otherDetails.destroy({ where: { userId: req.user.id } });
-        await personalDetails.destroy({ where: { userId: req.user.id } });
-        await qualificationDetails.destroy({ where: { userId: req.user.id } });
-        await imageUpload.destroy({ where: { userId: req.user.id } });
-
+        await User.destroy({ where: { UserId} });
+        await Answer.destroy({ where: { UserId} });
+        await locationDetails.destroy({ where: {UserId } });
+        await otherDetails.destroy({ where: { UserId} });
+        await personalDetails.destroy({ where: { UserId} });
+        await qualificationDetails.destroy({ where: { UserId } });
+        await imageUpload.destroy({ where: { userId: UserId } });
         res.status(200).json({ success: true, message: "User deleted successfully!" });
-
+        await recommendation.destroy({ where: { userId: UserId } });
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
