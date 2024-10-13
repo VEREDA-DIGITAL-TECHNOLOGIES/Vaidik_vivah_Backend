@@ -327,7 +327,7 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
 export const updateEducationAndFinancialDetails = catchAsyncError(
   async (req, res, next) => {
     const userId = req.user.userId;
-    const { qualification, currentWorkingStatus, income } = req.body;
+    const { qualification, currentWorkingStatus, income,highestQualification } = req.body;
 
 
     const qualificationDetailsData = await qualificationDetails.findOne({
@@ -339,7 +339,7 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
     }
 
     const updateQualificationDetails = await qualificationDetails.update(
-      { qualification, currentWorkingStatus, income },
+      { qualification, currentWorkingStatus, income, qualification:highestQualification },
       { where: { userId } }
     );
 
