@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import {app} from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile} from './Models/association.js';
+import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories} from './Models/association.js';
 import Recommendation from './Models/recommendation.model.js';
 
 dotenv.config();
@@ -22,6 +22,7 @@ const startServer = async () => {
         await qualificationDetails.sync({ force: false });
         await Recommendation.sync({ force: false });
         await FavProfile.sync({ force: false });
+        await happyStories.sync({ force: false });
 
         console.log('Tables synchronized');
 

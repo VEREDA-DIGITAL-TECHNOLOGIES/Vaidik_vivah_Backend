@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import jwt from "jsonwebtoken";
+import { Op, where } from "sequelize";
 import sendEmail from "../Utils/sendMail.js";
 import { accessTokenOptions, refreshTokenOptions, sendToken } from "../Utils/jwt.js";
 import { redis } from "../Utils/redis.js";
@@ -302,6 +303,7 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
 export const updateAccessToken = catchAsyncError(async (req, res, next) => {
     try{
         const refresh_token = req.cookies.refresh_token;
+        
         const decoded = jwt.verify(refresh_token, process.env.REFRESHTOKEN);
         console.log(decoded, "decoded");
         const message = 'Could not refresh token';
@@ -327,6 +329,37 @@ export const updateAccessToken = catchAsyncError(async (req, res, next) => {
         res.status(200).json({ success: true, accessToken, refreshToken });
         
     }catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+})
+
+
+//admin login
+export const adminLogin = catchAsyncError(async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return next(new errorhandler("You are not registered!", 400));
+        }
+
+        if (!email || !password) {
+            return next(new errorhandler("Please enter email and password!", 400));
+        }
+
+        if (user.role !== "admin") {
+            return next(new errorhandler("You are not Authorized!", 400));
+        }
+
+        const isPasswordMatched = await user.validPassword(password);
+
+        if (!isPasswordMatched) {
+            return next(new errorhandler("Invalid email or password!", 400));
+        }
+
+        sendToken(user, 200, res, "Login successfull!");
+    }
+    catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 })
@@ -630,4 +663,101 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
 });
 
 
+//for admin
+export const AllUsers = catchAsyncError(async (req, res, next) => {
+    try {
+        const currentUserId = req.user.userId;  // Get the current user's ID
 
+        
+
+
+        const users = await User.findAll({
+            where: {
+                userId: { [Op.ne]: currentUserId }  // Exclude the current user
+            },
+            order: [["createdAt", "DESC"]],
+        });
+
+        if (!users) {
+            return next(new errorhandler("Users not found!", 404));
+        }
+
+        const data = await Promise.all(users.map(async (user) => {
+            const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
+            const imageUploadData = await imageUpload.findOne({ where: { userId: user.userId } }) || "";
+            const image = imageUploadData.image && imageUploadData.image.length > 0 ? imageUploadData.image[0] : "";
+
+
+            const displayName = personalData 
+            ? personalData.displayName || `${personalData.firstName} ${personalData.lastName}` 
+            : "Unknown User";
+
+            return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                plan: user.usertype,
+                displayName: displayName , 
+                userAvatar: image 
+                };
+        }));
+
+
+        res.status(200).json({
+            success: true,
+            users: data,
+        });
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+});
+
+
+export const AllCustomers = catchAsyncError(async (req, res, next) => {
+    try {
+        const currentUserId = req.user.userId;  // Get the current user's 
+
+        const users = await User.findAll({
+            where: {
+                userId: { [Op.ne]: currentUserId }  // Exclude the current user
+            },
+            order: [["createdAt", "DESC"]],
+        });
+
+        if (!users) {
+            return next(new errorhandler("Customers not found!", 404));
+        }
+
+        const data = await Promise.all(users.map(async (user) => {
+            const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
+            const imageUploadData = await imageUpload.findOne({ where: { userId: user.userId } }) || "";
+            const image = imageUploadData.image && imageUploadData.image.length > 0 ? imageUploadData.image[0] : "";
+            const date = user.createdAt.toISOString().split('T')[0];
+
+
+            const displayName = personalData 
+            ? personalData.displayName || `${personalData.firstName} ${personalData.lastName}` 
+            : "Unknown User";
+
+            return {
+                id: user.id,
+                email: user.email,
+                displayName: displayName ,
+                userAvatar: image ,
+                date: date
+
+                };
+        }));
+
+
+        res.status(200).json({
+            success: true,
+            customers: data,
+        });
+
+    }
+
+    catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+})

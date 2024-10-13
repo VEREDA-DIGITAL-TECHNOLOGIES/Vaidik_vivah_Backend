@@ -468,6 +468,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 export const UserDetails = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.body;
+    console.log(userId,'userId')
 
     const personalData = await personalDetails.findOne({ where: { userId } });
     const qualificationDetailsData = await qualificationDetails.findOne({
@@ -768,3 +769,80 @@ export const filterFieldCount = catchAsyncError(async (req, res, next) => {
   
 })
 
+
+export const matrimonialProfiles = catchAsyncError(async (req, res, next) => {
+  try {
+    const currentUserId = req.user.userId;
+
+    // Fetch all users excluding the current user
+    const users = await User.findAll({
+      where: {
+        userId: { [Op.ne]: currentUserId } // Exclude the current user
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    if (!users || users.length === 0) {
+      return next(new errorhandler("Users not found!", 404));
+    }
+
+    // Process each user to fetch the related details
+    const profiles = await Promise.all(users.map(async (user) => {
+      const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
+      const otherDetailsData = await otherDetails.findOne({ where: { userId: user.userId } });
+
+      // Fetch age and postedBy details from the Answer table
+      const ageDetail = await Answer.findOne({
+        where: { questionId: 7, userId: user.userId }
+      });
+
+      const postedByDetail = await Answer.findOne({
+        where: { questionId: 6, userId: user.userId }
+      });
+
+      return {
+        id: user.userId,
+        name: personalData ? `${personalData.firstName} ${personalData.lastName}` : null,
+        age: ageDetail ? ageDetail.answer : null,
+        religion: otherDetailsData ? otherDetailsData.religion : null,
+        postedBy: postedByDetail ? postedByDetail.answer : null,
+      };
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: profiles,
+    });
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+
+
+//admin profile image
+export const adminProfileImage = catchAsyncError(async (req, res, next) => {
+
+  try {
+    const userId = req.user.userId
+    console.log(userId)
+    const imageUploadData =(await imageUpload.findOne({ where: { userId } })) || "";
+    const image = imageUploadData.image[0] || "";
+
+    res.status(200).json({
+      success: true,
+      image: image
+    })
+
+
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+
+
+
+
+      
+})

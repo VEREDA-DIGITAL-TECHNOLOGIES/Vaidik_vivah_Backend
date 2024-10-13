@@ -16,16 +16,16 @@ dotenv.config();
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
         httpOnly: true,
-        sameSite: 'None',
+        sameSite: 'Lax',
         secure: true
     }
         //we have to add secure :true in production
 
- export   const refreshTokenOptions ={
+ export  const refreshTokenOptions ={
         expires: new Date(Date.now() + refreshTokenExpire),
         maxAge: refreshTokenExpire,
         httpOnly: true,
-        sameSite: 'None',
+        sameSite: 'Lax',
         secure: true
     }
 
