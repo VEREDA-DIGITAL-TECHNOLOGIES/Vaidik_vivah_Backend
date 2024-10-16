@@ -16,10 +16,20 @@ const User = sequelize.define('User', {
         type: DataTypes.INTEGER,
         autoIncrement: true,
     },
+    uid : {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    userStatus: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+    },
+
     fcmToken: {
         type: DataTypes.STRING,
-        allowNull: true
-    },
+        allowNull: true,
+   },
     userId: {
         type: DataTypes.UUID,
         primaryKey: true,

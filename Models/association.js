@@ -7,6 +7,7 @@ import qualificationDetails from './qualificationDetails.model.js';
 import personalDetails from './personalDetails.model.js';
 import FavProfile from './favProfile.model.js';
 import happyStories from './happyStories.model.js';
+import Connection from './connection.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -42,6 +43,17 @@ User.hasMany(happyStories, { foreignKey: 'userId', as: 'happyStories' });
 happyStories.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
+// A user can send many connection requests
+User.hasMany(Connection, { foreignKey: 'userId', as: 'SentConnections' });
+
+// A user can receive many connection requests
+User.hasMany(Connection, { foreignKey: 'connectionUserId', as: 'ReceivedConnections' });
+
+// Connection belongs to the user who sent the request
+Connection.belongsTo(User, { foreignKey: 'userId', as: 'Sender' });
+
+// Connection belongs to the user who received the request
+Connection.belongsTo(User, { foreignKey: 'connectionUserId', as: 'Receiver' });
 
 
 
@@ -50,4 +62,5 @@ happyStories.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories};
+
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection };
