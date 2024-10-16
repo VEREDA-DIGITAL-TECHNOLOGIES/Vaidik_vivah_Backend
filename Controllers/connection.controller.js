@@ -1,6 +1,6 @@
-import { catchAsyncError } from "../Middlewares/catchAsyncError";
-import errorhandler from "../Utils/errorhandler";
-import Connection from "../Models/connection.model";
+import  {catchAsyncError}  from "../Middlewares/catchAsyncError.js";
+import errorhandler from "../Utils/errorhandler.js";
+import Connection from "../Models/connection.model.js";
 import { Op } from "sequelize";
 
 export const addConnection = catchAsyncError(async (req, res, next) => {

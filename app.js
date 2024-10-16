@@ -10,6 +10,7 @@ import formRouter from "./routes/forms.routes.js"
 import profileRouter from './routes/profile.routes.js';
 import happyStoryRouter from './routes/happyStory.routes.js';
 import favProfileRouter from './routes/favProfile.routes.js';
+import connectionRouter from './routes/connection.routes.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/v1/question",questionRouter);
 app.use("/api/v1/form",formRouter);
 app.use("/api/v1/profile",profileRouter);
 app.use("/api/v1/profile/favorite",favProfileRouter);
+app.use("/api/v1/connection",connectionRouter);
 app.use("/api/v1/happyStories",happyStoryRouter);
  
 
