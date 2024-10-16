@@ -509,39 +509,48 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
 
 })
 
-export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>{
+export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => {
     try {
         const userId = req.user.userId;
+        const { fcmToken, uid, userStatus } = req.body;
 
-        const { fcmToken,uid,userStatus } = req.body;
+        // Check for required fields
+        if (!fcmToken) {
+            return res.status(400).json({ error: 'FCM token is required.' });
+        }
+        if (!uid) {
+            return res.status(400).json({ error: 'UID is required.' });
+        }
+        if (!userStatus) {
+            return res.status(400).json({ error: 'User status is required.' });
+        }
 
+        // Find the user in the database
         let user = await User.findOne({ where: { userId } });
 
         if (!user) {
             return res.status(404).json({ error: 'User not found.' });
         }
 
+        await user.update({ fcmToken, uid, userStatus });
 
-         await user.update({ fcmToken,uid,userStatus });
-         await recommendation.update({ fcmToken,uid,userStatus });
+        await recommendation.update({ fcmToken, uid, userStatus }, { where: { userId } });
 
-
-        // Save the changes
-        await user.save();
-        res.status(201).json({
+        // Send a success response
+        res.status(200).json({
             success: true,
             message: "FCM token updated successfully",
-            user
-        })
+            user,
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
-         message: "Internal server error",
-    })
-}
+            message: "Internal server error",
+        });
+    }
+});
 
-})
 
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
