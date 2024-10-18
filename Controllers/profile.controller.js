@@ -471,12 +471,9 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
   try {
     const connectedUserId = req.user.userId
     const { userId } = req.body;
-    // console.log(userId,'userId')
 
-    
    
     const personalData = await personalDetails.findOne({ where: { userId } });
-    const connection =  await connection.findOne({ where: { userId } });
     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
     const locationDetailsData = await locationDetails.findOne({ where: { userId },});
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
