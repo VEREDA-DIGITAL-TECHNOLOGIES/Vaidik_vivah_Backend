@@ -7,6 +7,7 @@ import question from "../Models/question.model.js";
 import Answer from "../Models/answer.model.js";
 import User from "../Models/user.js";
 import dotenv from "dotenv";
+import connection from "../Models/connection.model.js";
 import { Op, where } from "sequelize";
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
@@ -466,33 +467,32 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 });
 
 export const UserDetails = catchAsyncError(async (req, res, next) => {
-  try {
-    const { userId } = req.body;
-    console.log(userId,'userId')
 
+  try {
+    const connectedUserId = req.user.userId
+    const { userId } = req.body;
+    // console.log(userId,'userId')
+
+    
+   
     const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({
-      where: { userId },
-    });
-    const locationDetailsData = await locationDetails.findOne({
-      where: { userId },
-    });
+    const connection =  await connection.findOne({ where: { userId } });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId },});
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData =
-      (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({
-      where: { userId, questionId: 12 },
-    });
-    const gender = await Answer.findOne({
-      where: { userId, questionId: 1 },
-    });
-    const age = await Answer.findOne({
-      where: { userId, questionId: 7 },
-    });
-    const postedby = await Answer.findOne({
-      where: { userId, questionId: 6 },
-    });
+    const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 },});
+    const gender = await Answer.findOne({where: { userId, questionId: 1 },});
+    const age = await Answer.findOne({where: { userId, questionId: 7 },});
+    const postedby = await Answer.findOne({where: { userId, questionId: 6 },});
     const answer = basic_lifestyle.answer;
+    const connectionStatus = await connection.findOne({
+      where: {
+          userId: connectedUserId,
+          connectionUserId: userId,
+      },
+  });
+
     const data = [
       {
         profileImage: imageUploadData.image,
@@ -549,6 +549,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           income: qualificationDetailsData.income,
         },
         interest_and_hobbies: answer,
+        connection_status: connectionStatus ? connectionStatus.status : 'no connection',
       },
     ];
 

@@ -514,7 +514,6 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
         const userId = req.user.userId;
         const { fcmToken, uid, userStatus } = req.body;
 
-        // Check for required fields
         if (!fcmToken) {
             return res.status(400).json({ error: 'FCM token is required.' });
         }
@@ -525,7 +524,6 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
             return res.status(400).json({ error: 'User status is required.' });
         }
 
-        // Find the user in the database
         let user = await User.findOne({ where: { userId } });
 
         if (!user) {
@@ -536,7 +534,6 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
 
         await recommendation.update({ fcmToken, uid, userStatus }, { where: { userId } });
 
-        // Send a success response
         res.status(200).json({
             success: true,
             message: "FCM token updated successfully",
