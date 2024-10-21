@@ -484,13 +484,13 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const connectionStatus = await connection.findOne({
       where: {
         [Op.or]: [
-          { senderId: connectedUserId, receiverId: userId }, // connectedUserId sent request to userId
-          { receiverId: userId, senderId: connectedUserId }  // userId sent request to connectedUserId
+          { senderId: connectedUserId, receiverId: userId }, // user2 sent request to user1
+          { receiverId: connectedUserId, senderId: userId } // user1 sent request to user2
         ]
       }
     });
 
-    console.log(connectionStatus, " connection status");
+
   
   const connection_status = (() => {
     if (connectionStatus) {
@@ -502,8 +502,20 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     return 'no connection';
     })();
 
-    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
-    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
+    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId; // user2 sent the request
+    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId; // user2 received the request
+
+// Determine connection type to display appropriate status
+const connectionType = (() => {
+    if (isSender) {
+        return 'sender';
+    } else if (isReceiver) {
+        return 'receiver';
+    } else {
+        return 'none';
+    }
+})(); 
+
 
 
     const data = [
@@ -563,7 +575,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
         },
         interest_and_hobbies: answer,
         connection_status: connection_status,
-        connectionType: isSender ? 'sender' : isReceiver ? 'receiver' : 'none', 
+        connectionType: connectionType, 
 
     },
     ];
