@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import connectDB from "../Utils/db.js";
+import { v4 as uuidv4 } from 'uuid';
+import User from './user.js';
 
 const sequelize = connectDB();
 
@@ -7,8 +9,23 @@ const plan = sequelize.define("plan", {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
-        primaryKey: true,
+    },
+
+    userId: {
+        type: DataTypes.UUID,
         allowNull: false,
+        references: {
+            model: User,
+            key: 'userId',
+        },
+    },
+
+    planId: {
+        type: DataTypes.UUID,
+        primaryKey: true,
+        defaultValue: () => uuidv4(),
+        allowNull: false,
+        unique: true,
     },
 
     planName: {

@@ -6,7 +6,7 @@ import { createPlan,getAllPlans,deletePlan } from "../Controllers/plan.controlle
 const planRouter = express.Router();
 
 planRouter.post('/createPlan',isAuthenticated,createPlan);
-planRouter.get('/getAllPlans',isAuthenticated,getAllPlans);
+planRouter.get('/getAllPlans',getAllPlans);
 planRouter.delete('/deletePlan',isAuthenticated,deletePlan)
  
 export default planRouter

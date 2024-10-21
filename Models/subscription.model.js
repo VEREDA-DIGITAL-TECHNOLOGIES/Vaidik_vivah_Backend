@@ -1,18 +1,17 @@
 import { DataTypes } from "sequelize";
-import connectDB from "../Utils/db";
-import User from "./user";
-import { v4 as uuidv4 } from 'uuid';
-import plan from "./plan.model";
-const sequelize = connectDB();
-sequelize.define('subscription', {
+import connectDB from "../Utils/db.js";
+import User from "./user.js";
+import plan from "./plan.model.js";
 
+const sequelize = connectDB();
+
+const Subscription = sequelize.define('subscription', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false,
     },
-
     userId: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -22,42 +21,44 @@ sequelize.define('subscription', {
         },
     },
     planId: {
-        type: DataTypes.INTEGER,
+        type:DataTypes.UUID,
         allowNull: false,
         references: {
             model: plan,
-            key: 'id',
+            key: 'planId',
         },
     },
     startDate: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Date.now(),
+        defaultValue: DataTypes.NOW,
     },
-    endDate:{
+    endDate: {
         type: DataTypes.DATE,
-        allowNull: false
+        allowNull: false,
     },
     status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM("Active", "Inactive", "Expired", "Cancelled"),
         allowNull: false,
-        enum: ["Active", "Inactive",'Expired','Cancelled'],
-        defaultValue: "Active"
+        defaultValue: "Active",
     },
     paymentStatus: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM("Pending", "Completed", "Failed"),
         allowNull: false,
-        enum: ["Pending", "Completed","Failed"],
-        defaultValue: "Pending"
+        defaultValue: "Pending",
     },
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Date.now(),
+        defaultValue: DataTypes.NOW,
     },
-   
-})
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+    },
+}, {
+    timestamps: true,
+});
 
-
-
-export default subscription;
+export default Subscription;

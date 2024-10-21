@@ -3,6 +3,8 @@ import {app} from './app.js';
 import connectDB from './Utils/db.js';
 import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection} from './Models/association.js';
 import Recommendation from './Models/recommendation.model.js';
+import plan from './Models/plan.model.js';
+import subscription from './Models/subscription.model.js';
 
 dotenv.config();
 
@@ -17,13 +19,15 @@ const startServer = async () => {
         await Answer.sync({ force: false });
         await personalDetails.sync({ force: false });
         await otherDetails.sync({ force: false });
-        await locationDetails.sync({ force: false });
+        await locationDetails.sync({ force: false }); 
         await imageUpload.sync({ force: false });
         await qualificationDetails.sync({ force: false });
         await Recommendation.sync({ force: false });
         await FavProfile.sync({ force: false });
         await happyStories.sync({ force: false });
         await Connection.sync({ force: false });
+        await plan.sync({ force: false });
+        await subscription.sync({ force: true });
         
 
         console.log('Tables synchronized');

@@ -391,8 +391,6 @@ export const updateInterstAndHobbies = catchAsyncError(
     });
   }
 );
-
-
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   try{
     const userId = req.user.userId;
@@ -485,10 +483,28 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const answer = basic_lifestyle.answer;
     const connectionStatus = await connection.findOne({
       where: {
-          userId: connectedUserId,
-          connectionUserId: userId,
-      },
-  });
+        [Op.or]: [
+          { senderId: connectedUserId, receiverId: userId }, // connectedUserId sent request to userId
+          { receiverId: userId, senderId: connectedUserId }  // userId sent request to connectedUserId
+        ]
+      }
+    });
+
+    console.log(connectionStatus, " connection status");
+  
+  const connection_status = (() => {
+    if (connectionStatus) {
+        if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
+            return 'no connection';  
+        }
+        return connectionStatus.status;  
+    }
+    return 'no connection';
+    })();
+
+    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
+    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
+
 
     const data = [
       {
@@ -546,8 +562,10 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           income: qualificationDetailsData.income,
         },
         interest_and_hobbies: answer,
-        connection_status: connectionStatus ? connectionStatus.status : 'no connection',
-      },
+        connection_status: connection_status,
+        connectionType: isSender ? 'sender' : isReceiver ? 'receiver' : 'none', 
+
+    },
     ];
 
     res.status(200).json({
