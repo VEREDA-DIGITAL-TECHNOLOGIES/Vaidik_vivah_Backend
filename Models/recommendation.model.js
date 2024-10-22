@@ -14,6 +14,16 @@ const Recommendation = sequelize.define('Recommendation', {
         primaryKey: true,
         allowNull: true
     },
+    uid : {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    userStatus: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+    },
+
     fcmToken: {
         type: DataTypes.STRING,
         allowNull: true

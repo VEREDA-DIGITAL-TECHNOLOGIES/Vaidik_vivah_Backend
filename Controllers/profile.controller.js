@@ -7,6 +7,7 @@ import question from "../Models/question.model.js";
 import Answer from "../Models/answer.model.js";
 import User from "../Models/user.js";
 import dotenv from "dotenv";
+import connection from "../Models/connection.model.js";
 import { Op, where } from "sequelize";
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
@@ -390,8 +391,6 @@ export const updateInterstAndHobbies = catchAsyncError(
     });
   }
 );
-
-
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   try{
     const userId = req.user.userId;
@@ -466,33 +465,59 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 });
 
 export const UserDetails = catchAsyncError(async (req, res, next) => {
-  try {
-    const { userId } = req.body;
-    console.log(userId,'userId')
 
+  try {
+    const connectedUserId = req.user.userId
+    const { userId } = req.body;
+
+   
     const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({
-      where: { userId },
-    });
-    const locationDetailsData = await locationDetails.findOne({
-      where: { userId },
-    });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId },});
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData =
-      (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({
-      where: { userId, questionId: 12 },
-    });
-    const gender = await Answer.findOne({
-      where: { userId, questionId: 1 },
-    });
-    const age = await Answer.findOne({
-      where: { userId, questionId: 7 },
-    });
-    const postedby = await Answer.findOne({
-      where: { userId, questionId: 6 },
-    });
+    const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 },});
+    const gender = await Answer.findOne({where: { userId, questionId: 1 },});
+    const age = await Answer.findOne({where: { userId, questionId: 7 },});
+    const postedby = await Answer.findOne({where: { userId, questionId: 6 },});
     const answer = basic_lifestyle.answer;
+    const connectionStatus = await connection.findOne({
+      where: {
+        [Op.or]: [
+          { senderId: connectedUserId, receiverId: userId }, // user2 sent request to user1
+          { receiverId: connectedUserId, senderId: userId } // user1 sent request to user2
+        ]
+      }
+    });
+
+
+  
+  const connection_status = (() => {
+    if (connectionStatus) {
+        if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
+            return 'no connection';  
+        }
+        return connectionStatus.status;  
+    }
+    return 'no connection';
+    })();
+
+    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId; // user2 sent the request
+    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId; // user2 received the request
+
+// Determine connection type to display appropriate status
+const connectionType = (() => {
+    if (isSender) {
+        return 'sender';
+    } else if (isReceiver) {
+        return 'receiver';
+    } else {
+        return 'none';
+    }
+})(); 
+
+
+
     const data = [
       {
         profileImage: imageUploadData.image,
@@ -549,7 +574,10 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           income: qualificationDetailsData.income,
         },
         interest_and_hobbies: answer,
-      },
+        connection_status: connection_status,
+        connectionType: connectionType, 
+
+    },
     ];
 
     res.status(200).json({
