@@ -105,6 +105,31 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
   }
 });
 
+export const getuserImage = catchAsyncError(async (req, res, next) => {
+  try{
+  const userId = req.user.userId;
+
+  const imageUploadData =(await imageUpload.findOne({ where: { userId } })) || "";
+
+  const singleImage  = imageUploadData.image[0] || "";
+
+  res.status(200).json({
+    success: true,
+    data : singleImage
+  });
+
+  if (!imageUploadData) {
+    return next(new errorhandler("Image not found!", 400));
+  }
+
+
+}
+catch(error){
+  return next(new errorhandler(error.message, 500));
+}
+
+});
+
 export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
   const userId = req.user.userId;
 

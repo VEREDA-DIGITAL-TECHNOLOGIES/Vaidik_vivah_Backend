@@ -509,20 +509,22 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
 
 })
 
-export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => {
+export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => { 
     try {
         const userId = req.user.userId;
         const { fcmToken, uid, userStatus } = req.body;
 
+        console.log(fcmToken, uid, userStatus, "fcmToken uid userStatus");
+
         if (!fcmToken) {
             return res.status(400).json({ error: 'FCM token is required.' });
         }
-        if (!uid) {
+        if (!uid) { 
             return res.status(400).json({ error: 'UID is required.' });
         }
         if (!userStatus) {
             return res.status(400).json({ error: 'User status is required.' });
-        }
+        } 
 
         let user = await User.findOne({ where: { userId } });
 

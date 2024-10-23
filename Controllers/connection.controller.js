@@ -176,3 +176,56 @@ export const rejectConnectionRequest = catchAsyncError(async (req, res, next) =>
     }
 });
 
+export const getConnectionStatus = catchAsyncError(async (req, res, next) => {
+
+    try{
+
+        const connectedUserId = req.user.userId
+
+        const { userId } = req.body;
+
+
+        const connectionStatus = await Connection.findOne({
+            where: {
+              [Op.or]: [
+                { senderId: connectedUserId, receiverId: userId }, // user2 sent request to user1
+                { receiverId: connectedUserId, senderId: userId } // user1 sent request to user2
+              ]
+            }
+          });
+
+          const connection_status = (() => {
+            if (connectionStatus) {
+                if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
+                    return 'no connection';  
+                }
+                return connectionStatus.status;  
+            }
+            return 'no connection';
+            })();
+        
+            const isSender = connectionStatus && connectionStatus.senderId === connectedUserId; // user2 sent the request
+            const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId; // user2 received the request
+        
+        // Determine connection type to display appropriate status
+        const connectionType = (() => {
+            if (isSender) {
+                return 'sender';
+            } else if (isReceiver) {
+                return 'receiver';
+            } else {
+                return 'none';
+            }
+        })(); 
+
+
+        return res.status(200).json({ success: true, connection_status, connectionType });
+      
+
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+
+
+})
+
