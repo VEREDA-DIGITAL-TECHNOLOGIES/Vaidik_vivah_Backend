@@ -9,6 +9,6 @@ connectionRouter.post('/cancelConnection',isAuthenticated, cancelConnectionReque
 connectionRouter.post('/acceptConnection',isAuthenticated,acceptConnectionRequest);
 connectionRouter.post('/rejectConnection',isAuthenticated, rejectConnectionRequest);
 connectionRouter.post('/removeConnection',isAuthenticated, removeConnection);
-connectionRouter.get('/getConnectionStatus',isAuthenticated,getConnectionStatus);
+connectionRouter.post('/getConnectionStatus',isAuthenticated,getConnectionStatus);
 
 export default connectionRouter

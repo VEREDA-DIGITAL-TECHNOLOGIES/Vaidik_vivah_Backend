@@ -217,9 +217,14 @@ export const getConnectionStatus = catchAsyncError(async (req, res, next) => {
                 return 'none';
             }
         })(); 
+        
+        const data = {
+            connection_status,
+            connectionType
+        }
 
 
-        return res.status(200).json({ success: true, connection_status, connectionType });
+        return res.status(200).json({ success: true, data,message: "Connection status fetched successfully!" });
       
 
     } catch (error) {
