@@ -15,6 +15,7 @@ import { uploadCloudinary } from "../Utils/cloudinary.js";
 import recommendation from "../Models/recommendation.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
+import moment from 'moment';
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
@@ -739,7 +740,6 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
 export const filterFieldCount = catchAsyncError(async (req, res, next) => {
 
   try {
@@ -822,7 +822,6 @@ export const filterFieldCount = catchAsyncError(async (req, res, next) => {
   
 })
 
-
 export const matrimonialProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const currentUserId = req.user.userId;
@@ -872,8 +871,6 @@ export const matrimonialProfiles = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
-
 //admin profile image
 export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 
@@ -899,3 +896,44 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 
       
 })
+
+
+export const allProfiles = catchAsyncError(async (req, res, next) => {
+  try {
+    const currentUserId = req.user.userId;
+    const currentDate = moment().startOf('day').toDate();
+
+    const users = await User.findAll({
+      where: {
+        userId: { [Op.ne]: currentUserId },
+        isImageFormFilled: true,
+        isPersonalFormFilled: true,
+        isQualificationFormFilled: true,
+        isLocationFormFilled: true,
+        isOtherFormFilled: true,
+        createdAt: {
+          [Op.gte]: currentDate,
+          [Op.lt]: moment(currentDate).add(1, 'days').toDate(),
+        },
+      },
+    });
+
+    if (!users || users.length === 0) {
+      return next(new errorhandler("Users not found!", 404));
+    }
+
+   const profiles = users.map((user) => {
+      return {
+        userId: user.userId,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: profiles,
+    });
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+

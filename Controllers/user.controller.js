@@ -672,6 +672,11 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
 });
 
 
+
+
+
+
+
 //for admin
 export const AllUsers = catchAsyncError(async (req, res, next) => {
     try {
@@ -770,3 +775,4 @@ export const AllCustomers = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 })
+

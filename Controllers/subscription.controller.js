@@ -34,14 +34,14 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
                             description: planData.description,
                         },
                         unit_amount: planData.price * 100,
-                    },
+                    }, 
                     quantity: 1,
                 },
             ],
             mode: "payment",
           
             customer_email: req.user.email,
-            success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.FRONTEND_URL}/Payment-Success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.FRONTEND_URL}/cancel`,
             metadata: {
                 planId: planId,

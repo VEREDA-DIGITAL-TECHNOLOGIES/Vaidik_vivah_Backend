@@ -1,6 +1,7 @@
 import { Op } from "sequelize";
 import Connection from "../Models/connection.model.js";
 import errorhandler from "../Utils/errorhandler.js";
+import User from "../Models/user.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 
 export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
@@ -40,9 +41,7 @@ export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
     }
 });
 
-export const cancelConnectionRequest = catchAsyncError(async (req, res, next) => {
-
-
+export const  cancelConnectionRequest = catchAsyncError(async (req, res, next) => {
     try {
 
         const senderId = req.user.userId;
@@ -70,8 +69,7 @@ export const cancelConnectionRequest = catchAsyncError(async (req, res, next) =>
             return next(new errorhandler("Connection already accepted!", 400));
         }
 
-        connection.status = 'cancelled';
-        await connection.save();
+        await connection.destroy();
 
         return res.status(200).json({ success: true, message: "Connection cancelled successfully!" });
     } catch (error) {
@@ -233,4 +231,42 @@ export const getConnectionStatus = catchAsyncError(async (req, res, next) => {
 
 
 })
+
+
+
+export const getMyConnections = catchAsyncError(async (req, res, next) => {
+    try {
+      const userId = req.user.userId;
+  
+      console.log(userId, "userId");
+  
+      const connections = await Connection.findAll({
+        where: {
+          [Op.or]: [
+            { senderId: userId },
+            { receiverId: userId },
+          ],
+          status: 'pending',
+        },
+      });
+  
+      if (!connections || connections.length === 0) {
+        return next(new errorhandler("No connections found!", 404));
+      }
+  
+      const connectionData = connections.map((connection) => {
+        if (connection.senderId === userId) {
+          return { userId: connection.receiverId };
+        } else if (connection.receiverId === userId) {
+          return { userId: connection.senderId };
+        }
+      });
+  
+      return res.status(200).json({ success: true, data: connectionData });
+    } catch (error) {
+      return next(new errorhandler(error.message, 500));
+    }
+  });
+
+
 
