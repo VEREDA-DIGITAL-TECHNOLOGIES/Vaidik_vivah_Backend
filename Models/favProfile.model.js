@@ -27,12 +27,7 @@ const FavProfile = sequelize.define('FavProfile', {
             model: User,
             key: 'userId',
         },
-    },
-    profile:{
-        type:DataTypes.ARRAY(DataTypes.JSON),
-        allowNull: false,
-        defaultValue: [],
-    }  
+    },  
 },
 {
     timestamps: true
