@@ -250,9 +250,7 @@ export const getMyConnections = catchAsyncError(async (req, res, next) => {
         },
       });
   
-      if (!connections || connections.length === 0) {
-        return next(new errorhandler("No connections found!", 404));
-      }
+     
   
       const connectionData = connections.map((connection) => {
         if (connection.senderId === userId) {
@@ -262,7 +260,7 @@ export const getMyConnections = catchAsyncError(async (req, res, next) => {
         }
       });
   
-      return res.status(200).json({ success: true, data: connectionData });
+      return res.status(200).json({ success: true, data: connectionData ,message: "Connections fetched successfully!" });
     } catch (error) {
       return next(new errorhandler(error.message, 500));
     }

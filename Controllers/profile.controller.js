@@ -900,6 +900,7 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 
 export const allProfiles = catchAsyncError(async (req, res, next) => {
   try {
+
     const currentUserId = req.user.userId;
     const currentDate = moment().startOf('day').toDate();
 
@@ -918,9 +919,6 @@ export const allProfiles = catchAsyncError(async (req, res, next) => {
       },
     });
 
-    if (!users || users.length === 0) {
-      return next(new errorhandler("Users not found!", 404));
-    }
 
    const profiles = users.map((user) => {
       return {
@@ -931,6 +929,7 @@ export const allProfiles = catchAsyncError(async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: profiles,
+      message: "All profiles fetched successfully!",
     });
   } catch (error) {
     return next(new errorhandler(error.message, 500));
