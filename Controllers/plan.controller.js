@@ -55,7 +55,7 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
 export const getAllPlans = catchAsyncError(async (req, res, next) => {
     const plans = await plan.findAll();
     if (!plans) {
-        return next(new errorhandler("Plans not found!", 404));
+      return res.status(404).json({ success: false, message: "Plans not found!" });
     }
 
     const data = plans.map((plan) => {
@@ -69,7 +69,6 @@ export const getAllPlans = catchAsyncError(async (req, res, next) => {
     })
 
 
-    console.log(plans, "plans")
     res.status(200).json({
         success: true,
         data: data,

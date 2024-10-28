@@ -53,13 +53,12 @@ export const qualificationDetailsRegister = catchAsyncError(async (req, res, nex
         const { qualification, currentWorkingStatus, occupation, income } = req.body;
 
         if (!qualification || !currentWorkingStatus || !occupation || !income) {
-            return next(new errorhandler("All fields are required!", 400));
-        }
+            return res.status(400).json({ success: false, message: "All fields are required!" });}
 
         const qualificationDetailsExist = await qualificationDetails.findOne({ where: { userId } });
 
         if (qualificationDetailsExist) {
-            return next(new errorhandler("Qualification details already exist!", 400));
+            return res.status(400).json({ success: false, message: "Qualification details already exist!" });
         }
 
         const qualificationData = await qualificationDetails.create({ qualification, currentWorkingStatus, occupation, income, userId });
@@ -88,13 +87,13 @@ export const locationDetailsRegister = catchAsyncError(async (req, res, next) =>
     const { citizenShip, country, state, austrailanVisaStatus } = req.body;
 
     if (!citizenShip || !country || !state || !austrailanVisaStatus) {
-        return next(new errorhandler("All fields are required!", 400));
+        return  res.status(400).json({ success: false, message: "All fields are required!" });
     }
 
     const locationDetailsExist = await locationDetails.findOne({ where: { userId } });
 
     if (locationDetailsExist) {
-        return next(new errorhandler("Location details already exist!", 400));
+        return res.status(400).json({ success: false, message: "Location details already exist!" });
     }
 
     const locationDetailsData = await locationDetails.create({ citizenShip, country, state, austrailanVisaStatus, userId });
@@ -116,13 +115,13 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
     console.log(req.body, "req.body")
 
     if (!caste || !community || !dateOfBirth || !timeOfBirth || !religion || !placeOfBirth) {
-        return next(new errorhandler("All fields are required!", 400));
+        return res.status(400).json({ success: false, message: "All fields are required!" });
     }
 
     const otherDetailsExist = await otherDetails.findOne({ where: { userId } });
 
     if (otherDetailsExist) {
-        return next(new errorhandler("Other details already exist!", 400));
+        return res.status(400).json({ success: false, message: "Other details already exist!" });
     }
 
     const otherDetailsData = await otherDetails.create({ caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth, userId });
@@ -144,7 +143,6 @@ export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
         if (!req.files) {
             return next(new errorhandler("Please upload an image!", 400));
         }
-        console.log(req.files, "req.file")
 
         const imageUploadExist = await imageUpload.findOne({ where: { userId } });
 

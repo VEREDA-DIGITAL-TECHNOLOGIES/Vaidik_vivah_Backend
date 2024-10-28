@@ -12,6 +12,7 @@ const FavProfile = sequelize.define('FavProfile', {
         allowNull: false,
     },
 
+   
     userId: {
         type: DataTypes.UUID,
         allowNull: false,

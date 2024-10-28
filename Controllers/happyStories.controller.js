@@ -13,14 +13,14 @@ export const addStory = catchAsyncError(async (req, res, next) => {
 
 
         if (!customerName || !partnerName || !description) {
-            return next(new errorhandler("Please enter all fields", 400)); 
+            return res.status(400).json({ success: false, message: "All fields are required!" });
         }
 
         console.log(req.files)
  
 
         if (!req.files) {
-            return next(new errorhandler("Please upload Customer's Story image!", 400));
+            return res.status(400).json({ success: false, message: "Please upload an image!" });
         }
 
         let userImageUrl;
