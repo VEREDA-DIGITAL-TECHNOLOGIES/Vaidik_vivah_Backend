@@ -12,7 +12,7 @@ export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
         const { receiverId } = req.body;
 
         if (senderId === receiverId) {
-            return next(new errorhandler("You can't connect with yourself!", 400));
+            return res.status(400).json({ success: false, message: "You can't connect with yourself!" });
         }
 
 
@@ -48,7 +48,7 @@ export const  cancelConnectionRequest = catchAsyncError(async (req, res, next) =
         const { receiverId } = req.body;
 
         if (senderId === receiverId) {
-            return next(new errorhandler("You can't cancel connection with yourself!", 400));
+            return res.json({ success: false, message: "You can't cancel connection request with yourself!" });
         }
 
 
@@ -62,11 +62,11 @@ export const  cancelConnectionRequest = catchAsyncError(async (req, res, next) =
         });
 
         if (!connection) {
-            return next(new errorhandler("Connection not found!", 404));
+            return res.status(404).json({ success: false, message: "Connection request not found!" });
         }
 
         if (connection.status === 'accepted') {
-            return next(new errorhandler("Connection already accepted!", 400));
+            return res.status(400).json({ success: false, message: "Connection request already accepted!" });
         }
 
         await connection.destroy();
@@ -83,7 +83,7 @@ export const removeConnection = catchAsyncError(async (req, res, next) => {
         const { receiverId } = req.body;
 
         if (senderId === receiverId) {
-            return next(new errorhandler("You can't remove connection with yourself!", 400));
+            return res.status(400).json({ success: false, message: "You can't remove connection with yourself!" });
         }
 
         const connection = await Connection.findOne({
@@ -97,7 +97,7 @@ export const removeConnection = catchAsyncError(async (req, res, next) => {
 
 
         if (!connection) {
-            return next(new errorhandler("Connection not found!", 404));
+            return res.status(404).json({ success: false, message: "Connection not found!" });
         }
 
         await connection.destroy();
@@ -114,7 +114,7 @@ export const acceptConnectionRequest = catchAsyncError(async (req, res, next) =>
         const { senderId } = req.body;
 
         if (receiverId === senderId) {
-            return next(new errorhandler("You can't accept your own connection request!", 400));
+            return res.status(400).json({ success: false, message: "You can't accept your own connection request!" });
         }
 
         const connection = await Connection.findOne({
@@ -130,7 +130,7 @@ export const acceptConnectionRequest = catchAsyncError(async (req, res, next) =>
         }
 
         if (connection.status === 'accepted') {
-            return next(new errorhandler("Connection Request already accepted!", 400));
+            return res.status(400).json({ success: false, message: "Connection request already accepted!" });
         }
 
         connection.status = 'accepted';
@@ -150,7 +150,7 @@ export const rejectConnectionRequest = catchAsyncError(async (req, res, next) =>
         const { senderId } = req.body;
 
         if (receiverId === senderId) {
-            return next(new errorhandler("You can't reject your own connection request!", 400));
+            return res.status(400).json({ success: false, message: "You can't reject your own connection request!" });
         }
 
         const connection = await Connection.findOne({
@@ -162,7 +162,7 @@ export const rejectConnectionRequest = catchAsyncError(async (req, res, next) =>
         });
 
         if (!connection) {
-            return next(new errorhandler("Connection request not found!", 404));
+            return res.status(404).json({ success: false, message: "Connection request not found!" });
         }
 
         connection.status = 'rejected';
@@ -246,12 +246,13 @@ export const getMyConnections = catchAsyncError(async (req, res, next) => {
             { senderId: userId },
             { receiverId: userId },
           ],
-          status: 'pending',
+          status: 'accepted',
         },
       });
+
   
      
-  
+
       const connectionData = connections.map((connection) => {
         if (connection.senderId === userId) {
           return { userId: connection.receiverId };

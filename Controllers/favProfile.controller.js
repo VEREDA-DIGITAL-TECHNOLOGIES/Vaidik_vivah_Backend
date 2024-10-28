@@ -13,19 +13,19 @@ export const addFavProfile = catchAsyncError(async (req, res, next) => {
         const { favoritedUserId } = req.body;
 
         if( !favoritedUserId){
-            return next(new errorhandler("User not found!", 400));
+            return res.status(400).json({ success: false, message: 'favoritedUserId is required.' });
         }
 
         const existingFavProfile = await FavProfile.findOne({where: {favoritedUserId,  userId}});
 
         if(existingFavProfile){
-            return next(new errorhandler("Favourite profile already exist!", 400));
+            return res.status(404).json({ success: false, message: 'Favorite profile already exists.' });
         }
 
         const favProfile = await FavProfile.create({favoritedUserId,userId});
 
 
-        return res.status(201).json({favProfile, message: "Favourite Added successfully!"});
+        return res.status(201).json({ success: true,favProfile, message: "Favourite Added successfully!"});
 
     }catch(error){
         
@@ -45,13 +45,14 @@ export const getFavProfile = catchAsyncError(async (req, res, next) => {
         })
 
         if(!FavouritedProfiles){
-            return next(new errorhandler("No Favourite profile found!", 400));
+            return res.status(404).json({success: false,message: "Favourite profile not found!"});
         }
+
         const data = FavouritedProfiles.map((user) => {
             return {userId: user.userId,}
         })
 
-        return res.status(200).json({data, message: "Favourite profile fetched successfully!"});
+        return res.status(200).json({success: true ,data, message: "Favourite profile fetched successfully!"});
 
     }catch(error){
      return next(new errorhandler(error.message, 500));
@@ -69,12 +70,12 @@ export const  removeFavProfile = catchAsyncError(async (req, res, next) => {
         });
 
         if (!favProfile) {
-            return res.status(404).json({ message: 'Favorite profile not found.' });
+            return res.status(404).json({ success: false, message: 'Favorite profile not found.' });
         }
 
         await favProfile.destroy();
 
-        return res.status(200).json({ message: 'Favorite profile removed successfully.' });
+        return res.status(200).json({ success: true, message: 'Favorite profile removed successfully.' });
 
 
     }catch(error){
