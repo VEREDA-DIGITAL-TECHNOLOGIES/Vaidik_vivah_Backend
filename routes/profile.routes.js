@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated} from '../Middlewares/auth.js';
-import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterProfiles,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload,adminProfileImage,matrimonialProfiles,getuserImage,allProfiles,getProfilePercentage} from '../Controllers/profile.controller.js'
+import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterProfiles,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload,adminProfileImage,matrimonialProfiles,getuserImage,allProfiles,getProfilePercentage,} from '../Controllers/profile.controller.js'
 import { upload } from "../Middlewares/multer.js";
 
 
@@ -23,10 +23,10 @@ profileRouter.put('/updatephotoUpload',isAuthenticated,upload.array('profileImag
 profileRouter.get('/getProfiles',isAuthenticated,MatchedProfiles)
 profileRouter.get('/filterFieldCount',isAuthenticated,filterFieldCount)
 profileRouter.post('/getUserDetails',isAuthenticated,UserDetails)
-profileRouter.get('/getProfilePercentage',isAuthenticated,getProfilePercentage)
 profileRouter.post('/filterProfiles',isAuthenticated,filterProfiles)
 profileRouter.get('/getuserImage',isAuthenticated,getuserImage)
 profileRouter.get('/allProfiles',isAuthenticated,allProfiles)
+profileRouter.get('/getProfilePercentage',isAuthenticated,getProfilePercentage)
 
 
 export default profileRouter

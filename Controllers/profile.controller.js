@@ -2,6 +2,7 @@ import personalDetails from "../Models/personalDetails.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
 import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
+import calculateCompletion from "../Utils/calculateCompletion.js";
 import imageUpload from "../Models/imageUpload.model.js";
 import question from "../Models/question.model.js";
 import Answer from "../Models/answer.model.js";
@@ -96,6 +97,9 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       },
     ];
 
+
+
+
     return res.status(200).json({
       success: true,
       data,
@@ -130,26 +134,6 @@ catch(error){
 }
 
 });
-
-// function calculateCompletionPercentage(user) {
-
-//   let percentage = 0;
-//   if (user.isImageFormFilled && user.isPersonalFormFilled && user.isQualificationFormFilled && user.isLocationFormFilled && user.isOtherFormFilled) {
-//     percentage = 40;
-//   }
-
-//   if()
-
-
-
-//   return percentage;
-  
-
-
-
-
-
-// }
 
 export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
   const userId = req.user.userId;
@@ -961,23 +945,78 @@ export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
-    const user = await User.findOne({
-      where: { userId },
-    });
+    const personalData = await personalDetails.findOne({ where: { userId } });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId } });
+    const otherDetailsData = await otherDetails.findOne({ where: { userId } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const gender = await Answer.findOne({ where: { userId } });
+    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const answer = basic_lifestyle.answer;
 
-    const percentage  =  ((user.isImageFormFilled && user.isPersonalFormFilled && user.isQualificationFormFilled && user.isLocationFormFilled && user.isOtherFormFilled) / 5) * 100
+    const data = {
+      basic_and_lifestye: {
+        firstName: personalData.firstName,
+        lastName: personalData.lastName,
+        displayName: personalData.displayName,
+        gender: gender.answer,
+        age: age.answer,
+        about: personalData.aboutYourSelf,
+        religion: otherDetailsData.religion,
+        maritalStatus: personalData.maritalStatus,
+        numberOfChildren: personalData.numberOfChildren,
+        postedBy: postedby.answer,
+      },
+      family_details: {
+        fatherOccupation: otherDetailsData.fatherOccupation,
+        motherOccupation: otherDetailsData.motherOccupation,
+        numberOfSiblings: otherDetailsData.numberOfSiblings,
+        livingWithFamily: otherDetailsData.livingWithFamily,
+      },
+      personal_background: {
+        height: otherDetailsData.height,
+        weight: otherDetailsData.weight,
+        bodyType: otherDetailsData.bodyType,
+        language: otherDetailsData.language,
+        smokingHabbit: otherDetailsData.smokingHabbit,
+        drinkingHabbit: otherDetailsData.drinkingHabbit,
+        diet: otherDetailsData.diet,
+        complexion: otherDetailsData.complexion,
+      },
+      religious_background: {
+        religion: otherDetailsData.religion,
+        community: otherDetailsData.community,
+        subCommunity: otherDetailsData.subCommunity,
+        gothra: otherDetailsData.gothra,
+        timeOfBirth: otherDetailsData.timeOfBirth,
+        dateOfBirth: otherDetailsData.dateOfBirth,
+        placeOfBirth: otherDetailsData.placeOfBirth,
+        motherTongue: otherDetailsData.motherTongue,
+      },
+      location_background: {
+        currentLocation: locationDetailsData.currentLocation,
+        cityOfResidence: locationDetailsData.cityOfResidence || "",
+        nationality: locationDetailsData.nationality,
+        citizenShip: locationDetailsData.citizenShip,
+        residencyVisaStatus: locationDetailsData.residencyVisaStatus,
+      },
+      education_and_financial: {
+        qualification: qualificationDetailsData.qualification,
+        education: qualificationDetailsData.occupation,
+        workingStatus: qualificationDetailsData.currentWorkingStatus,
+        income: qualificationDetailsData.income,
+      },
+      interest_and_hobbies: answer,
+    };
 
-
-    
+    const percentage = calculateCompletion(data);
 
     res.status(200).json({
       success: true,
-      data:  percentage,
+      percentage:  percentage,
       message: "Profile percentage fetched successfully!",
     });
-
-
-
 
 
   } catch (error) {

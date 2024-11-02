@@ -10,14 +10,14 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
 
     try {
         const {userId} = req.user
-      const { planName, price, durationInMonths, description } = req.body;
+      const { planName, price, durationInMonths, description ,planType,featureList} = req.body;
   
-      if (!planName || !price || !durationInMonths || !description) {
+      if (!planName || !price || !durationInMonths || !description || !planType || !featureList) {
         return next(new errorhandler("Please enter all fields", 400));
       }
   
       const product = await stripe.products.create({
-        name: planName,
+        name: planName + " Plan",
       });
   
       const stripePrice = await stripe.prices.create({
@@ -29,17 +29,17 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
         product: product.id,
       });
   
-      // Create a new plan in the database
       const newPlan = await plan.create({
         planName,
         price,
         durationInMonths,
         stripePriceId: stripePrice.id,
         description,
-        userId
+        userId,
+        planType,
+        featureList
       });
   
-      // Respond with success
       res.status(201).json({
         success: true,
         data: newPlan,
