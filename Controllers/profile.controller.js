@@ -131,6 +131,26 @@ catch(error){
 
 });
 
+// function calculateCompletionPercentage(user) {
+
+//   let percentage = 0;
+//   if (user.isImageFormFilled && user.isPersonalFormFilled && user.isQualificationFormFilled && user.isLocationFormFilled && user.isOtherFormFilled) {
+//     percentage = 40;
+//   }
+
+//   if()
+
+
+
+//   return percentage;
+  
+
+
+
+
+
+// }
+
 export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
   const userId = req.user.userId;
 
@@ -935,4 +955,35 @@ export const allProfiles = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler(error.message, 500));
   }
 });
+
+
+export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await User.findOne({
+      where: { userId },
+    });
+
+    const percentage  =  ((user.isImageFormFilled && user.isPersonalFormFilled && user.isQualificationFormFilled && user.isLocationFormFilled && user.isOtherFormFilled) / 5) * 100
+
+
+    
+
+    res.status(200).json({
+      success: true,
+      data:  percentage,
+      message: "Profile percentage fetched successfully!",
+    });
+
+
+
+
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+
+
+})
 

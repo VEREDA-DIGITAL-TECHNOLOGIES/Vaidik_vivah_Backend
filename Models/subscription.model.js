@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import connectDB from "../Utils/db.js";
+import { v4 as uuidv4 } from "uuid";
 import User from "./user.js";
 import plan from "./plan.model.js";
 
@@ -11,6 +12,11 @@ const Subscription = sequelize.define('subscription', {
         autoIncrement: true,
         primaryKey: true,
         allowNull: false,
+    },
+    orderId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
     },
     userId: {
         type: DataTypes.UUID,
@@ -60,5 +66,7 @@ const Subscription = sequelize.define('subscription', {
 }, {
     timestamps: true,
 });
+
+
 
 export default Subscription;

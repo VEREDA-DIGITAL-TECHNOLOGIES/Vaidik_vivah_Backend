@@ -13,6 +13,7 @@ import favProfileRouter from './routes/favProfile.routes.js';
 import connectionRouter from './routes/connection.routes.js';
 import planRouter from './routes/plan.routes.js';
 import subscriptionRouter from './routes/subscription.routes.js';
+import billingRouter from './routes/billing.routes.js';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use("/api/v1/connection",connectionRouter);
 app.use("/api/v1/happyStories",happyStoryRouter);
 app.use("/api/v1/plan",planRouter);
 app.use("/api/v1/subscription",subscriptionRouter);
+app.use("/api/v1/billing",billingRouter);
  
 
 app.get("/test", async (req, res, next) => {

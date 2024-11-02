@@ -27,7 +27,7 @@ const startServer = async () => {
         await happyStories.sync({ force: false });
         await Connection.sync({ force: false });
         await plan.sync({ force: false });
-        await subscription.sync({ force: true });
+        await subscription.sync({ force: false });
         
 
         console.log('Tables synchronized');
