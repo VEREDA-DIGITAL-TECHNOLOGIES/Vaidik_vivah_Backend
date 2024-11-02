@@ -64,7 +64,9 @@ export const getAllPlans = catchAsyncError(async (req, res, next) => {
             planName: plan.planName,
             price: plan.price,
             durationInMonths: plan.durationInMonths,
-            description: plan.description
+            description: plan.description,
+            planType: plan.planType,
+            featureList: plan.featureList
         }
     })
 
