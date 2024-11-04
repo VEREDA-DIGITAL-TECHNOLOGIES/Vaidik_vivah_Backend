@@ -158,6 +158,8 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
     await recommendation.create(recommendationData);
 
 
+
+
         res.clearCookie("token");
         sendToken(existingUser, 200, res, "Password set successfully!");
 
@@ -566,8 +568,9 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         await personalDetails.destroy({ where: { userId} });
         await qualificationDetails.destroy({ where: { userId } });
         await imageUpload.destroy({ where: { userId } });
-        res.status(200).json({ success: true, message: "User deleted successfully!" });
         await recommendation.destroy({ where: { userId } });
+        res.status(200).json({ success: true, message: "Your account deleted successfully!" });
+
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
