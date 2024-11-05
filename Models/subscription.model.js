@@ -34,6 +34,15 @@ const Subscription = sequelize.define('subscription', {
             key: 'planId',
         },
     },
+    paymentSucessId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    deviceType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        enum : ["Web", "Mobile"],
+    },
     startDate: {
         type: DataTypes.DATE,
         allowNull: false,

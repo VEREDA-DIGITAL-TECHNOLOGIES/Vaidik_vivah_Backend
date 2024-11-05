@@ -14,6 +14,22 @@ import connectionRouter from './routes/connection.routes.js';
 import planRouter from './routes/plan.routes.js';
 import subscriptionRouter from './routes/subscription.routes.js';
 import billingRouter from './routes/billing.routes.js';
+// import admin  from "firebase-admin";
+// import fs from "fs";
+// import path from "path";
+// const serviceAccountPath = path.join(__dirname, "../config/serviceAccountKey.json");
+
+// const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+
+// export const firebaseAdmin = admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   databaseURL: "https://wedlock-4f698-default-rtdb.firebaseio.com",
+// });
+
+
+
+
+
 
 dotenv.config();
 

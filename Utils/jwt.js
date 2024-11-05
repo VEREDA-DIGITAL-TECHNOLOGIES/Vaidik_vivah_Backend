@@ -28,7 +28,7 @@ dotenv.config();
         sameSite: 'Lax',
         secure: true
     }
-
+ 
 
 export const sendToken = (user, statusCode, res,message) => {
 

@@ -53,7 +53,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
         });
 
         console.log(session, "session");
-
+ 
         res.status(201).json({
             success: true, 
             url: session.url,        
@@ -84,6 +84,7 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
 
         const planId = session.metadata.planId;
         const userId = session.metadata.userId;
+
         const planData = await plan.findOne({ where: { planId } });
 
         if (!planData) {
@@ -99,8 +100,9 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
             orderId,
             planId,
             userId,
-            sessionId: session.id,
+            paymentSucessId: session.id,
             endDate,
+            deviceType: 'Web',
             paymentStatus: 'Completed',
         });
 
@@ -117,6 +119,56 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
     
+})
+
+export const  handlePaymentProcessForMobile = catchAsyncError(async (req, res, next) => {
+
+    try {
+
+        const userId = req.user.userId;
+        
+
+        const { paymentSucessId, planId } = req.body;
+
+
+         console.log(paymentSucessId, planId, "session_id, planId");
+
+
+        if (!paymentSucessId || !planId) {
+            return next(new errorhandler("Session ID or plan ID is missing", 400));
+        }
+
+        const planData = await plan.findOne({ where: { planId } });
+
+        if (!planData) {
+            return next(new errorhandler("Plan not found!", 404));
+        }
+
+        const endDate = moment().add(planData.durationInMonths, 'months').toDate();
+
+        const orderId = `WDL${uuidv4().split('-')[0].toUpperCase()}`;
+
+        const subscriptionData =  await subscription.create({
+            orderId,
+            planId,
+            userId,
+            paymentSucessId,
+            endDate,
+            deviceType: 'Mobile',
+            paymentStatus: 'Completed',
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Subscription created successfully!",
+        });
+
+
+    } catch (error) {
+
+        return next(new errorhandler(error.message, 500));
+        
+    }
 })
 
 

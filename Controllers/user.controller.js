@@ -12,8 +12,10 @@ import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
 import personalDetails from "../Models/personalDetails.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
+import subscription from "../Models/subscription.model.js";
 import imageUpload from "../Models/imageUpload.model.js";
 import recommendation from "../Models/recommendation.model.js";
+import Subscription from "../Models/subscription.model.js";
 dotenv.config();
 
 // Register user
@@ -569,8 +571,9 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         await qualificationDetails.destroy({ where: { userId } });
         await imageUpload.destroy({ where: { userId } });
         await recommendation.destroy({ where: { userId } });
+        await Subscription.destroy({ where: { userId } });
         res.status(200).json({ success: true, message: "Your account deleted successfully!" });
-
+ 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
