@@ -12,24 +12,12 @@ import happyStoryRouter from './routes/happyStory.routes.js';
 import favProfileRouter from './routes/favProfile.routes.js';
 import connectionRouter from './routes/connection.routes.js';
 import planRouter from './routes/plan.routes.js';
+import notificationRouter from './routes/notification.routes.js';
 import subscriptionRouter from './routes/subscription.routes.js';
 import billingRouter from './routes/billing.routes.js';
-// import admin  from "firebase-admin";
-// import fs from "fs";
-// import path from "path";
-// const serviceAccountPath = path.join(__dirname, "../config/serviceAccountKey.json");
-
-// const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
-
-// export const firebaseAdmin = admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: "https://wedlock-4f698-default-rtdb.firebaseio.com",
-// });
 
 
-
-
-
+ 
 
 dotenv.config();
 
@@ -45,7 +33,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["https://wedlock.au", "https://admin.wedlock.au",'http://localhost:5173'], 
+    origin: ["https://wedlock.au", "https://admin.wedlock.au",'http://localhost:5173','http://localhost:5174'],
     credentials: true,  
   }));
   
@@ -61,6 +49,8 @@ app.use("/api/v1/happyStories",happyStoryRouter);
 app.use("/api/v1/plan",planRouter);
 app.use("/api/v1/subscription",subscriptionRouter);
 app.use("/api/v1/billing",billingRouter);
+app.use("/api/v1/notifications",notificationRouter);
+
  
 
 app.get("/test", async (req, res, next) => {

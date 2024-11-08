@@ -1,6 +1,8 @@
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import errorhandler from "../Utils/errorhandler.js";
 import subscription from "../Models/subscription.model.js";
+import User from '../Models/user.js'
+import Recommendation from "../Models/recommendation.model.js";
 import {v4 as uuidv4} from "uuid";
 import plan from "../Models/plan.model.js";
 import Stripe from "stripe";
@@ -106,7 +108,16 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
             paymentStatus: 'Completed',
         });
 
-        console.log(subscriptionData, "subscriptionData");
+       if(subscriptionData !== null){
+           const user = await User.findOne({ where: { userId } });
+           if(user!==null){
+                await User.update({ usertype: planData.planName },{ where: { userId }})
+                await Recommendation.update({ usertype: planData.planName }, { where: { userId }})
+           }
+
+
+
+       }
 
     
         res.status(201).json({
@@ -158,6 +169,18 @@ export const  handlePaymentProcessForMobile = catchAsyncError(async (req, res, n
             paymentStatus: 'Completed',
         });
 
+        if (subscriptionData !== null) {
+
+            const user = await User.findOne({ where: { userId } });
+            if (user !== null) {
+                await User.update({ usertype: planData.planName }, { where: { userId } });
+                await Recommendation.update({ usertype: planData.planName }, { where: { userId } });
+            }
+        }
+
+
+
+
         res.status(201).json({
             success: true,
             message: "Subscription created successfully!",
@@ -192,19 +215,17 @@ export const handleAutoExpiry = catchAsyncError(async (req, res, next) => {
 
         });
 
-        res.status(201).json({
-            success: true,
-            message: "Subscription updated successfully!",
-        });
-
+        console.log("Subscription updated successfully!");
     } catch (error) {
-        return next(new errorhandler(error.message, 500));
+        console.error("Error updating subscriptions:", error.message);
     }
 
 })
 
 
 export const getSubscriptionPurchaseHistory = catchAsyncError(async (req, res, next) => {
+
+    try{
     const userId = req.user.userId;
 
     const subscriptionData = await subscription.findAll({
@@ -240,8 +261,10 @@ export const getSubscriptionPurchaseHistory = catchAsyncError(async (req, res, n
         message: "Subscription fetched successfully!",
         data: data
     });
+} catch (error) {
+    return next (new errorhandler(error.message, 500));
+}
 });
-
 
 
 cron.schedule('0 0 * * *', async () => {

@@ -23,6 +23,9 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
+
+    const user = await  User.findOne({where:{userId}});
+    const fcmToken =  user.fcmToken;
     const personalData = await personalDetails.findOne({ where: { userId } });
     const qualificationDetailsData = await qualificationDetails.findOne({
       where: { userId },
@@ -41,6 +44,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
     const answer = basic_lifestyle.answer;
     const data = [
       {
+        fcmToken:fcmToken,
         profileImage: imageUploadData.image,
         basic_and_lifestye: {
           firstName: personalData.firstName,
@@ -370,7 +374,7 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
     }
 
     const updateQualificationDetails = await qualificationDetails.update(
-      { qualification, currentWorkingStatus, income, qualification:highestQualification },
+      {  currentWorkingStatus, income, qualification:highestQualification },
       { where: { userId } }
     );
 
@@ -500,7 +504,8 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const connectedUserId = req.user.userId
     const { userId } = req.body;
 
-   
+    const user = await  User.findOne({where:{userId}});
+    const fcmToken =  user.fcmToken;
     const personalData = await personalDetails.findOne({ where: { userId } });
     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
     const locationDetailsData = await locationDetails.findOne({ where: { userId },});
@@ -550,6 +555,7 @@ const connectionType = (() => {
 
     const data = [
       {
+        fcmToken:fcmToken,
         profileImage: imageUploadData.image,
         basic_and_lifestye: {
           userId: userId,
