@@ -2,6 +2,8 @@ import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import errorhandler from "../Utils/errorhandler.js";
 import subscription from "../Models/subscription.model.js";
 import User from '../Models/user.js'
+import personalDetails from "../Models/personalDetails.model.js";
+import sendMail from "../Utils/sendMail.js";
 import Recommendation from "../Models/recommendation.model.js";
 import {v4 as uuidv4} from "uuid";
 import plan from "../Models/plan.model.js";
@@ -9,6 +11,7 @@ import Stripe from "stripe";
 import cron from "node-cron";
 import moment from 'moment';
 import { Op } from "sequelize";
+import sendEmail from "../Utils/sendMail.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -92,6 +95,8 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
         if (!planData) {
             return next(new errorhandler("Plan not found!", 404));
         }
+        const user  = await User.findOne({ where: { userId } });
+        const personalDetail = await personalDetails.findOne({ where: { userId } });
 
         const endDate = moment().add(planData.durationInMonths, 'months').toDate();
 
@@ -115,11 +120,33 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
                 await Recommendation.update({ usertype: planData.planName }, { where: { userId }})
            }
 
+       }
+       const inclusive_Tax =  ((planData.price * 10) / 100 ).toFixed(2);
+       const email = user.email;
 
+       console.log(inclusive_Tax,email,"data")
+       const validUpto = moment(endDate).format('LLL');
+
+       const data = {
+           name: personalDetail.firstName + " " + personalDetail.lastName,
+           orderId:orderId,
+           planName:planData.planName,
+           planType: planData.planType,
+           validUpto:validUpto,
+           includedTax: inclusive_Tax,
+           price: planData.price,
+           features:planData.featureList,
+           total:planData.price,
 
        }
 
-    
+       console.log(data,"data")
+
+
+      await sendEmail({ email, subject: `Your Wedlock.au order #${orderId}`, template: "order-mail.ejs", data });
+
+      // console.log(resL,"testing...")
+
         res.status(201).json({
             success: true,
             message: "Subscription created successfully!",
@@ -177,6 +204,8 @@ export const  handlePaymentProcessForMobile = catchAsyncError(async (req, res, n
                 await Recommendation.update({ usertype: planData.planName }, { where: { userId } });
             }
         }
+
+
 
 
 
