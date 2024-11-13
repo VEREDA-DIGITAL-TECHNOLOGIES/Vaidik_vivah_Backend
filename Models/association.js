@@ -7,6 +7,9 @@ import qualificationDetails from './qualificationDetails.model.js';
 import personalDetails from './personalDetails.model.js';
 import FavProfile from './favProfile.model.js';
 import happyStories from './happyStories.model.js';
+import Connection from './connection.model.js';
+import Plan from './plan.model.js';
+import Subscription from './subscription.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -42,6 +45,26 @@ User.hasMany(happyStories, { foreignKey: 'userId', as: 'happyStories' });
 happyStories.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
+// A user can send many connection requests (senderId refers to the sender)
+User.hasMany(Connection, { foreignKey: 'senderId', as: 'SentConnections' });
+
+// A user can receive many connection requests (receiverId refers to the receiver)
+User.hasMany(Connection, { foreignKey: 'receiverId', as: 'ReceivedConnections' });
+
+// Connection belongs to the user who sent the request (senderId)
+Connection.belongsTo(User, { foreignKey: 'senderId', as: 'Sender' });
+
+// Connection belongs to the user who received the request (receiverId)
+Connection.belongsTo(User, { foreignKey: 'receiverId', as: 'Receiver' });
+
+
+
+User.belongsTo(Plan, { foreignKey: 'userId', as: 'plan' }); 
+
+Plan.hasMany(User, { foreignKey: 'userId', as: 'users' }); 
+
+Subscription.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plan' });
 
 
 
@@ -50,4 +73,6 @@ happyStories.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories};
+
+
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection };

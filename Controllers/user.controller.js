@@ -12,8 +12,10 @@ import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
 import personalDetails from "../Models/personalDetails.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
+import subscription from "../Models/subscription.model.js";
 import imageUpload from "../Models/imageUpload.model.js";
 import recommendation from "../Models/recommendation.model.js";
+import Subscription from "../Models/subscription.model.js";
 dotenv.config();
 
 // Register user
@@ -156,6 +158,8 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
 
 
     await recommendation.create(recommendationData);
+
+
 
 
         res.clearCookie("token");
@@ -509,11 +513,22 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
 
 })
 
-export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>{
+export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => { 
     try {
         const userId = req.user.userId;
+        const { fcmToken, uid, userStatus } = req.body;
 
-        const { fcmToken } = req.body;
+        console.log(fcmToken, uid, userStatus, "fcmToken uid userStatus");
+
+        if (!fcmToken) {
+            return res.status(400).json({ error: 'FCM token is required.' });
+        }
+        if (!uid) { 
+            return res.status(400).json({ error: 'UID is required.' });
+        }
+        if (!userStatus) {
+            return res.status(400).json({ error: 'User status is required.' });
+        } 
 
         let user = await User.findOne({ where: { userId } });
 
@@ -521,26 +536,24 @@ export const createOrUpdateFCMToken = catchAsyncError(async(req , res , next) =>
             return res.status(404).json({ error: 'User not found.' });
         }
 
-        
-       const token = user.fcmToken = fcmToken;
-       console.log(token);
+        await user.update({ fcmToken, uid, userStatus });
 
-        // Save the changes
-        await user.save();
-        res.status(201).json({
+        await recommendation.update({ fcmToken, uid, userStatus }, { where: { userId } });
+
+        res.status(200).json({
             success: true,
             message: "FCM token updated successfully",
-            user
-        })
+            user,
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({
             success: false,
             message: "Internal server error",
-    })
-}
+        });
+    }
+});
 
-})
 
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
@@ -557,8 +570,10 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         await personalDetails.destroy({ where: { userId} });
         await qualificationDetails.destroy({ where: { userId } });
         await imageUpload.destroy({ where: { userId } });
-        res.status(200).json({ success: true, message: "User deleted successfully!" });
         await recommendation.destroy({ where: { userId } });
+        await Subscription.destroy({ where: { userId } });
+        res.status(200).json({ success: true, message: "Your account deleted successfully!" });
+ 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
@@ -663,6 +678,11 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
 });
 
 
+
+
+
+
+
 //for admin
 export const AllUsers = catchAsyncError(async (req, res, next) => {
     try {
@@ -761,3 +781,4 @@ export const AllCustomers = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 })
+

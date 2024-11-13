@@ -12,6 +12,7 @@ const FavProfile = sequelize.define('FavProfile', {
         allowNull: false,
     },
 
+   
     userId: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -27,6 +28,7 @@ const FavProfile = sequelize.define('FavProfile', {
             model: User,
             key: 'userId',
         },
+<<<<<<< HEAD
     },
     
     profile:{
@@ -34,6 +36,9 @@ const FavProfile = sequelize.define('FavProfile', {
         allowNull: false,
         defaultValue: [],
     }  
+=======
+    },  
+>>>>>>> cd1a3ef0941da4b8da78479d3465d14699bcb024
 },
 
 {

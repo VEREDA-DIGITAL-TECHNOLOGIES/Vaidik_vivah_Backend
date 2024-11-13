@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Email</title>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+    .container {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+    .header {
+    text-align: left;
+    padding-bottom: 20px;
+}
+
+    .header img {
+    max-width: 120px;
+}
+    .title {
+    color: #3b89e0;
+    font-size: 24px;
+    font-weight: bold;
+}
+    .section-title {
+    font-size: 18px;
+    color: #333333;
+    font-weight: bold;
+    margin-top: 20px;
+    text-align: left;
+}
+    .details, .totals {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+    .details td, .totals td {
+    padding: 10px;
+    border: 1px solid #dddddd;
+    font-size: 14px;
+    color: #333333;
+}
+    .totals td {
+    font-weight: bold;
+}
+    .totals .total-amount {
+    font-size: 20px;
+    color: #3b89e0;
+}
+    .support-text {
+    font-size: 14px;
+    text-align: center;
+    color: #666666;
+}
+    .support-text a {
+    color: #3b89e0;
+    text-decoration: none;
+}
+    .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #aaaaaa;
+    padding: 10px 0;
+    border-top: 1px solid #eeeeee;
+    margin-top: 20px;
+}
+    .cta-button {
+    display: inline-block;
+    padding: 10px 20px;
+    color: #ffffff;
+    background-color: #3b89e0;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <a href="https://www.wedlock.au">
+            <img src="https://wedlock.au/newlogo.png" alt="Wedlock Logo" style="width: 200px; height: 50px;">
+        </a>
+        <p>Hello <%= name %>,</p>
+        <p class="title">Thank you for your recent purchase of our <%= planType %> plan. We hope you enjoy it!</p>
+    </div>
+
+    <p class="section-title">Your Order</p>
+    <p>Order ID #: <%= orderId %></p>
+
+    <table class="details">
+        <tr>
+            <td>Plan Name</td>
+            <td><%= planName %></td>
+        </tr>
+        <tr>
+            <td>Plan Type</td>
+            <td><%= planType %></td>
+        </tr>
+        <tr>
+            <td>Valid upto </td>
+            <td><%= validUpto %></td>
+        </tr>
+        <tr>
+            <td>Price</td>
+            <td>$<%= price %></td>
+        </tr>
+        <tr>
+            <td>Included Tax</td>
+            <td>$<%= includedTax %></td>
+        </tr>
+
+        <tr>
+            <td>Total</td>
+            <td class="total-amount">$<%= total %></td>
+        </tr>
+    </table>
+
+    <p class="section-title">Features Included</p>
+    <ul>
+        <% features.forEach(function(feature) { %>
+        <li><%= feature %></li>
+        <% }); %>
+    </ul>
+
+    <p class="support-text">
+        Notice something wrong? <a href="#">contact our support team</a> and we'll be happy to help.
+    </p>
+
+
+
+    <div class="footer">
+        <a href="https://www.wedlock.au/user-dashboard" class="cta-button">View My Account</a>
+        <p>Thanks for being a great customer.</p>
+    </div>
+
+    <div class="footer">
+        The Wedlock Team<br>
+        Copyright © 2024 Wedlock
+    </div>
+</div>
+</body>
+</html>

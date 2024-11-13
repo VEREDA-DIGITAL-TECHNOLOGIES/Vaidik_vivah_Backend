@@ -2,11 +2,13 @@ import personalDetails from "../Models/personalDetails.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
 import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
+import calculateCompletion from "../Utils/calculateCompletion.js";
 import imageUpload from "../Models/imageUpload.model.js";
 import question from "../Models/question.model.js";
 import Answer from "../Models/answer.model.js";
 import User from "../Models/user.js";
 import dotenv from "dotenv";
+import connection from "../Models/connection.model.js";
 import { Op, where } from "sequelize";
 import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
@@ -14,12 +16,16 @@ import { uploadCloudinary } from "../Utils/cloudinary.js";
 import recommendation from "../Models/recommendation.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
+import moment from 'moment';
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
+
+    const user = await  User.findOne({where:{userId}});
+    const fcmToken =  user.fcmToken;
     const personalData = await personalDetails.findOne({ where: { userId } });
     const qualificationDetailsData = await qualificationDetails.findOne({
       where: { userId },
@@ -38,6 +44,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
     const answer = basic_lifestyle.answer;
     const data = [
       {
+        fcmToken:fcmToken,
         profileImage: imageUploadData.image,
         basic_and_lifestye: {
           firstName: personalData.firstName,
@@ -94,6 +101,9 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       },
     ];
 
+
+
+
     return res.status(200).json({
       success: true,
       data,
@@ -102,6 +112,31 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
   } catch (error) {
     return next(new errorhandler(error.message, 500));
   }
+});
+
+export const getuserImage = catchAsyncError(async (req, res, next) => {
+  try{
+  const userId = req.user.userId;
+
+  const imageUploadData =(await imageUpload.findOne({ where: { userId } })) || "";
+
+  const singleImage  = imageUploadData.image[0] || "";
+
+  res.status(200).json({
+    success: true,
+    data : singleImage
+  });
+
+  if (!imageUploadData) {
+    return next(new errorhandler("Image not found!", 400));
+  }
+
+
+}
+catch(error){
+  return next(new errorhandler(error.message, 500));
+}
+
 });
 
 export const updatePersonalDetails = catchAsyncError(async (req, res, next) => {
@@ -339,7 +374,7 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
     }
 
     const updateQualificationDetails = await qualificationDetails.update(
-      { qualification, currentWorkingStatus, income, qualification:highestQualification },
+      {  currentWorkingStatus, income, qualification:highestQualification },
       { where: { userId } }
     );
 
@@ -390,8 +425,6 @@ export const updateInterstAndHobbies = catchAsyncError(
     });
   }
 );
-
-
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   try{
     const userId = req.user.userId;
@@ -466,35 +499,63 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 });
 
 export const UserDetails = catchAsyncError(async (req, res, next) => {
-  try {
-    const { userId } = req.body;
-    console.log(userId,'userId')
 
+  try {
+    const connectedUserId = req.user.userId
+    const { userId } = req.body;
+
+    const user = await  User.findOne({where:{userId}});
+    const fcmToken =  user.fcmToken;
     const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({
-      where: { userId },
-    });
-    const locationDetailsData = await locationDetails.findOne({
-      where: { userId },
-    });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId },});
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData =
-      (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({
-      where: { userId, questionId: 12 },
-    });
-    const gender = await Answer.findOne({
-      where: { userId, questionId: 1 },
-    });
-    const age = await Answer.findOne({
-      where: { userId, questionId: 7 },
-    });
-    const postedby = await Answer.findOne({
-      where: { userId, questionId: 6 },
-    });
+    const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 },});
+    const gender = await Answer.findOne({where: { userId, questionId: 1 },});
+    const age = await Answer.findOne({where: { userId, questionId: 7 },});
+    const postedby = await Answer.findOne({where: { userId, questionId: 6 },});
     const answer = basic_lifestyle.answer;
+    const connectionStatus = await connection.findOne({
+      where: {
+        [Op.or]: [
+          { senderId: connectedUserId, receiverId: userId }, // user2 sent request to user1
+          { receiverId: connectedUserId, senderId: userId } // user1 sent request to user2
+        ]
+      }
+    });
+
+
+  
+  const connection_status = (() => {
+    if (connectionStatus) {
+        if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
+            return 'no connection';  
+        }
+        return connectionStatus.status;  
+    }
+    return 'no connection';
+    })();
+
+    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId; // user2 sent the request
+    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId; // user2 received the request
+
+// Determine connection type to display appropriate status
+const connectionType = (() => {
+    if (isSender) {
+        return 'sender';
+    } else if (isReceiver) {
+        return 'receiver';
+    } else {
+        return 'none';
+    }
+})(); 
+
+
+
     const data = [
       {
+        fcmToken:fcmToken,
         profileImage: imageUploadData.image,
         basic_and_lifestye: {
           userId: userId,
@@ -549,7 +610,10 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           income: qualificationDetailsData.income,
         },
         interest_and_hobbies: answer,
-      },
+        connection_status: connection_status,
+        connectionType: connectionType, 
+
+    },
     ];
 
     res.status(200).json({
@@ -687,7 +751,6 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
 export const filterFieldCount = catchAsyncError(async (req, res, next) => {
 
   try {
@@ -770,7 +833,6 @@ export const filterFieldCount = catchAsyncError(async (req, res, next) => {
   
 })
 
-
 export const matrimonialProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const currentUserId = req.user.userId;
@@ -820,8 +882,6 @@ export const matrimonialProfiles = catchAsyncError(async (req, res, next) => {
   }
 });
 
-
-
 //admin profile image
 export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 
@@ -841,3 +901,129 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
   }
       
 })
+
+
+export const allProfiles = catchAsyncError(async (req, res, next) => {
+  try {
+
+    const currentUserId = req.user.userId;
+    const currentDate = moment().startOf('day').toDate();
+
+    const users = await User.findAll({
+      where: {
+        userId: { [Op.ne]: currentUserId },
+        isImageFormFilled: true,
+        isPersonalFormFilled: true,
+        isQualificationFormFilled: true,
+        isLocationFormFilled: true,
+        isOtherFormFilled: true,
+        createdAt: {
+          [Op.gte]: currentDate,
+          [Op.lt]: moment(currentDate).add(1, 'days').toDate(),
+        },
+      },
+    });
+
+
+   const profiles = users.map((user) => {
+      return {
+        userId: user.userId,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: profiles,
+      message: "All profiles fetched successfully!",
+    });
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+
+export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+
+    const personalData = await personalDetails.findOne({ where: { userId } });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId } });
+    const otherDetailsData = await otherDetails.findOne({ where: { userId } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const gender = await Answer.findOne({ where: { userId } });
+    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const answer = basic_lifestyle.answer;
+
+    const data = {
+      basic_and_lifestye: {
+        firstName: personalData.firstName,
+        lastName: personalData.lastName,
+        displayName: personalData.displayName,
+        gender: gender.answer,
+        age: age.answer,
+        about: personalData.aboutYourSelf,
+        religion: otherDetailsData.religion,
+        maritalStatus: personalData.maritalStatus,
+        numberOfChildren: personalData.numberOfChildren,
+        postedBy: postedby.answer,
+      },
+      family_details: {
+        fatherOccupation: otherDetailsData.fatherOccupation,
+        motherOccupation: otherDetailsData.motherOccupation,
+        numberOfSiblings: otherDetailsData.numberOfSiblings,
+        livingWithFamily: otherDetailsData.livingWithFamily,
+      },
+      personal_background: {
+        height: otherDetailsData.height,
+        weight: otherDetailsData.weight,
+        bodyType: otherDetailsData.bodyType,
+        language: otherDetailsData.language,
+        smokingHabbit: otherDetailsData.smokingHabbit,
+        drinkingHabbit: otherDetailsData.drinkingHabbit,
+        diet: otherDetailsData.diet,
+        complexion: otherDetailsData.complexion,
+      },
+      religious_background: {
+        religion: otherDetailsData.religion,
+        community: otherDetailsData.community,
+        subCommunity: otherDetailsData.subCommunity,
+        gothra: otherDetailsData.gothra,
+        timeOfBirth: otherDetailsData.timeOfBirth,
+        dateOfBirth: otherDetailsData.dateOfBirth,
+        placeOfBirth: otherDetailsData.placeOfBirth,
+        motherTongue: otherDetailsData.motherTongue,
+      },
+      location_background: {
+        currentLocation: locationDetailsData.currentLocation,
+        cityOfResidence: locationDetailsData.cityOfResidence || "",
+        nationality: locationDetailsData.nationality,
+        citizenShip: locationDetailsData.citizenShip,
+        residencyVisaStatus: locationDetailsData.residencyVisaStatus,
+      },
+      education_and_financial: {
+        qualification: qualificationDetailsData.qualification,
+        education: qualificationDetailsData.occupation,
+        workingStatus: qualificationDetailsData.currentWorkingStatus,
+        income: qualificationDetailsData.income,
+      },
+      interest_and_hobbies: answer,
+    };
+
+    const percentage = calculateCompletion(data);
+
+    res.status(200).json({
+      success: true,
+      percentage:  percentage,
+      message: "Profile percentage fetched successfully!",
+    });
+
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+
+
+})
+
