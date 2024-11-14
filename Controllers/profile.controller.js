@@ -467,7 +467,7 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.user; // Get userId from the request context
-    const { page = 1, pageSize = 20 } = req.query; // Extract pagination parameters from query
+    const { page = 1, pageSize = 20 } = req.query; 
 
     // Make the POST request to the external service with pagination parameters in the body
     const response = await axios.post(
@@ -478,8 +478,9 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
         pageSize,
       }
     );
+        
 
-    const profiles = response.data;
+    const profiles = response.data.filter((profile)=>profile.gender !== null && profile.age !== null && profile.firstName !== null && profile.lastName !== null && profile.displayName !== null && profile.occupation !== null && profile.state !== null && profile.country !== null && profile.maritalStatus !== null && profile.profileImages !== null);
 
     if (!profiles || profiles.length === 0) {
       return res.status(404).json({
