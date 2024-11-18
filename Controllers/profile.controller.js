@@ -176,15 +176,6 @@ export const updateFamilyDetails = catchAsyncError(async (req, res, next) => {
     livingWithFamily,
   } = req.body;
 
-  if (
-    !fatherOccupation ||
-    !motherOccupation ||
-    !numberOfSiblings ||
-    !livingWithFamily
-  ) {
-    return next(new errorhandler("All fields are required!", 400));
-  }
-
   const otherDetailsData = await otherDetails.findOne({ where: { userId } });
 
   if (!otherDetailsData) {

@@ -563,7 +563,7 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         if (!user) {
             return next(new errorhandler("User not found!", 404));
         }
-        await User.destroy({ where: { userId} });
+        await Subscription.destroy({ where: { userId } });
         await Answer.destroy({ where: { userId} });
         await locationDetails.destroy({ where: {userId } });
         await otherDetails.destroy({ where: { userId} });
@@ -571,7 +571,8 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         await qualificationDetails.destroy({ where: { userId } });
         await imageUpload.destroy({ where: { userId } });
         await recommendation.destroy({ where: { userId } });
-        await Subscription.destroy({ where: { userId } });
+        await User.destroy({ where: { userId} });
+
         res.status(200).json({ success: true, message: "Your account deleted successfully!" });
  
     } catch (error) {

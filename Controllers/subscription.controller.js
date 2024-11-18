@@ -149,6 +149,7 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
 
         res.status(201).json({
             success: true,
+            usertype: data.planName,
             message: "Subscription created successfully!",
         });
 
@@ -258,8 +259,10 @@ export const getSubscriptionPurchaseHistory = catchAsyncError(async (req, res, n
     const userId = req.user.userId;
 
     const subscriptionData = await subscription.findAll({
-        where: { userId }
+        where: { userId },
+        order: [['createdAt', 'DESC']], 
     });
+    
 
     const planData = await plan.findAll({
         where: { planId: { [Op.in]: subscriptionData.map((sub) => sub.planId) } },
