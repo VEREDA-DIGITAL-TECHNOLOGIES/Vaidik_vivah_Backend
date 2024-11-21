@@ -549,6 +549,7 @@ const connectionType = (() => {
       {
         fcmToken:fcmToken,
         profileImage: imageUploadData.image,
+        userType: user.usertype,
         basic_and_lifestye: {
           userId: userId,
           firstName: personalData.firstName,
