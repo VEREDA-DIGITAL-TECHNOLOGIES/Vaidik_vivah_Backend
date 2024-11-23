@@ -935,6 +935,45 @@ export const allProfiles = catchAsyncError(async (req, res, next) => {
 });
 
 
+export const discoverProfiles = catchAsyncError(async (req, res, next) => {
+  try {
+
+    const currentUserId = req.user.userId;
+    const currentDate = moment().startOf('day').toDate();
+
+    const users = await User.findAll({
+      where: {
+        userId: { [Op.ne]: currentUserId },
+        isImageFormFilled: true,
+        isPersonalFormFilled: true,
+        isQualificationFormFilled: true,
+        isLocationFormFilled: true,
+        isOtherFormFilled: true,
+        createdAt: {
+          [Op.gte]: currentDate,
+          [Op.lt]: moment(currentDate).add(1, 'days').toDate(),
+        },
+      },
+    });
+
+
+   const profiles = users.map((user) => {
+      return {
+        userId: user.userId,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: profiles,
+      message: "All profiles fetched successfully!",
+    });
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+
 export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user.userId;
