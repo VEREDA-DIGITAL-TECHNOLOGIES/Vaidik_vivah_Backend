@@ -924,9 +924,6 @@ export const  allProfiles = catchAsyncError(async (req, res, next) => {
     
     const data = recommendedUsers.map((user) => {
       let matchScore = 0;
-
-     
-
       return {
         userId: user.userId,
         uid:user.uid,
@@ -952,7 +949,7 @@ export const  allProfiles = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: data,
+      profiles: data,
       message: "All profiles fetched successfully!",
     });
   } catch (error) {
