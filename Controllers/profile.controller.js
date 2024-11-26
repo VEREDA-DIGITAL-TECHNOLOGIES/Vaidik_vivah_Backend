@@ -896,37 +896,63 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 })
 
 
-export const allProfiles = catchAsyncError(async (req, res, next) => {
+export const  allProfiles = catchAsyncError(async (req, res, next) => {
   try {
 
-    const currentUserId = req.user.userId;
-    const currentDate = moment().startOf('day').toDate();
+    const userId = req.user.userId;
 
-    const users = await User.findAll({
+    
+    const currentUser = await recommendation.findOne({ where: { userId } });
+    const lookingFor = currentUser?.lookingFor;
+
+    const Users = await User.findAll({
       where: {
-        userId: { [Op.ne]: currentUserId },
-        isImageFormFilled: true,
-        isPersonalFormFilled: true,
-        isQualificationFormFilled: true,
-        isLocationFormFilled: true,
-        isOtherFormFilled: true,
-        createdAt: {
-          [Op.gte]: currentDate,
-          [Op.lt]: moment(currentDate).add(1, 'days').toDate(),
-        },
+        userId: { [Op.ne]: userId },
+      },
+    });
+    const userIds = Users.map((user) => user.userId);
+
+
+    const recommendedUsers = await recommendation.findAll({
+      where: {
+        userId: { [Op.in]: userIds },
+        gender: lookingFor,
       },
     });
 
 
-   const profiles = users.map((user) => {
+    
+    const data = recommendedUsers.map((user) => {
+      let matchScore = 0;
+
+     
+
       return {
         userId: user.userId,
+        uid:user.uid,
+        fcmToken:user.fcmToken,
+        gender: user.gender,
+        religion: user.religion,
+        age: user.age,
+        maritalStatus: user.maritalStatus,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        displayName: user.displayName,
+        occupation: user.occupation,
+        state: user.state,
+        country: user.country,
+        userType: user.usertype,
+        profileImages: user.image,
+        match_percentage: matchScore,
+
       };
     });
 
+
+
     res.status(200).json({
       success: true,
-      data: profiles,
+      data: data,
       message: "All profiles fetched successfully!",
     });
   } catch (error) {
