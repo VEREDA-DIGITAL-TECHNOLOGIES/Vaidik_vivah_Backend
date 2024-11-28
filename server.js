@@ -5,6 +5,7 @@ import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpl
 import Recommendation from './Models/recommendation.model.js';
 import plan from './Models/plan.model.js';
 import subscription from './Models/subscription.model.js';
+import call from './Models/call.model.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ const startServer = async () => {
         await Connection.sync({ force: false });
         await plan.sync({ force: false });
         await subscription.sync({ force: false });
+        await call.sync({ force: false });
         
 
         console.log('Tables synchronized');

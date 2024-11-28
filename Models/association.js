@@ -10,7 +10,7 @@ import happyStories from './happyStories.model.js';
 import Connection from './connection.model.js';
 import Plan from './plan.model.js';
 import Subscription from './subscription.model.js';
-
+import Call from './call.model.js';
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
 Answer.belongsTo(User, { foreignKey: 'userId', as: 'user' });
@@ -75,4 +75,7 @@ Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plan' });
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection };
+
+
+
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection ,Plan,Subscription};

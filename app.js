@@ -15,6 +15,7 @@ import planRouter from './routes/plan.routes.js';
 import notificationRouter from './routes/notification.routes.js';
 import subscriptionRouter from './routes/subscription.routes.js';
 import billingRouter from './routes/billing.routes.js';
+import callRouter from './routes/call.routes.js';
 
 
  
@@ -50,6 +51,8 @@ app.use("/api/v1/plan",planRouter);
 app.use("/api/v1/subscription",subscriptionRouter);
 app.use("/api/v1/billing",billingRouter);
 app.use("/api/v1/notifications",notificationRouter);
+app.use("/api/v1/call",callRouter);
+
 
  
 
