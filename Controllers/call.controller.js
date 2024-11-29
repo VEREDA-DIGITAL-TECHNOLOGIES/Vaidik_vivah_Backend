@@ -68,19 +68,19 @@ export const getCallDuration = catchAsyncError(async (req, res, next) => {
             return next(new errorhandler("User not found!", 404));
         }
 
-        const calls = await Call.findAll({
-            where: {
+        const callDuration = await Call.findOne({
+             where: {
                 callieId: callieId,
                 callerId: CallerUser.uid
             }
         });
 
 
-        if (!calls) {
-            return res.status(404).json({ success: false, message: "Calls not found!" });
+        if (!callDuration) {
+            return res.status(404).json({ success: false, message: "callDuration remainig not found!" });
         }
 
-        res.status(200).json({ success: true, data: calls });
+        res.status(200).json({ success: true, data:callDuration });
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));

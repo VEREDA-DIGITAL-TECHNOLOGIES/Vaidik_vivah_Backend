@@ -8,4 +8,4 @@ callRouter.put('/updateCallDuration',isAuthenticated,UpdateCallDuration);
 callRouter.get('/getCallDuration/:callieId',isAuthenticated,getCallDuration);
 
 
-export default callRouter;
+export default callRouter; 
