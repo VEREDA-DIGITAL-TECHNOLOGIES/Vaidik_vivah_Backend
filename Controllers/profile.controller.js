@@ -380,7 +380,7 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
       updateQualificationDetails,
     });
   }
-);
+); 
 
 export const updateInterstAndHobbies = catchAsyncError(
   async (req, res, next) => {
@@ -417,10 +417,9 @@ export const updateInterstAndHobbies = catchAsyncError(
   }
 );
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
-  try{
+  try{ 
     const userId = req.user.userId;
 
-    console.log(userId)
 
         if (!req.files) {
             return next(new errorhandler("Please upload an image!", 400));
@@ -498,6 +497,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
     const user = await  User.findOne({where:{userId}});
     const fcmToken =  user.fcmToken;
+    const uid = user.uid;
     const personalData = await personalDetails.findOne({ where: { userId } });
     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
     const locationDetailsData = await locationDetails.findOne({ where: { userId },});
@@ -548,6 +548,7 @@ const connectionType = (() => {
     const data = [
       {
         fcmToken:fcmToken,
+        uid:uid,
         profileImage: imageUploadData.image,
         userType: user.usertype,
         basic_and_lifestye: {
@@ -652,7 +653,6 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
     const age2 = ageRange.split("-")[1];
     const height1 = heightRange.split("-")[0];
     const height2 = heightRange.split("-")[1];
-    console.log(userIds, "userIds");
 
 
     const recommendedUsers = await recommendation.findAll({
@@ -880,7 +880,6 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 
   try {
     const userId = req.user.userId
-    console.log(userId)
     const imageUploadData =(await imageUpload.findOne({ where: { userId } })) || "";
     const image = imageUploadData.image[0] || "";
 

@@ -21,7 +21,6 @@ export const firebaseAdmin = admin.initializeApp({
 export const sendNotification = catchAsyncError(async (req, res, next) => {
     try {
         const { fcmToken, message, data } = req.body;
-        console.log(req.body, "body data");
 
         if (!fcmToken) {
             return next(new errorhandler("fcmToken is required", 400));
@@ -35,23 +34,19 @@ export const sendNotification = catchAsyncError(async (req, res, next) => {
             return next(new errorhandler("Notification title and body are required", 400));
         }
 
-        const messageData = {
-            token: fcmToken,
+        const payload = {
             notification: {
-                title: data.title,
-                body: data.body,
-            },
+              title: data.title,
+              body: data.body,
+            }, 
             data: {
-                message: message,
-                type: data.type,
-                senderId: data.senderId,
-                receiverId: data.receiverId,
-                senderName: data.senderName,
-                senderImage: data.senderImage,
-            }
-        };
+              ...data, 
+            },
+            token: fcmToken, 
+          };
+        
 
-        const response = await admin.messaging().send(messageData);
+        const response = await admin.messaging().send(payload);
         res.status(200).json({
             success: true,
             data: response

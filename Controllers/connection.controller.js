@@ -82,6 +82,7 @@ export const removeConnection = catchAsyncError(async (req, res, next) => {
         const senderId = req.user.userId;
         const { receiverId } = req.body;
 
+
         if (senderId === receiverId) {
             return res.status(400).json({ success: false, message: "You can't remove connection with yourself!" });
         }
@@ -143,8 +144,6 @@ export const acceptConnectionRequest = catchAsyncError(async (req, res, next) =>
 });
 
 export const rejectConnectionRequest = catchAsyncError(async (req, res, next) => {
-
-
     try {
         const receiverId = req.user.userId;
         const { senderId } = req.body;
@@ -165,8 +164,12 @@ export const rejectConnectionRequest = catchAsyncError(async (req, res, next) =>
             return res.status(404).json({ success: false, message: "Connection request not found!" });
         }
 
-        connection.status = 'rejected';
-        await connection.save();
+
+        if (connection.status === 'accepted') {
+            return res.status(400).json({ success: false, message: "Connection request already accepted!" });
+        }
+
+        await connection.destroy();
 
         return res.status(200).json({ success: true, message: "Connection request rejected successfully!" });
     } catch (error) {
@@ -238,7 +241,6 @@ export const getMyConnections = catchAsyncError(async (req, res, next) => {
     try {
       const userId = req.user.userId;
   
-      console.log(userId, "userId");
   
       const connections = await Connection.findAll({
         where: {
