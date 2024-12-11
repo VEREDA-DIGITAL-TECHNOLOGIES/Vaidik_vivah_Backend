@@ -20,38 +20,42 @@ export const firebaseAdmin = admin.initializeApp({
 
 export const sendNotification = catchAsyncError(async (req, res, next) => {
     try {
-        const { fcmToken, message, data } = req.body;
+        const { token, title, body, data } = req.body;
 
-        if (!fcmToken) {
+        if (!token) {
             return next(new errorhandler("fcmToken is required", 400));
         }
 
-        if (!message) {
-            return next(new errorhandler("message is required", 400));
+        if (!title) {
+            return next(new errorhandler("Notification title is required", 400));
         }
 
-        if (!data || !data.title || !data.body) {
-            return next(new errorhandler("Notification title and body are required", 400));
+        if (!body) {
+            return next(new errorhandler("Notification body is required", 400));
         }
 
-        const payload = {
+        // Construct message payload
+        const message = {
+            token: token,
             notification: {
-              title: data.title,
-              body: data.body,
-            }, 
-            data: {
-              ...data, 
+                title: title,
+                body: body,
             },
-            token: fcmToken, 
-          };
-        
+            data: {
+                ...data,
+            },
+        };
 
-        const response = await admin.messaging().send(payload);
+        const response = await admin.messaging().send(message);
+        console.log("FCM Response:", response);
+
         res.status(200).json({
             success: true,
-            data: response
+            data: response,
         });
     } catch (error) {
+        console.log(error)
         return next(new errorhandler(error.message, 500));
     }
 });
+

@@ -23,6 +23,7 @@ import callRouter from './routes/call.routes.js';
 dotenv.config();
 
 
+
 app.use(express.json({limit:"50mb"}));
 app.use(express.static("./public"));
 
@@ -34,12 +35,10 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: ["https://wedlock.au", "https://admin.wedlock.au",'http://localhost:5173','http://localhost:5176'],
-    credentials: true,  
-  }));
-  
+  origin: ["https://wedlock.au", "https://admin.wedlock.au", 'http://localhost:5173', 'http://localhost:5176'],
+  credentials: true,
+}));
 
-//routes
 app.use("/api/v1/user",userRouter);
 app.use("/api/v1/question",questionRouter);
 app.use("/api/v1/form",formRouter);
@@ -52,6 +51,8 @@ app.use("/api/v1/subscription",subscriptionRouter);
 app.use("/api/v1/billing",billingRouter);
 app.use("/api/v1/notifications",notificationRouter);
 app.use("/api/v1/call",callRouter);
+
+
 
 
  
