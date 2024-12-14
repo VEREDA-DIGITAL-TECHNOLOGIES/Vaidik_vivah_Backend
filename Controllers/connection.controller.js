@@ -3,40 +3,93 @@ import Connection from "../Models/connection.model.js";
 import errorhandler from "../Utils/errorhandler.js";
 import User from "../Models/user.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
+import Notification from "../Models/notification.model.js";
+import personalDetails from "../Models/personalDetails.model.js";
+import imageUpload from "../Models/imageUpload.model.js";
+import {getSocketInstance} from '../config/socketConfig.js'
+
 
 export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
-
-
     try {
         const senderId = req.user.userId;
         const { receiverId } = req.body;
+
+        if (!receiverId) {
+            return res.status(400).json({ success: false, message: "Receiver ID is required!" });
+        }
 
         if (senderId === receiverId) {
             return res.status(400).json({ success: false, message: "You can't connect with yourself!" });
         }
 
-
         const existingConnection = await Connection.findOne({
             where: {
                 [Op.or]: [
-                    { senderId: senderId, receiverId: receiverId },
+                    { senderId, receiverId },
                     { senderId: receiverId, receiverId: senderId }
                 ]
             }
         });
 
-        if (!existingConnection) {
-            const connection = await Connection.create({ senderId, receiverId, status: 'pending' });
-            return res.status(201).json({ success: true, message: "Connection request sent successfully!", data: connection });
-
+        if (existingConnection) {
+            if (existingConnection.status === "accepted") {
+                return res.status(400).json({ success: false, message: "You are already connected!" });
+            }
+            if (existingConnection.status === "pending") {
+                return res.status(400).json({ success: false, message: "Connection request is already pending!" });
+            }
         }
 
+        const personalDetailsData = await personalDetails.findOne({ where: { userId: senderId } });
+        const imageUploadData = await imageUpload.findOne({ where: { userId: senderId } });
 
-        if (existingConnection.status === 'accepted' || existingConnection.status === 'pending') {
-            return next(new errorhandler("Connection already exists!", 400));
+        if (!personalDetailsData) {
+            return res.status(404).json({ success: false, message: "Sender's personal details not found!" });
         }
 
-    } catch (error) {
+        const connection = await Connection.create({ senderId, receiverId, status: "pending" });
+
+        const notification = await Notification.create({
+            userId: receiverId,
+            title: "Connection Request",
+            message: `${personalDetailsData.firstName} ${personalDetailsData.lastName} has sent you a connection request.`,
+            body: {
+                type: "connection_request",
+                senderId,
+                senderName: `${personalDetailsData.firstName} ${personalDetailsData.lastName}`,
+                senderImage: imageUploadData?.image?.[0] || null
+            }
+        });
+
+        const io = getSocketInstance();
+
+        io.to(receiverId).emit("connection_request", {
+            notificationId: notification.notificationId,
+            title: notification.title,
+            message: notification.message,
+            body: {
+                type: notification.body.type,
+                senderId:notification.body.senderId,
+                senderName:notification.body.senderName,
+                senderImage:notification.body.senderImage
+            }
+        });
+
+
+        io.to(receiverId).emit("connection_Status", {
+            connection_status: "pending",
+            connectionType:"receiver"
+        })
+
+
+
+        return res.status(201).json({
+            success: true,
+            message: "Connection request sent successfully!",
+            data: connection
+        });
+
+    } catch (error) { 
         return next(new errorhandler(error.message, 500));
     }
 });
@@ -71,6 +124,23 @@ export const  cancelConnectionRequest = catchAsyncError(async (req, res, next) =
 
         await connection.destroy();
 
+
+        const io = getSocketInstance();
+
+
+
+        io.to(receiverId).emit("connection_Status", {
+            connection_status: "no connection",
+            connectionType:"none"
+        })
+        io.to(senderId).emit("connection_Status", {
+            connection_status: "no connection",
+            connectionType:"none"
+        })
+
+
+
+
         return res.status(200).json({ success: true, message: "Connection cancelled successfully!" });
     } catch (error) {
         return next(new errorhandler(error.message, 500));
@@ -103,6 +173,18 @@ export const removeConnection = catchAsyncError(async (req, res, next) => {
 
         await connection.destroy();
 
+        const io = getSocketInstance();
+
+        io.to(receiverId).emit("connection_Status", {
+            connection_status: "no connection",
+            connectionType:"none"
+        })
+        io.to(senderId).emit("connection_Status", {
+            connection_status: "no connection",
+            connectionType:"none"
+        })
+
+
         return res.status(200).json({ success: true, message: "Connection removed successfully!" });
     } catch (error) {
         return next(new errorhandler(error.message, 500));
@@ -126,6 +208,10 @@ export const acceptConnectionRequest = catchAsyncError(async (req, res, next) =>
             }
         });
 
+        const personalDetailsData = await personalDetails.findOne({ where: { userId: receiverId } });
+        const imageUploadData = await imageUpload.findOne({ where: { userId: receiverId } });
+
+
         if (!connection) {
             return next(new errorhandler("Connection request not found!", 404));
         }
@@ -136,6 +222,48 @@ export const acceptConnectionRequest = catchAsyncError(async (req, res, next) =>
 
         connection.status = 'accepted';
         await connection.save();
+
+
+        const notification = await Notification.create({
+            userId: senderId,
+            title: "Connection Accepted",
+            message: `${personalDetailsData.firstName} ${personalDetailsData.lastName} has accepted your connection request.`,
+            body: {
+                type: "connection_accepted",
+                senderId,
+                senderName: `${personalDetailsData.firstName} ${personalDetailsData.lastName}`,
+                senderImage: imageUploadData?.image?.[0] || null
+            }
+        });
+
+
+         const io = getSocketInstance();
+
+          io.to(senderId).emit("connection_request", {
+            notificationId: notification.notificationId,
+            title: notification.title,
+            message: notification.message,
+            body: {
+                type: notification.body.type,
+                senderId:notification.body.senderId,
+                senderName:notification.body.senderName,
+                senderImage:notification.body.senderImage
+            }
+        });
+
+
+
+
+        io.to(receiverId).emit("connection_Status", {
+            connection_status: "accepted",
+            connectionType:"receiver"
+        })
+        io.to(senderId).emit("connection_Status", {
+            connection_status: "accepted",
+            connectionType:"sender"
+        })
+
+
 
         return res.status(200).json({ success: true, message: "Connection request accepted successfully!" });
     } catch (error) {
@@ -189,8 +317,8 @@ export const getConnectionStatus = catchAsyncError(async (req, res, next) => {
         const connectionStatus = await Connection.findOne({
             where: {
               [Op.or]: [
-                { senderId: connectedUserId, receiverId: userId }, // user2 sent request to user1
-                { receiverId: connectedUserId, senderId: userId } // user1 sent request to user2
+                { senderId: connectedUserId, receiverId: userId }, 
+                { receiverId: connectedUserId, senderId: userId } 
               ]
             }
           });
@@ -208,7 +336,6 @@ export const getConnectionStatus = catchAsyncError(async (req, res, next) => {
             const isSender = connectionStatus && connectionStatus.senderId === connectedUserId; // user2 sent the request
             const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId; // user2 received the request
         
-        // Determine connection type to display appropriate status
         const connectionType = (() => {
             if (isSender) {
                 return 'sender';
@@ -234,8 +361,6 @@ export const getConnectionStatus = catchAsyncError(async (req, res, next) => {
 
 
 })
-
-
 
 export const getMyConnections = catchAsyncError(async (req, res, next) => {
     try {
@@ -267,6 +392,6 @@ export const getMyConnections = catchAsyncError(async (req, res, next) => {
     } catch (error) {
       return next(new errorhandler(error.message, 500));
     }
-  });
+});
 
 

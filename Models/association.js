@@ -11,6 +11,7 @@ import Connection from './connection.model.js';
 import Plan from './plan.model.js';
 import Subscription from './subscription.model.js';
 import Call from './call.model.js';
+import Notification from './notification.model.js';
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
 Answer.belongsTo(User, { foreignKey: 'userId', as: 'user' });
@@ -65,6 +66,9 @@ Plan.hasMany(User, { foreignKey: 'userId', as: 'users' });
 
 Subscription.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plan' });
+
+User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
+Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 

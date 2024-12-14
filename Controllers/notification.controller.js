@@ -3,6 +3,7 @@ import errorhandler from "../Utils/errorhandler.js";
 import fs from "fs";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import path from "path";
+import Notification from '../Models/notification.model.js';
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,7 +16,6 @@ console.log(serviceAccount, "serviceAccount");
 
 export const firebaseAdmin = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://wedlock-4f698-default-rtdb.firebaseio.com",
 });
 
 export const sendNotification = catchAsyncError(async (req, res, next) => {
@@ -44,6 +44,7 @@ export const sendNotification = catchAsyncError(async (req, res, next) => {
             data: {
                 ...data,
             },
+            
         };
 
         const response = await admin.messaging().send(message);
@@ -59,3 +60,58 @@ export const sendNotification = catchAsyncError(async (req, res, next) => {
     }
 });
 
+
+export const getAllNotification = catchAsyncError(async (req, res, next) => {
+
+    try{
+        const userId = req.user.userId;
+        
+        const notifications = await Notification.findAll({where: {userId}, order: [['createdAt', 'DESC']]});
+
+      
+        if(!notifications){
+            return next(new errorhandler("Notification not found!", 404));
+        }
+
+      
+        const data = notifications.map((notification) => {
+            return {
+                notificationId: notification.notificationId,
+                title: notification.title,
+                message: notification.message,
+                body: notification.body,
+                data: notification.data,
+            }
+        })
+
+
+        res.status(200).json({
+            success: true,
+            data: data
+        })
+
+    }catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+})
+
+
+export const deleteNotification = catchAsyncError(async (req, res, next) => {
+    try{
+
+        const {notificationId} = req.body;
+    
+        const notifications = await Notification.destroy({where: {notificationId}});
+
+        if(!notifications){
+            return next(new errorhandler("Notification not found!", 404));
+        }
+        res.status(200).json({
+            success: true,
+            data: notifications
+        })
+
+    }catch(error){
+        return next(new errorhandler(error.message, 500));
+    }
+})
