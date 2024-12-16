@@ -82,6 +82,13 @@ export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
         })
 
 
+        
+        io.to(senderId).emit("connection_Status", {
+            connection_status: "pending",
+            connectionType:"sender"
+        })
+
+
 
         return res.status(201).json({
             success: true,

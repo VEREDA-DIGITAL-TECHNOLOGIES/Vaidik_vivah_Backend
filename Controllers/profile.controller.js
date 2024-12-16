@@ -459,7 +459,6 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     const { userId } = req.user; // Get userId from the request context
     const { page = 1, pageSize = 20 } = req.query; 
 
-    // Make the POST request to the external service with pagination parameters in the body
     const response = await axios.post(
       "https://recommendation.vigorify.in/get_matches2/",
       {
