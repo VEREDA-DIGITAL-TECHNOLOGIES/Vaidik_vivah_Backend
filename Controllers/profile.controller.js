@@ -687,6 +687,7 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
         gender: user.gender,
         religion: user.religion,
         age: user.age,
+        maritalStatus: user.maritalStatus,
         firstName: user.firstName,
         lastName: user.lastName,
         displayName: user.displayName,
@@ -694,8 +695,8 @@ export const filterProfiles = catchAsyncError(async (req, res, next) => {
         state: user.state,
         country: user.country,
         userType: user.usertype,
-        profileImage: user.image,
-        matchPercentage: matchPercentage,
+        profileImages: user.image,
+        match_percentage: matchPercentage,
 
       };
     });
@@ -863,14 +864,8 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
       image: image
     })
 
-
-
   } catch (error) {
     return next(new errorhandler(error.message, 500));
   }
-
-
-
-
       
 })

@@ -39,6 +39,7 @@ const FavProfile = sequelize.define('FavProfile', {
         defaultValue: [],
     }  
 },
+
 {
     timestamps: true
 }
