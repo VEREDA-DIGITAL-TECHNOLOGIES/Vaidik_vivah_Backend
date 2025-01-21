@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
 import User from '../Models/user.js';
 import { redis } from "./redis.js";
 dotenv.config();

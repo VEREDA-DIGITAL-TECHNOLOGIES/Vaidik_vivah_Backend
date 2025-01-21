@@ -8,21 +8,21 @@ import axios from "axios";
 
 export const addFavProfile = catchAsyncError(async (req, res, next) => {
     try{
-        const favoritingUserId = req.user.userId; 
+        const userId = req.user.userId; 
 
-        const { FavouriteUserId,profile} = req.body;
+        const { FavouriteUserId, profile} = req.body;
 
         if(!profile && !FavouriteUserId){
             return next(new errorhandler("User not found!", 400));
         }
 
-        const existingFavProfile = await FavProfile.findOne({where: {FavouriteUserId, favoritingUserId}});
+        const existingFavProfile = await FavProfile.findOne({where: {FavouriteUserId, userId}});
 
         if(existingFavProfile){
             return next(new errorhandler("Favourite profile already exist!", 400));
         }
 
-        const favProfile = await FavProfile.create({FavouriteUserId,profile,favoritingUserId});
+        const favProfile = await FavProfile.create({userId,FavouriteUserId,profile});
 
 
         return res.status(201).json({favProfile, message: "Favourite profile created successfully!"});

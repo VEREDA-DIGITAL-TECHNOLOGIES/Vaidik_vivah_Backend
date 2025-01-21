@@ -539,6 +539,7 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
             message: "FCM token updated successfully",
             user,
         });
+        
     } catch (error) {
         console.error(error);
         res.status(500).json({

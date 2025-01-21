@@ -28,6 +28,11 @@ const FavProfile = sequelize.define('FavProfile', {
             key: 'userId',
         },
     },
+    isfavorited: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
     profile:{
         type:DataTypes.ARRAY(DataTypes.JSON),
         allowNull: false,
