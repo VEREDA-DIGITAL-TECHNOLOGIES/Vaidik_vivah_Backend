@@ -3,8 +3,9 @@ import {
     createDropdownType, createDropdownTypeBulk, createDropdownBulk, createDropdown, IncomeDropdown,
     fatherOccupationDropdown, motherOccupationDropdown, gotrasDropdown, religionDropdown, communityDropdown,
     motherToungueDropdown, heightDropdown, qualificationDropdown, occupationDropdown, smokingHabbitDropdown,
-    drinkingHabbitDropdown, dietDropdown, complexionDropdown, ethnicsDropdown, maritalStatusDropdown, citizenshipDropdown,
-    casteDropdown, bodyTypeDropdown,updateDropdown,deleteDropdownType,deleteDropdown,updateDropdownType
+    drinkingHabbitDropdown, dietDropdown, complexionDropdown, ethnicsDropdown,australianVisaStatusDropdown, maritalStatusDropdown, citizenshipDropdown,
+    casteDropdown, bodyTypeDropdown,updateDropdown,deleteDropdownType,deleteDropdown,updateDropdownType,
+
 } from "../Controllers/dropdown.controller.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
 
@@ -33,11 +34,13 @@ dropdownRouter.get('/getSmokingHabbitDropdown', isAuthenticated, smokingHabbitDr
 dropdownRouter.get('/getDrinkingHabbitDropdown', isAuthenticated, drinkingHabbitDropdown);
 dropdownRouter.get('/getDietDropdown', isAuthenticated, dietDropdown);
 dropdownRouter.get('/getComplexionDropdown', isAuthenticated, complexionDropdown);
+dropdownRouter.get('/getAustralianVisaStatusDropdown', isAuthenticated, australianVisaStatusDropdown);
 dropdownRouter.get('/getEthnicsDropdown', isAuthenticated, ethnicsDropdown);
 dropdownRouter.get('/getMaritalStatusDropdown', isAuthenticated, maritalStatusDropdown);
 dropdownRouter.get('/getCitizenshipDropdown', isAuthenticated, citizenshipDropdown);
 dropdownRouter.get('/getCasteDropdown', isAuthenticated, casteDropdown);
 dropdownRouter.get('/getBodyTypeDropdown', isAuthenticated, bodyTypeDropdown);
+
 
 
 

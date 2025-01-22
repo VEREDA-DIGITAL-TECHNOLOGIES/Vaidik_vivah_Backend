@@ -1050,6 +1050,48 @@ export const citizenshipDropdown = catchAsyncError(async(req ,res ,next) => {
     
 });
 
+export const  australianVisaStatusDropdown = catchAsyncError(async(req ,res ,next) => {
+    try {
+
+        const dropdownType = "AustralianVisaStatus";
+
+        const dropdownTypeExist = await dropDownType.findOne({ where: { dropdownType } });
+
+        if (!dropdownTypeExist) {
+            return next(new errorhandler(`Dropdown type '${dropdownType}' does not exist!`, 400));
+        }
+
+
+
+    const dropdownData = await dropdown.findAll({
+        where: {
+           dropDownTypeId: dropdownTypeExist.dropDownTypeId,
+        },
+    });
+
+    if (!dropdownData) {
+        return next(new errorhandler("Dropdown data not found!", 404));
+    }
+
+    const data = dropdownData.map((dropdown) => {
+        return {
+            id: dropdown.id,
+            value: dropdown.dropdownValue,
+        };
+    });
+
+    res.status(200).json({
+        success: true,
+        data: data,
+        message: "Dropdown data fetched successfully!",
+    });
+        
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+    
+})
+
 
 export const casteDropdown = catchAsyncError(async(req ,res ,next) => {
     try {
