@@ -12,10 +12,10 @@ import { isAuthenticated } from "../Middlewares/auth.js";
 const dropdownRouter = express.Router();
 
 
-dropdownRouter.post('/createDropdownType',isAuthenticated, createDropdownType);
-dropdownRouter.post('/createDropdownTypeBulk', isAuthenticated, createDropdownTypeBulk);
-dropdownRouter.post('/createDropdownBulk', isAuthenticated, createDropdownBulk);
-dropdownRouter.post('/createDropdown', isAuthenticated, createDropdown);
+dropdownRouter.post('/createDropdownType', createDropdownType);
+dropdownRouter.post('/createDropdownTypeBulk', createDropdownTypeBulk);
+dropdownRouter.post('/createDropdownBulk', createDropdownBulk);
+dropdownRouter.post('/createDropdown', createDropdown);
 dropdownRouter.put('/updateDropdown', isAuthenticated, updateDropdown);
 dropdownRouter.delete('/deleteDropdownType', isAuthenticated, deleteDropdownType);
 dropdownRouter.put('/updateDropdownType', isAuthenticated, updateDropdownType);

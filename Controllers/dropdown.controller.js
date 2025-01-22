@@ -1089,7 +1089,7 @@ export const  australianVisaStatusDropdown = catchAsyncError(async(req ,res ,nex
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
-    
+
 })
 
 
@@ -1131,7 +1131,7 @@ export const casteDropdown = catchAsyncError(async(req ,res ,next) => {
         
     } catch (error) {
         return next(new errorhandler(error.message, 500));
-    }
+    } 
     
 });
 
