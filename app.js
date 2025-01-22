@@ -59,24 +59,14 @@ app.use("/api/v1/subscription", subscriptionRouter);
 app.use("/api/v1/billing", billingRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/call", callRouter);
-
-
-
-
-
-
-
-//routes
-app.use("/api/v1/user",userRouter);
-app.use("/api/v1/question",questionRouter);
-app.use("/api/v1/form",formRouter);
-app.use("/api/v1/profile",profileRouter);
-app.use("/api/v1/profile/favorite",favProfileRouter);
-app.use("/api/v1/connection",connectionRouter);
-app.use("/api/v1/happyStories",happyStoryRouter);
-app.use("/api/v1/plan",planRouter);
-app.use("/api/v1/subscription",subscriptionRouter);
 app.use('/api/v1/dropdown',dropdownRouter);
+
+
+
+
+
+
+
  
 
 app.get("/test", async (req, res, next) => {

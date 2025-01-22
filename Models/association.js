@@ -11,8 +11,8 @@ import Connection from './connection.model.js';
 import Plan from './plan.model.js';
 import Subscription from './subscription.model.js';
 import dropdown from './dropdown.model.js';
-import dropDownType from './dropDownType.model.js';
 import Notification from './notification.model.js';
+import dropDownType from './dropdowntype.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
