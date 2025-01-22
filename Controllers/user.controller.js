@@ -12,15 +12,16 @@ import locationDetails from "../Models/locationDetails.model.js";
 import otherDetails from "../Models/otherDetails.model.js";
 import personalDetails from "../Models/personalDetails.model.js";
 import qualificationDetails from "../Models/qualificationDetails.model.js";
+import subscription from "../Models/subscription.model.js";
 import imageUpload from "../Models/imageUpload.model.js";
 import recommendation from "../Models/recommendation.model.js";
+import Subscription from "../Models/subscription.model.js";
 dotenv.config();
 
 // Register user
 export const registrationUser = catchAsyncError(async (req, res, next) => {
     try {
         const { email } = req.body;
-        console.log(email);
 
         if (!email) {
             return next(new errorhandler("Email is required!", 400));
@@ -39,11 +40,11 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
             activationCode,
             email
         };
-   
 
-   
-    try {
-         await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
+
+
+        try {
+            await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
 
             res.status(200).json({
                 success: true, message: `Please check your email: ${email} to activate your account!`,
@@ -94,13 +95,13 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
 
-        if(!password ) {
+        if (!password) {
             return next(new errorhandler("Password is required!", 400));
         }
-        if(!answer ) {
+        if (!answer) {
             return next(new errorhandler("Answer is required!", 400));
         }
-    
+
         const token = req.cookies.token;
 
         if (!token) {
@@ -120,13 +121,12 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             isVerified: true,
             otp: null
         });
-             
+
 
         if (Array.isArray(answer)) {
             for (const ans of answer) {
                 const { questionId, answerValue } = ans;
 
-                console.log(`Saving answer for question ID ${questionId}:`, answerValue);
 
                 await Answer.create({
                     userId: existingUser.userId,
@@ -134,14 +134,14 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
                     answer: answerValue
                 });
 
-                   
+
             }
         }
         const recommendationData = {
             userId: existingUser.userId,
             usertype: existingUser.usertype,
             email: existingUser.email,
-            gender: answer[0]?.answerValue, 
+            gender: answer[0]?.answerValue,
             lookingFor: answer[1]?.answerValue,
             weddingGoals: answer[3]?.answerValue,
             age: answer[6]?.answerValue,
@@ -152,10 +152,12 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             interest_and_hobbies: answer[11]?.answerValue
         };
 
-      
 
 
-    await recommendation.create(recommendationData);
+
+        await recommendation.create(recommendationData);
+
+
 
 
         res.clearCookie("token");
@@ -177,7 +179,7 @@ export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
         }
         const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
 
-        return res.status(200).json({ success: true, message: "Otp verified successfully!" ,token});
+        return res.status(200).json({ success: true, message: "Otp verified successfully!", token });
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
@@ -211,7 +213,6 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             for (const ans of answer) {
                 const { questionId, answerValue } = ans;
 
-                console.log(`Saving answer for question ID ${questionId}:`, answerValue);
 
                 await Answer.create({
                     userId: existingUser.userId,
@@ -225,7 +226,7 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             userId: existingUser.userId,
             usertype: existingUser.usertype,
             email: existingUser.email,
-            gender: answer.find(a => a.questionId === 1)?.answerValue, 
+            gender: answer.find(a => a.questionId === 1)?.answerValue,
             lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
             weddingGoals: answer.find(a => a.questionId === 4)?.answerValue,
             age: answer.find(a => a.questionId === 7)?.answerValue,
@@ -236,7 +237,6 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             interest_and_hobbies: answer.find(a => a.questionId === 12)?.answerValue
         };
 
-        console.log(`Recommendation Data: ${JSON.stringify(recommendationData)}`);
 
         const existingRecommendation = await recommendation.findOne({ where: { userId: existingUser.userId } });
 
@@ -257,9 +257,6 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ where: { email } });
-        console.log(email, password, "email password");
-        console.log(user)
-
         if (!user) {
             return next(new errorhandler("You are not registered!", 400));
         }
@@ -301,34 +298,32 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
 })
 
 export const updateAccessToken = catchAsyncError(async (req, res, next) => {
-    try{
+    try {
         const refresh_token = req.cookies.refresh_token;
-        
+
         const decoded = jwt.verify(refresh_token, process.env.REFRESHTOKEN);
-        console.log(decoded, "decoded");
         const message = 'Could not refresh token';
-        if(!decoded) {
+        if (!decoded) {
             return next(new errorhandler(message, 401));
         }
         const session = await redis.get(decoded.userId);
-        console.log(session);
-        if(!session) {
+        if (!session) {
             return next(new errorhandler(message, 401));
         }
         const user = JSON.parse(session);
 
-        const accessToken = jwt.sign({ userId: user.userId }, process.env.ACCESSTOKEN,{
+        const accessToken = jwt.sign({ userId: user.userId }, process.env.ACCESSTOKEN, {
             expiresIn: "5m",
         });
 
-        const refreshToken = jwt.sign({ userId: user.userId }, process.env.REFRESHTOKEN,{
+        const refreshToken = jwt.sign({ userId: user.userId }, process.env.REFRESHTOKEN, {
             expiresIn: "7d",
         });
         res.cookie("access_token", accessToken, accessTokenOptions);
         res.cookie("refresh_token", refreshToken, refreshTokenOptions);
         res.status(200).json({ success: true, accessToken, refreshToken });
-        
-    }catch(error){
+
+    } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 })
@@ -378,7 +373,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
         const user = await User.findOne({ where: { email } });
 
-         
+
         if (!user) {
             return next(new errorhandler("Email not found!", 400));
         }
@@ -393,17 +388,12 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
 
 
-        try {
-            await sendEmail({ email, subject: "Reset Your Password", template: "forgotPassword-mail.ejs", data });
+        await sendEmail({ email, subject: "Reset Your Password", template: "forgotPassword-mail.ejs", data });
 
-            res.status(200).json({
-                success: true, message: `Please check your email: ${email} to Reset your Password!`,
-                activationToken: activationToken.token,
-            });
-        } catch (error) {
-            return next(new errorhandler(error.message, 500));
-        }
-
+        res.status(200).json({
+            success: true, message: `Please check your email: ${email} to Reset your Password!`,
+            activationToken: activationToken.token,
+        });
     }
     catch (error) {
         return next(new errorhandler(error.message, 500));
@@ -444,12 +434,12 @@ export const verifyOtpForMobile = catchAsyncError(async (req, res, next) => {
         const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
 
 
-        return res.status(200).json({ success: true, message: "Reset Otp verified successfully!" ,token});
+        return res.status(200).json({ success: true, message: "Reset Otp verified successfully!", token });
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
-    
+
 })
 
 //for web app reset password
@@ -468,7 +458,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
         if (!verifiedUser) {
             return next(new errorhandler("Please Verify your email first!", 400));
         }
-        const user = await User.findOne({ where: { email:verifiedUser.email } });
+        const user = await User.findOne({ where: { email: verifiedUser.email } });
 
         user.password = password;
 
@@ -485,7 +475,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 //for app reset password
 export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
-        const { password,token } = req.body;
+        const { password, token } = req.body;
 
         if (!token) {
             return next(new errorhandler("Please Verify your email first!", 400));
@@ -496,7 +486,7 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
         if (!verifiedUser) {
             return next(new errorhandler("Please Verify your email first!", 400));
         }
-        const user = await User.findOne({ where: { email:verifiedUser.email } });
+        const user = await User.findOne({ where: { email: verifiedUser.email } });
 
         user.password = password;
 
@@ -513,6 +503,7 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
     try {
         const userId = req.user.userId;
         const { fcmToken, uid, userStatus } = req.body;
+
 
         if (!fcmToken) {
             return res.status(400).json({ error: 'FCM token is required.' });
@@ -541,15 +532,12 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
         });
         
     } catch (error) {
-        console.error(error);
         res.status(500).json({
             success: false,
             message: "Internal server error",
         });
     }
 });
-
-
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
     const userId = req.user.userId;
@@ -558,25 +546,26 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         if (!user) {
             return next(new errorhandler("User not found!", 404));
         }
-        await User.destroy({ where: { userId} });
-        await Answer.destroy({ where: { userId} });
-        await locationDetails.destroy({ where: {userId } });
-        await otherDetails.destroy({ where: { userId} });
-        await personalDetails.destroy({ where: { userId} });
+        await Subscription.destroy({ where: { userId } });
+        await Answer.destroy({ where: { userId } });
+        await locationDetails.destroy({ where: { userId } });
+        await otherDetails.destroy({ where: { userId } });
+        await personalDetails.destroy({ where: { userId } });
         await qualificationDetails.destroy({ where: { userId } });
         await imageUpload.destroy({ where: { userId } });
-        res.status(200).json({ success: true, message: "User deleted successfully!" });
         await recommendation.destroy({ where: { userId } });
+        await User.destroy({ where: { userId } });
+
+        res.status(200).json({ success: true, message: "Your account deleted successfully!" });
+
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 })
 
-
 export const dummyRegister = catchAsyncError(async (req, res, next) => {
     try {
         const { email } = req.body;
-        console.log(email);
 
         if (!email) {
             return next(new errorhandler("Email is required!", 400));
@@ -612,7 +601,6 @@ export const dummyRegister = catchAsyncError(async (req, res, next) => {
     }
 })
 
-
 export const dummyactivateUserForMobile = catchAsyncError(async (req, res, next) => {
     try {
         const { activationToken, activationCode } = req.body;
@@ -622,17 +610,16 @@ export const dummyactivateUserForMobile = catchAsyncError(async (req, res, next)
         // }
         const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
 
-        return res.status(200).json({ success: true, message: "Otp verified successfully!" ,token});
+        return res.status(200).json({ success: true, message: "Otp verified successfully!", token });
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 });
 
-
 export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
-        const { password, answer,token } = req.body;
+        const { password, answer, token } = req.body;
 
         const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
         const { email } = user;
@@ -652,8 +639,6 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
             for (const ans of answer) {
                 const { questionId, answerValue } = ans;
 
-                console.log(`Saving answer for question ID ${questionId}:`, answerValue);
-
                 await Answer.create({
                     userId: existingUser.userId,
                     questionId,
@@ -664,20 +649,22 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
 
         sendToken(existingUser, 200, res, "Password set successfully!");
 
-    }catch(error){
+    } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
 
 });
 
 
+
+
+
+
+
 //for admin
 export const AllUsers = catchAsyncError(async (req, res, next) => {
     try {
         const currentUserId = req.user.userId;  // Get the current user's ID
-
-        
-
 
         const users = await User.findAll({
             where: {
@@ -696,18 +683,18 @@ export const AllUsers = catchAsyncError(async (req, res, next) => {
             const image = imageUploadData.image && imageUploadData.image.length > 0 ? imageUploadData.image[0] : "";
 
 
-            const displayName = personalData 
-            ? personalData.displayName || `${personalData.firstName} ${personalData.lastName}` 
-            : "Unknown User";
+            const displayName = personalData
+                ? personalData.displayName || `${personalData.firstName} ${personalData.lastName}`
+                : "Unknown User";
 
             return {
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 plan: user.usertype,
-                displayName: displayName , 
-                userAvatar: image 
-                };
+                displayName: displayName,
+                userAvatar: image
+            };
         }));
 
 
@@ -743,18 +730,18 @@ export const AllCustomers = catchAsyncError(async (req, res, next) => {
             const date = user.createdAt.toISOString().split('T')[0];
 
 
-            const displayName = personalData 
-            ? personalData.displayName || `${personalData.firstName} ${personalData.lastName}` 
-            : "Unknown User";
+            const displayName = personalData
+                ? personalData.displayName || `${personalData.firstName} ${personalData.lastName}`
+                : "Unknown User";
 
             return {
                 id: user.id,
                 email: user.email,
-                displayName: displayName ,
-                userAvatar: image ,
+                displayName: displayName,
+                userAvatar: image,
                 date: date
 
-                };
+            };
         }));
 
 
@@ -769,3 +756,4 @@ export const AllCustomers = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 })
+

@@ -6,26 +6,29 @@ import axios from "axios";
 
 
 
-export const addFavProfile = catchAsyncError(async (req, res, next) => {
+export const toggleFav = catchAsyncError(async (req, res, next) => {
     try{
         const userId = req.user.userId; 
 
         const { FavouriteUserId, profile} = req.body;
 
-        if(!profile && !FavouriteUserId){
-            return next(new errorhandler("User not found!", 400));
+
+
+        if( !favoritedUserId){
+            return res.status(400).json({ success: false, message: 'favoritedUserId is required.' });
         }
 
         const existingFavProfile = await FavProfile.findOne({where: {FavouriteUserId, userId}});
 
         if(existingFavProfile){
-            return next(new errorhandler("Favourite profile already exist!", 400));
+            await FavProfile.destroy({where: {favoritedUserId,  userId}});
+            return res.status(200).json({ success: true, message: "Favourite Removed successfully!"});
         }
 
         const favProfile = await FavProfile.create({userId,FavouriteUserId,profile});
 
 
-        return res.status(201).json({favProfile, message: "Favourite profile created successfully!"});
+        return res.status(201).json({ success: true, message: "Favourite Added successfully!"});
 
     }catch(error){
         
@@ -34,54 +37,55 @@ export const addFavProfile = catchAsyncError(async (req, res, next) => {
 
 })
 
+
 export const getFavProfile = catchAsyncError(async (req, res, next) => {
     try{
-        const favouratingUserId = req.user.userId;
+        const userId = req.user.userId;
 
-        const FavouritedProfiles = await User.findAll({
-            include: {
-                model: User,
-                as: 'FavoritedProfiles',
-                through: {
-                    attributes: [], 
-                },
-            },
-            where: { userId: favouratingUserId },
+        const FavouritedProfiles = await FavProfile.findAll({
+           
+            where: { userId },
         })
 
         if(!FavouritedProfiles){
-            return next(new errorhandler("No Favourite profile found!", 400));
+            return res.status(404).json({success: false,message: "Favourite profile not found!"});
         }
+
+        const data = FavouritedProfiles.map((user) => {
+            return {userId: user.favoritedUserId,}
+        })
+
+        return res.status(200).json({success: true ,data, message: "Favourite profile fetched successfully!"});
 
     }catch(error){
      return next(new errorhandler(error.message, 500));
     }
 })
 
-export const  removeFavProfile = catchAsyncError(async (req, res, next) => {
-    try{
-        
-        const {FavouriteUserId} = req.body;
-        const favoritingUserId = req.user.userId;
+// export const  removeFavProfile = catchAsyncError(async (req, res, next) => {
+//     try{
+//         const userId = req.user.userId;
 
-        const favProfile = await FavProfile.findOne({
-            where: { FavouriteUserId, favoritingUserId },
-        });
+//         const {favoritedUserId} = req.body;
 
-        if (!favProfile) {
-            return res.status(404).json({ message: 'Favorite profile not found.' });
-        }
+//         const favProfile = await FavProfile.findOne({
+//             where: { favoritedUserId, userId },
+//         });
 
-        await favProfile.destroy();
+//         if (!favProfile) {
+//             return res.status(404).json({ success: false, message: 'Favorite profile not found.' });
+//         }
 
-        return res.status(200).json({ message: 'Favorite profile removed successfully.' });
+//         await favProfile.destroy();
+
+//         return res.status(200).json({ success: true, message: 'Favorite profile removed successfully.' });
 
 
-    }catch(error){
-        return next(new errorhandler(error.message, 500));
-    }
+//     }catch(error){
+//         return next(new errorhandler(error.message, 500));
+//     }
 
-})
+// })
 
 
 

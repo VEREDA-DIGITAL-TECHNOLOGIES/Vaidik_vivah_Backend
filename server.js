@@ -5,15 +5,25 @@ import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpl
 import Recommendation from './Models/recommendation.model.js';
 import plan from './Models/plan.model.js';
 import subscription from './Models/subscription.model.js';
+import call from './Models/call.model.js';
+import Notification from './Models/notification.model.js';
+import { createServer } from 'http';
+import { intializeSocket } from './config/socketConfig.js';
+
+
 
 dotenv.config();
 
 
 const PORT = process.env.PORT || 3000;
 
+
+
 const startServer = async () => {
     try {
         await connectDB();
+        const server = createServer(app);
+        intializeSocket(server);
 
         await User.sync({ force: false });
         await Answer.sync({ force: false });
@@ -30,13 +40,24 @@ const startServer = async () => {
         await subscription.sync({ force: true });
         await dropDownType.sync({ force: false });
         await dropdown.sync({ force: false });
+        await subscription.sync({ force: false });
+        await call.sync({ force: false });
+        await Notification.sync({ force: false });
         
 
         console.log('Tables synchronized');
 
-        app.listen(PORT, () => {
+
+        // app.listen(PORT, () => {
+        //     console.log(`Server is running on port ${PORT}`);
+        // });
+
+        server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
+        
+
+
     } catch (error) {
         console.error('Error synchronizing tables or starting server:', error);
     }

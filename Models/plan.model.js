@@ -19,7 +19,6 @@ const plan = sequelize.define("plan", {
             key: 'userId',
         },
     },
-
     planId: {
         type: DataTypes.UUID,
         primaryKey: true,
@@ -27,13 +26,21 @@ const plan = sequelize.define("plan", {
         allowNull: false,
         unique: true,
     },
-
     planName: {
         type: DataTypes.STRING,
         allowNull: false,
         enum: ["Standard","Premium","Exclusive"],
     },
-
+    planType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        enum: ["Monthly","Yearly"],
+    },
+    featureList: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+        defaultValue: [],
+    },
     price: {
         type: DataTypes.STRING,
         allowNull: false,

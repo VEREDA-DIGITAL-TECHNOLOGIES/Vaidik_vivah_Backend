@@ -10,14 +10,14 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
 
     try {
         const {userId} = req.user
-      const { planName, price, durationInMonths, description } = req.body;
+      const { planName, price, durationInMonths, description ,planType,featureList} = req.body;
   
-      if (!planName || !price || !durationInMonths || !description) {
+      if (!planName || !price || !durationInMonths || !description || !planType || !featureList) {
         return next(new errorhandler("Please enter all fields", 400));
       }
   
       const product = await stripe.products.create({
-        name: planName,
+        name: planName + " Plan",
       });
   
       const stripePrice = await stripe.prices.create({
@@ -29,17 +29,17 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
         product: product.id,
       });
   
-      // Create a new plan in the database
       const newPlan = await plan.create({
         planName,
         price,
         durationInMonths,
         stripePriceId: stripePrice.id,
         description,
-        userId
+        userId,
+        planType,
+        featureList
       });
   
-      // Respond with success
       res.status(201).json({
         success: true,
         data: newPlan,
@@ -55,7 +55,7 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
 export const getAllPlans = catchAsyncError(async (req, res, next) => {
     const plans = await plan.findAll();
     if (!plans) {
-        return next(new errorhandler("Plans not found!", 404));
+      return res.status(404).json({ success: false, message: "Plans not found!" });
     }
 
     const data = plans.map((plan) => {
@@ -64,12 +64,13 @@ export const getAllPlans = catchAsyncError(async (req, res, next) => {
             planName: plan.planName,
             price: plan.price,
             durationInMonths: plan.durationInMonths,
-            description: plan.description
+            description: plan.description,
+            planType: plan.planType,
+            featureList: plan.featureList
         }
     })
 
 
-    console.log(plans, "plans")
     res.status(200).json({
         success: true,
         data: data,

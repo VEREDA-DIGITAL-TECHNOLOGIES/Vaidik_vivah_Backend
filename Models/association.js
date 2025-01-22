@@ -10,8 +10,6 @@ import happyStories from './happyStories.model.js';
 import Connection from './connection.model.js';
 import Plan from './plan.model.js';
 import Subscription from './subscription.model.js';
-import dropDownType from './dropdowntype.model.js';
-import dropdown from './dropdown.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -71,6 +69,8 @@ Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plan' });
 dropdown.belongsTo(dropDownType, { foreignKey: 'dropDownTypeId', as: 'dropDownType' });
 dropDownType.hasMany(dropdown, { foreignKey: 'dropDownTypeId', as: 'dropdowns' });
 
+User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
+Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
@@ -80,4 +80,8 @@ dropDownType.hasMany(dropdown, { foreignKey: 'dropDownTypeId', as: 'dropdowns' }
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown };
+
+
+
+
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection };

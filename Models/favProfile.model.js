@@ -12,6 +12,7 @@ const FavProfile = sequelize.define('FavProfile', {
         allowNull: false,
     },
 
+   
     userId: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -27,17 +28,7 @@ const FavProfile = sequelize.define('FavProfile', {
             model: User,
             key: 'userId',
         },
-    },
-    isfavorited: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-    },
-    profile:{
-        type:DataTypes.ARRAY(DataTypes.JSON),
-        allowNull: false,
-        defaultValue: [],
-    }  
+    },  
 },
 
 {
