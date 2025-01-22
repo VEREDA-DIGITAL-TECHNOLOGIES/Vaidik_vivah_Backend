@@ -15,6 +15,8 @@ import planRouter from './routes/plan.routes.js';
 import notificationRouter from './routes/notification.routes.js';
 import subscriptionRouter from './routes/subscription.routes.js';
 import dropdownRouter from './routes/dropdown.routes.js';
+import billingRouter from './routes/billing.routes.js';
+import callRouter from './routes/call.routes.js'
 
 dotenv.config();
 

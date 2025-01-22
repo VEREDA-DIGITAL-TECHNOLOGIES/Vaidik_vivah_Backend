@@ -10,6 +10,9 @@ import happyStories from './happyStories.model.js';
 import Connection from './connection.model.js';
 import Plan from './plan.model.js';
 import Subscription from './subscription.model.js';
+import dropdown from './dropdown.model.js';
+import dropDownType from './dropDownType.model.js';
+import Notification from './notification.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -19,12 +22,12 @@ User.hasMany(personalDetails, { foreignKey: 'userId', as: 'personalDetails' });
 personalDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
-User.hasMany(otherDetails, { foreignKey: 'userId', as: 'otherDetails' });
+User.hasMany(otherDetails, { foreignKey: 'userId', as: 'otherDetails' }); 
 otherDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 User.hasMany(locationDetails, { foreignKey: 'userId', as: 'locationDetails' });
-locationDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+locationDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });  
 
 User.hasMany(imageUpload, { foreignKey: 'userId', as: 'imageUpload' });
 imageUpload.belongsTo(User, { foreignKey: 'userId', as: 'user' });
@@ -84,4 +87,4 @@ Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection };
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,Plan,Subscription,dropdown,dropDownType,Notification };
