@@ -55,7 +55,7 @@ const otherDetails = sequelize.define('otherDetails', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    gothra:{
+    gotra:{
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue:"Not Specified"
@@ -117,13 +117,11 @@ const otherDetails = sequelize.define('otherDetails', {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue:"Not Specified"
-
     },
     motherOccupation: {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue:"Not Specified"
-
     },
     numberOfSiblings: {
         type: DataTypes.STRING,
@@ -135,7 +133,6 @@ const otherDetails = sequelize.define('otherDetails', {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue:"Not Specified"
-
     },
    
 });

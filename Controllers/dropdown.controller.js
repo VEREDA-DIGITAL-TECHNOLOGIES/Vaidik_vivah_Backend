@@ -182,7 +182,6 @@ export const createDropdownBulk = catchAsyncError(async (req, res, next) => {
     }
 });
 
-
 export const updateDropdown = catchAsyncError(async(req ,res ,next) => {
     try {
     const { dropdownId, dropdownValue } = req.body;
@@ -1177,3 +1176,46 @@ export const bodyTypeDropdown = catchAsyncError(async(req ,res ,next) => {
     }
     
 });
+
+
+
+export const fetchAllDropdowns = catchAsyncError(async(req ,res ,next) => {
+
+    try {
+
+        const dropdownTypes = await dropDownType.findAll();
+
+        if (!dropdownTypes) {
+            return next(new errorhandler("Dropdown types not found!", 404));
+        }
+
+        const data = dropdownTypes.map((dropdownType) => {
+            return {
+                dropdownType: dropdownType.dropdownType,
+              
+            };
+        });
+
+
+        console.log(data,'data')
+        res.status(200).json({
+            success: true,
+            data: data,
+            message: "Dropdown data fetched successfully!",
+        });
+
+
+        
+
+        
+
+
+
+    }
+
+
+    catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+
+})

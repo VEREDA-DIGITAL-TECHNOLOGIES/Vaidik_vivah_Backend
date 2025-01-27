@@ -48,6 +48,7 @@ const locationDetails = sequelize.define('locationDetails', {
     cityOfResidence: {
         type: DataTypes.STRING,
         allowNull:true,
+        defaultValue:"Not Specified"
     },
     nationality:{
         type: DataTypes.STRING,

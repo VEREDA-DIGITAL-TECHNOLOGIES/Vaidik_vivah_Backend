@@ -24,7 +24,9 @@ const connectDB = () => {
                     require: false,
                     rejectUnauthorized: false 
                 }
-            }
+            },
+            logging: console.log,
+           
         },
     );
 
