@@ -23,7 +23,7 @@ profileRouter.put('/updatephotoUpload',isAuthenticated,upload.array('profileImag
 profileRouter.get('/getProfiles',isAuthenticated,MatchedProfiles)
 profileRouter.get('/filterFieldCount',isAuthenticated,filterFieldCount)
 profileRouter.post('/getUserDetails',isAuthenticated,UserDetails)
-profileRouter.post('/filterProfiles',isAuthenticated,filterProfiles)
+profileRouter.get('/filterProfiles' ,isAuthenticated,filterProfiles)
 profileRouter.get('/getuserImage',isAuthenticated,getuserImage)
 profileRouter.get('/allProfiles',isAuthenticated,allProfiles)
 profileRouter.get('/discoverProfiles',isAuthenticated,discoverProfiles)
