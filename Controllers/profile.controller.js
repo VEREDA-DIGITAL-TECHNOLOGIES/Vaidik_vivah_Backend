@@ -303,6 +303,8 @@ export const updateReligiousBackground = catchAsyncError(async (req, res, next) 
 export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
   const userId = req.user.userId;
   const {
+    country,
+    state,
     currentLocation,
     cityOfResidence,
     nationality,
@@ -319,13 +321,11 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler("Location details not found!", 400));
   }
 
-  const updateOtherDetails = await otherDetails.update(
-    { currentLocation, cityOfResidence },
-    { where: { userId } }
-  );
-
+ 
   const updateLocationDetails = await locationDetails.update(
     {
+      country,
+      state,
       currentLocation,
       cityOfResidence,
       nationality,
@@ -337,6 +337,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
 
   await recommendation.update(
     {
+      country,
+      state,
       currentLocation,
       cityOfResidence,
       nationality,
@@ -346,7 +348,7 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     { where: { userId } }
   );
 
-  const data = [...updateOtherDetails, ...updateLocationDetails];
+  const data = [ ...updateLocationDetails];
 
   res.status(201).json({
     success: true,

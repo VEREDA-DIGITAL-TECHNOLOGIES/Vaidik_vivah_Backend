@@ -127,7 +127,6 @@ const otherDetails = sequelize.define('otherDetails', {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue:"Not Specified"
-
     },
     livingWithFamily: {
         type: DataTypes.STRING,
