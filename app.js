@@ -17,18 +17,9 @@ import subscriptionRouter from './routes/subscription.routes.js';
 import dropdownRouter from './routes/dropdown.routes.js';
 import billingRouter from './routes/billing.routes.js';
 import callRouter from './routes/call.routes.js'
+import featureRouter from './routes/feature.routes.js';
 
 dotenv.config();
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -60,14 +51,9 @@ app.use("/api/v1/billing", billingRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/call", callRouter);
 app.use('/api/v1/dropdown',dropdownRouter);
+app.use('/api/v1/feature',featureRouter);
 
 
-
-
-
-
-
- 
 
 app.get("/test", async (req, res, next) => {
   res.status(200).json({

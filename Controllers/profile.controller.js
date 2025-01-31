@@ -464,19 +464,19 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
 
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
-    const { userId } = req.user; // Get userId from the request context
-    const { page = 1, pageSize = 20 } = req.query;
-
-    const response = await axios.post(
-      "https://recommendation.vigorify.in/get_matches2/",
+    const { userId } = req.user; 
+   
+    const response = await axios.get(
+      "https://recommendation.vigorify.in/get_matches/",
       {
-        userId,
-        page,
-        pageSize,
+        params: {
+          userId,          // dynamic value
+          ...req.query     // spreads existing query parameters
+        }
       }
     );
-
-
+  
+    
     const profiles = response.data.filter((profile) => profile.gender !== null && profile.age !== null && profile.firstName !== null && profile.lastName !== null && profile.displayName !== null && profile.occupation !== null && profile.state !== null && profile.country !== null && profile.maritalStatus !== null && profile.profileImages !== null);
 
     if (!profiles || profiles.length === 0) {

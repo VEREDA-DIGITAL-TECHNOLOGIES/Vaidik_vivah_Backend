@@ -214,6 +214,7 @@ export const handleAutoExpiry = catchAsyncError(async (req, res, next) => {
         subscriptionData.forEach(async (subscription) => {
             if (subscription.endDate && subscription.endDate < today) {
                 await subscription.update({ status: 'Expired' });
+                await User.update({ usertype: 'Standard' }, { where: { userId: subscription.userId } });
             }
         });
 
