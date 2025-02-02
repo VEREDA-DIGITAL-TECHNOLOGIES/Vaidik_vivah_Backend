@@ -1,8 +1,7 @@
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import errorhandler  from "../Utils/errorhandler.js";
 import FavProfile from "../Models/favProfile.model.js";
-import User from "../Models/user.js";
-import axios from "axios";
+
 
 
 
@@ -10,7 +9,7 @@ export const toggleFav = catchAsyncError(async (req, res, next) => {
     try{
         const userId = req.user.userId; 
 
-        const { FavouriteUserId, profile} = req.body;
+        const { favoritedUserId } = req.body;
 
 
 
@@ -18,14 +17,16 @@ export const toggleFav = catchAsyncError(async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'favoritedUserId is required.' });
         }
 
-        const existingFavProfile = await FavProfile.findOne({where: {FavouriteUserId, userId}});
+        const existingFavProfile = await FavProfile.findOne({where: {favoritedUserId,  userId}});
+
 
         if(existingFavProfile){
             await FavProfile.destroy({where: {favoritedUserId,  userId}});
             return res.status(200).json({ success: true, message: "Favourite Removed successfully!"});
         }
 
-        const favProfile = await FavProfile.create({userId,FavouriteUserId,profile});
+
+    await FavProfile.create({favoritedUserId,userId});
 
 
         return res.status(201).json({ success: true, message: "Favourite Added successfully!"});
@@ -86,6 +87,5 @@ export const getFavProfile = catchAsyncError(async (req, res, next) => {
 //     }
 
 // })
-
 
 

@@ -465,6 +465,7 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.user; 
+    console.log(req.query)
    
     const response = await axios.get(
       "https://recommendation.vigorify.in/get_matches/",
@@ -629,119 +630,118 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
   }
 });
 
-export const filterProfiles = catchAsyncError(async (req, res, next) => {
-  try {
-    const { userId } = req.user;
-    const religion = req.query.religion ? req.query.religion.split(",") : null;
-    const ethnicity = req.query.ethnicity ? req.query.ethnicity.split(",") : null;
-    const community = req.query.community ? req.query.community.split(",") : null;
-    const {
-      ageRange,
-      heightRange,
-      income,
-      highestQualification,
-      smokingHabbit,
-      workingwith,
-      maritalStatus,
-      eatingHabbits,
+// export const filterProfiles = catchAsyncError(async (req, res, next) => {
+//   try {
+//     const { userId } = req.user;
+//     const religion = req.query.religion ? req.query.religion.split(",") : null;
+//     const ethnicity = req.query.ethnicity ? req.query.ethnicity.split(",") : null;
+//     const community = req.query.community ? req.query.community.split(",") : null;
+//     const {
+//       ageRange,
+//       heightRange,
+//       income,
+//       highestQualification,
+//       smokingHabbit,
+//       workingwith,
+//       maritalStatus,
+//       eatingHabbits,
      
-    } = req.query; 
+//     } = req.query; 
 
-    const currentUser = await recommendation.findOne({ where: { userId } });
-    const lookingFor = currentUser?.lookingFor;
+//     const currentUser = await recommendation.findOne({ where: { userId } });
+//     const lookingFor = currentUser?.lookingFor;
 
-    const Users = await User.findAll({
-      where: {
-        userId: { [Op.ne]: userId },
-      },
-    });
+//     const Users = await User.findAll({
+//       where: {
+//         userId: { [Op.ne]: userId },
+//       },
+//     });
 
-    const userIds = Users.map((user) => user.userId);
-    const [age1, age2] = ageRange?.split("-") || [];
-    const [height1, height2] = heightRange?.split("-") || [];
+//     const userIds = Users.map((user) => user.userId);
+//     const [age1, age2] = ageRange?.split("-") || [];
+//     const [height1, height2] = heightRange?.split("-") || [];
 
-    const recommendedUsers = await recommendation.findAll({
-      where: {
-        userId: { [Op.in]: userIds },
-        gender: lookingFor,
-        [Op.or]: [
-          { age: { [Op.between]: [age1, age2] } },
-          { height: { [Op.between]: [height1, height2] } },
-          { income: income || { [Op.ne]: null } },
-          { nationality: ethnicity && !ethnicity.includes("All") ? { [Op.in]: ethnicity } : { [Op.ne]: null } },
-          {
-            religion: religion && !religion.includes("All") ? { [Op.in]: religion } : { [Op.ne]: null },
-          },
-          { qualification: highestQualification && highestQualification !== "All" ? highestQualification : { [Op.ne]: null } },
-          { smokingHabbit: smokingHabbit || { [Op.ne]: null } },
-          { diet: eatingHabbits && eatingHabbits !== "All" ? eatingHabbits : { [Op.ne]: null } },
-          { occupation: workingwith && workingwith !== "All" ? workingwith : { [Op.ne]: null } },
-          { maritalStatus: maritalStatus && maritalStatus !== "All" ? maritalStatus : { [Op.ne]: null } },
-          { community: community && community !== "All" ? community : { [Op.ne]: null } },
-        ],
-      },
-    });
+//     const recommendedUsers = await recommendation.findAll({
+//       where: {
+//         userId: { [Op.in]: userIds },
+//         gender: lookingFor,
+//         [Op.or]: [
+//           { age: { [Op.between]: [age1, age2] } },
+//           { height: { [Op.between]: [height1, height2] } },
+//           { income: income || { [Op.ne]: null } },
+//           { nationality: ethnicity && !ethnicity.includes("All") ? { [Op.in]: ethnicity } : { [Op.ne]: null } },
+//           {
+//             religion: religion && !religion.includes("All") ? { [Op.in]: religion } : { [Op.ne]: null },
+//           },
+//           { qualification: highestQualification && highestQualification !== "All" ? highestQualification : { [Op.ne]: null } },
+//           { smokingHabbit: smokingHabbit || { [Op.ne]: null } },
+//           { diet: eatingHabbits && eatingHabbits !== "All" ? eatingHabbits : { [Op.ne]: null } },
+//           { occupation: workingwith && workingwith !== "All" ? workingwith : { [Op.ne]: null } },
+//           { maritalStatus: maritalStatus && maritalStatus !== "All" ? maritalStatus : { [Op.ne]: null } },
+//           { community: community && community !== "All" ? community : { [Op.ne]: null } },
+//         ],
+//       },
+//     });
 
-    const totalScore = 100;
-    const weights = {
-      religion: 10,
-      age: 10,
-      height: 10,
-      income: 10,
-      ethnicity: 10,
-      highestQualification: 10,
-      smokingHabbit: 10,
-      occupation: 10,
-      maritalStatus: 10,
-      eatingHabbits: 10,
-      community: 10,
-    };
+//     const totalScore = 100;
+//     const weights = {
+//       religion: 10,
+//       age: 10,
+//       height: 10,
+//       income: 10,
+//       ethnicity: 10,
+//       highestQualification: 10,
+//       smokingHabbit: 10,
+//       occupation: 10,
+//       maritalStatus: 10,
+//       eatingHabbits: 10,
+//       community: 10,
+//     };
 
-    const data = recommendedUsers.map((user) => {
-      let matchScore = 0;
+//     const data = recommendedUsers.map((user) => {
+//       let matchScore = 0;
 
-      if (user.religion === currentUser.religion) matchScore += weights.religion;
-      if (user.age >= age1 && user.age <= age2) matchScore += weights.age;
-      if (user.height >= height1 && user.height <= height2) matchScore += weights.height;
-      if (user.income === income) matchScore += weights.income;
-      if (user.nationality === ethnicity) matchScore += weights.ethnicity;
-      if (user.qualification === highestQualification) matchScore += weights.highestQualification;
-      if (user.smokingHabbit === smokingHabbit) matchScore += weights.smokingHabbit;
-      if (user.occupation === workingwith) matchScore += weights.occupation;
-      if (user.maritalStatus === maritalStatus) matchScore += weights.maritalStatus;
-      if (user.diet === eatingHabbits) matchScore += weights.eatingHabbits;
-      if (user.community === community) matchScore += weights.community;
+//       if (user.religion === currentUser.religion) matchScore += weights.religion;
+//       if (user.age >= age1 && user.age <= age2) matchScore += weights.age;
+//       if (user.height >= height1 && user.height <= height2) matchScore += weights.height;
+//       if (user.income === income) matchScore += weights.income;
+//       if (user.nationality === ethnicity) matchScore += weights.ethnicity;
+//       if (user.qualification === highestQualification) matchScore += weights.highestQualification;
+//       if (user.smokingHabbit === smokingHabbit) matchScore += weights.smokingHabbit;
+//       if (user.occupation === workingwith) matchScore += weights.occupation;
+//       if (user.maritalStatus === maritalStatus) matchScore += weights.maritalStatus;
+//       if (user.diet === eatingHabbits) matchScore += weights.eatingHabbits;
+//       if (user.community === community) matchScore += weights.community;
 
-      const matchPercentage = (matchScore / totalScore) * 100;
-      return {
-        userId: user.userId,
-        gender: user.gender,
-        religion: user.religion,
-        age: user.age,
-        maritalStatus: user.maritalStatus,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        displayName: user.displayName,
-        occupation: user.occupation,
-        state: user.state,
-        country: user.country,
-        userType: user.usertype,
-        profileImages: user.image,
-        match_percentage: matchPercentage,
-      };
-    });
+//       const matchPercentage = (matchScore / totalScore) * 100;
+//       return {
+//         userId: user.userId,
+//         gender: user.gender,
+//         religion: user.religion,
+//         age: user.age,
+//         maritalStatus: user.maritalStatus,
+//         firstName: user.firstName,
+//         lastName: user.lastName,
+//         displayName: user.displayName,
+//         occupation: user.occupation,
+//         state: user.state,
+//         country: user.country,
+//         userType: user.usertype,
+//         profileImages: user.image,
+//         match_percentage: matchPercentage,
+//       };
+//     });
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        profiles: data,
-      },
-    });
-  } catch (error) {
-    return next(new errorhandler(error.message, 500));
-  }
-});
-
+//     return res.status(200).json({
+//       success: true,
+//       data: {
+//         profiles: data,
+//       },
+//     });
+//   } catch (error) {
+//     return next(new errorhandler(error.message, 500));
+//   }
+// });
 
 export const filterFieldCount = catchAsyncError(async (req, res, next) => {
 
@@ -873,7 +873,6 @@ export const matrimonialProfiles = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler(error.message, 500));
   }
 });
-
 //admin profile image
 export const adminProfileImage = catchAsyncError(async (req, res, next) => {
 
@@ -892,7 +891,6 @@ export const adminProfileImage = catchAsyncError(async (req, res, next) => {
   }
 
 })
-
 
 export const allProfiles = catchAsyncError(async (req, res, next) => {
   try {
