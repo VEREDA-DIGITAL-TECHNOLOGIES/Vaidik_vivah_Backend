@@ -24,91 +24,101 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
   try {
     const userId = req.user.userId;
 
-
     const user = await User.findOne({ where: { userId } });
-    const fcmToken = user.fcmToken;
+    const fcmToken = user?.fcmToken;
     const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({
-      where: { userId },
-    });
-    const locationDetailsData = await locationDetails.findOne({
-      where: { userId },
-    });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({
-      where: { userId, questionId: 12 },
-    });
-    const toggleSection = await ToggleSection.findOne({ where: { userId } });
-    
+    const imageUploadData = await imageUpload.findOne({ where: { userId } }) || {};
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const toggleSection = await ToggleSection.findAll({ where: { userId } });
 
     const gender = await Answer.findOne({ where: { userId } });
     const age = await Answer.findOne({ where: { userId, questionId: 7 } });
     const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
-    const answer = basic_lifestyle.answer;
-    const data = [
-      {
-        fcmToken: fcmToken,
-        profileImage: imageUploadData.image,
-        basic_and_lifestye: {
-          firstName: personalData.firstName,
-          lastName: personalData.lastName,
-          displayName: personalData.displayName,
-          gender: gender.answer,
-          age: age.answer,
-          about: personalData.aboutYourSelf,
-          religion: otherDetailsData.religion,
-          maritalStatus: personalData.maritalStatus,
-          numberOfChildren: personalData.numberOfChildren,
-          postedBy: postedby.answer,
-        },
-        family_details: {
-          fatherOccupation: otherDetailsData.fatherOccupation,
-          motherOccupation: otherDetailsData.motherOccupation,
-          numberOfSiblings: otherDetailsData.numberOfSiblings,
-          livingWithFamily: otherDetailsData.livingWithFamily,
-        },
-        personal_background: {
-          height: otherDetailsData.height,
-          weight: otherDetailsData.weight,
-          bodyType: otherDetailsData.bodyType,
-          language: otherDetailsData.language,
-          smokingHabbit: otherDetailsData.smokingHabbit, 
-          drinkingHabbit: otherDetailsData.drinkingHabbit,
-          diet: otherDetailsData.diet,
-          complexion: otherDetailsData.complexion,
-        },
-        religious_background: {
-          religion: otherDetailsData.religion,
-          community: otherDetailsData.community,
-          subCommunity: otherDetailsData.subCommunity,
-          gotra: otherDetailsData.gotra,
-          timeOfBirth: otherDetailsData.timeOfBirth,
-          dateOfBirth: otherDetailsData.dateOfBirth,
-          placeOfBirth: otherDetailsData.placeOfBirth,
-          motherTongue: otherDetailsData.motherTongue,
-        },
-        location_background: {
-          country: locationDetailsData.country || "Not specified",
-          state: locationDetailsData.state || "Not specified",
-          currentLocation: locationDetailsData.currentLocation || "Not specified",
-          cityOfResidence: locationDetailsData.cityOfResidence || "Not specified",
-          nationality: locationDetailsData.nationality,
-          citizenShip: locationDetailsData.citizenShip,
-          residencyVisaStatus: locationDetailsData.residencyVisaStatus,
-        },
-        education_and_financial: {
-          qualification: qualificationDetailsData.qualification,
-          occupation: qualificationDetailsData.occupation,
-          workingStatus: qualificationDetailsData.currentWorkingStatus,
-          income: qualificationDetailsData.income,
-        },
-        interest_and_hobbies: answer,
-      },
+
+    const answer = basic_lifestyle?.answer || "Not specified";
+
+
+    const sectionNames = [
+      "family_details",
+      "personal_details",
+      "religious_details",
+      "location_details",
+      "education_and_financial_details"
     ];
 
 
+    const toggleStatuses = sectionNames.reduce((acc, section) => {
+      acc[section] = false;
+      return acc;
+    }, {});
 
+
+    toggleSection.forEach((section) => {
+      toggleStatuses[section.section] = section.status;
+    });
+
+    const data = [{
+      fcmToken,
+      profileImage: imageUploadData?.image || "No Image",
+      toggleStatus: toggleStatuses,
+      basic_and_lifestye: {
+        firstName: personalData?.firstName,
+        lastName: personalData?.lastName,
+        displayName: personalData?.displayName,
+        gender: gender?.answer || "Not specified",
+        age: age?.answer || "Not specified",
+        about: personalData?.aboutYourSelf,
+        religion: otherDetailsData?.religion,
+        maritalStatus: personalData?.maritalStatus,
+        numberOfChildren: personalData?.numberOfChildren,
+        postedBy: postedby?.answer || "Not specified",
+      },
+      family_details: {
+        fatherOccupation: otherDetailsData?.fatherOccupation,
+        motherOccupation: otherDetailsData?.motherOccupation,
+        numberOfSiblings: otherDetailsData?.numberOfSiblings,
+        livingWithFamily: otherDetailsData?.livingWithFamily,
+      },
+      personal_background: {
+        height: otherDetailsData?.height,
+        weight: otherDetailsData?.weight,
+        bodyType: otherDetailsData?.bodyType,
+        language: otherDetailsData?.language,
+        smokingHabbit: otherDetailsData?.smokingHabbit,
+        drinkingHabbit: otherDetailsData?.drinkingHabbit,
+        diet: otherDetailsData?.diet,
+        complexion: otherDetailsData?.complexion,
+      },
+      religious_background: {
+        religion: otherDetailsData?.religion,
+        community: otherDetailsData?.community,
+        subCommunity: otherDetailsData?.subCommunity,
+        gotra: otherDetailsData?.gotra,
+        timeOfBirth: otherDetailsData?.timeOfBirth,
+        dateOfBirth: otherDetailsData?.dateOfBirth,
+        placeOfBirth: otherDetailsData?.placeOfBirth,
+        motherTongue: otherDetailsData?.motherTongue,
+      },
+      location_background: {
+        country: locationDetailsData?.country || "Not specified",
+        state: locationDetailsData?.state || "Not specified",
+        currentLocation: locationDetailsData?.currentLocation || "Not specified",
+        cityOfResidence: locationDetailsData?.cityOfResidence || "Not specified",
+        nationality: locationDetailsData?.nationality,
+        citizenShip: locationDetailsData?.citizenShip,
+        residencyVisaStatus: locationDetailsData?.residencyVisaStatus,
+      },
+      education_and_financial: {
+        qualification: qualificationDetailsData?.qualification,
+        occupation: qualificationDetailsData?.occupation,
+        workingStatus: qualificationDetailsData?.currentWorkingStatus,
+        income: qualificationDetailsData?.income,
+      },
+      interest_and_hobbies: answer,
+    }];
 
     return res.status(200).json({
       success: true,
@@ -119,6 +129,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler(error.message, 500));
   }
 });
+
 
 export const getuserImage = catchAsyncError(async (req, res, next) => {
   try {
@@ -325,7 +336,7 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler("Location details not found!", 400));
   }
 
- 
+
   const updateLocationDetails = await locationDetails.update(
     {
       country,
@@ -352,7 +363,7 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     { where: { userId } }
   );
 
-  const data = [ ...updateLocationDetails];
+  const data = [...updateLocationDetails];
 
   res.status(201).json({
     success: true,
@@ -365,9 +376,9 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
   async (req, res, next) => {
     const userId = req.user.userId;
     const { qualification, currentWorkingStatus, income, occupation } = req.body;
- 
 
-  
+
+
     const qualificationDetailsData = await qualificationDetails.findOne({
       where: { userId },
     });
@@ -377,7 +388,7 @@ export const updateEducationAndFinancialDetails = catchAsyncError(
     }
 
     const updateQualificationDetails = await qualificationDetails.update(
-      {currentWorkingStatus, income, qualification, occupation },
+      { currentWorkingStatus, income, qualification, occupation },
       { where: { userId } }
     );
 
@@ -468,9 +479,9 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
 
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
-    const { userId } = req.user; 
+    const { userId } = req.user;
     console.log(req.query)
-   
+
     const response = await axios.get(
       "https://recommendation.vigorify.in/get_matches/",
       {
@@ -480,8 +491,8 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
         }
       }
     );
-  
-    
+
+
     const profiles = response.data.filter((profile) => profile.gender !== null && profile.age !== null && profile.firstName !== null && profile.lastName !== null && profile.displayName !== null && profile.occupation !== null && profile.state !== null && profile.country !== null && profile.maritalStatus !== null && profile.profileImages !== null);
 
     if (!profiles || profiles.length === 0) {
@@ -640,7 +651,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data:profileData,
+      data: profileData,
       message: "Profile fetched successfully!",
     });
   } catch (error) {
@@ -663,7 +674,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 //       workingwith,
 //       maritalStatus,
 //       eatingHabbits,
-     
+
 //     } = req.query; 
 
 //     const currentUser = await recommendation.findOne({ where: { userId } });

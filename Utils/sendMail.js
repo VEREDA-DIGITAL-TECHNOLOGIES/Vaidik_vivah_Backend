@@ -35,7 +35,7 @@ const sendEmail = async ({ email, subject, template, data }) => {
 
 
     const mailOptions = {
-        from: process.env.SMTP_MAIL,
+        from: process.env.SMTP_MAIL, 
         to: email,
         subject: subject,
         html
