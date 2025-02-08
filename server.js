@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import {app} from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown } from './Models/association.js';
+import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection } from './Models/association.js';
 import Recommendation from './Models/recommendation.model.js';
 import plan from './Models/plan.model.js';
 import subscription from './Models/subscription.model.js';
@@ -38,12 +38,13 @@ const startServer = async () => {
         await happyStories.sync({ force: false });
         await Connection.sync({ force: false });
         await plan.sync({ force: false });
-        await subscription.sync({ force: true });
+        await subscription.sync({ force: false });
         await dropDownType.sync({ force: false });
         await dropdown.sync({ force: false });
         await subscription.sync({ force: false });
         await call.sync({ force: false });
         await Notification.sync({ force: false });
+        await ToggleSection.sync({ force: false }); 
         
 
         console.log('Tables synchronized');

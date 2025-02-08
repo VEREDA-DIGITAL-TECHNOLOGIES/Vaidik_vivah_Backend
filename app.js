@@ -18,6 +18,7 @@ import dropdownRouter from './routes/dropdown.routes.js';
 import billingRouter from './routes/billing.routes.js';
 import callRouter from './routes/call.routes.js'
 import featureRouter from './routes/feature.routes.js';
+import toggleRouter from './routes/toggle.routes.js';
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/call", callRouter);
 app.use('/api/v1/dropdown',dropdownRouter);
 app.use('/api/v1/feature',featureRouter);
+app.use('/api/v1/toggle',toggleRouter);
 
 
 

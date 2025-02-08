@@ -13,6 +13,7 @@ import Subscription from './subscription.model.js';
 import dropdown from './dropdown.model.js';
 import Notification from './notification.model.js';
 import dropDownType from './dropdowntype.model.js';
+import ToggleSection from './toggleSection.model.js';
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -76,6 +77,8 @@ User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
 Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
+User.hasMany(ToggleSection, { foreignKey: 'userId', as: 'toggleSections' });
+ToggleSection.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
@@ -87,4 +90,6 @@ Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,Plan,Subscription,dropdown,dropDownType,Notification };
+
+
+export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,Plan,Subscription,dropdown,dropDownType,Notification ,ToggleSection};

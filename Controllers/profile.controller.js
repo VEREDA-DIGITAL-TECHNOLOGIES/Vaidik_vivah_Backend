@@ -14,6 +14,7 @@ import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js";
 import recommendation from "../Models/recommendation.model.js";
+import ToggleSection from "../Models/toggleSection.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
 import moment from 'moment';
@@ -38,6 +39,9 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
     const basic_lifestyle = await Answer.findOne({
       where: { userId, questionId: 12 },
     });
+    const toggleSection = await ToggleSection.findOne({ where: { userId } });
+    
+
     const gender = await Answer.findOne({ where: { userId } });
     const age = await Answer.findOne({ where: { userId, questionId: 7 } });
     const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
@@ -59,6 +63,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
           postedBy: postedby.answer,
         },
         family_details: {
+          isFamily_details: toggleSection.isFamily_details,
           fatherOccupation: otherDetailsData.fatherOccupation,
           motherOccupation: otherDetailsData.motherOccupation,
           numberOfSiblings: otherDetailsData.numberOfSiblings,
@@ -497,35 +502,37 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   }
 });
 
-export const UserDetails = catchAsyncError(async (req, res, next) => {
 
+
+export const UserDetails = catchAsyncError(async (req, res, next) => {
   try {
-    const connectedUserId = req.user.userId
+    const connectedUserId = req.user.userId;
     const { userId } = req.body;
 
+    // Fetch user details
     const user = await User.findOne({ where: { userId } });
     const fcmToken = user.fcmToken;
     const uid = user.uid;
     const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId }, });
-    const locationDetailsData = await locationDetails.findOne({ where: { userId }, });
+    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+    const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
     const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 }, });
-    const gender = await Answer.findOne({ where: { userId, questionId: 1 }, });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 }, });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 }, });
-    const answer = basic_lifestyle.answer;
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const gender = await Answer.findOne({ where: { userId, questionId: 1 } });
+    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const answer = basic_lifestyle?.answer || "";
+
+    // Fetch connection status
     const connectionStatus = await connection.findOne({
       where: {
         [Op.or]: [
-          { senderId: connectedUserId, receiverId: userId }, // user2 sent request to user1
-          { receiverId: connectedUserId, senderId: userId } // user1 sent request to user2
+          { senderId: connectedUserId, receiverId: userId },
+          { receiverId: connectedUserId, senderId: userId }
         ]
       }
     });
-
-
 
     const connection_status = (() => {
       if (connectionStatus) {
@@ -537,30 +544,33 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
       return 'no connection';
     })();
 
-    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId; // user2 sent the request
-    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId; // user2 received the request
+    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
+    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
 
-    // Determine connection type to display appropriate status
     const connectionType = (() => {
-      if (isSender) {
-        return 'sender';
-      } else if (isReceiver) {
-        return 'receiver';
-      } else {
-        return 'none';
-      }
+      if (isSender) return 'sender';
+      if (isReceiver) return 'receiver';
+      return 'none';
     })();
 
+    // 🔹 Fetch ToggleSection to check enabled/disabled status
+    const toggleSections = await ToggleSection.findAll({ where: { userId } });
 
+    // Convert to a map for quick lookup
+    const sectionStatus = toggleSections.reduce((acc, section) => {
+      acc[section.section] = section.status; // Example: { "family_details": false, "education_and_financial": true }
+      return acc;
+    }, {});
 
-    const data = [
-      {
-        fcmToken: fcmToken,
-        uid: uid,
-        profileImage: imageUploadData.image,
-        userType: user.usertype,
-        basic_and_lifestye: {
-          userId: userId,
+    // 🔹 Conditionally construct data object
+    const profileData = {
+      fcmToken,
+      uid,
+      profileImage: imageUploadData.image,
+      userType: user.usertype,
+      ...(sectionStatus["basic_and_lifestyle"] !== false && {
+        basic_and_lifestyle: {
+          userId,
           firstName: personalData.firstName,
           lastName: personalData.lastName,
           displayName: personalData.displayName,
@@ -571,13 +581,17 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           maritalStatus: personalData.maritalStatus,
           numberOfChildren: personalData.numberOfChildren,
           postedBy: postedby.answer,
-        },
+        }
+      }),
+      ...(sectionStatus["family_details"] !== false && {
         family_details: {
           fatherOccupation: otherDetailsData.fatherOccupation,
           motherOccupation: otherDetailsData.motherOccupation,
           numberOfSiblings: otherDetailsData.numberOfSiblings,
           livingWithFamily: otherDetailsData.livingWithFamily,
-        },
+        }
+      }),
+      ...(sectionStatus["personal_details"] !== false && {
         personal_background: {
           height: otherDetailsData.height,
           weight: otherDetailsData.weight,
@@ -587,7 +601,9 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           drinkingHabbit: otherDetailsData.drinkingHabbit,
           diet: otherDetailsData.diet,
           complexion: otherDetailsData.complexion,
-        },
+        }
+      }),
+      ...(sectionStatus["religious_background"] !== false && {
         religious_background: {
           religion: otherDetailsData.religion,
           community: otherDetailsData.community,
@@ -597,7 +613,9 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           dateOfBirth: otherDetailsData.dateOfBirth,
           placeOfBirth: otherDetailsData.placeOfBirth,
           motherTongue: otherDetailsData.motherTongue,
-        },
+        }
+      }),
+      ...(sectionStatus["location_background"] !== false && {
         location_background: {
           country: locationDetailsData.country || "Not specified",
           state: locationDetailsData.state || "Not specified",
@@ -606,23 +624,24 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           nationality: locationDetailsData.nationality,
           citizenShip: locationDetailsData.citizenShip,
           residencyVisaStatus: locationDetailsData.residencyVisaStatus,
-        },
+        }
+      }),
+      ...(sectionStatus["education_and_financial"] !== false && {
         education_and_financial: {
           qualification: qualificationDetailsData.qualification,
           occupation: qualificationDetailsData.occupation,
           workingStatus: qualificationDetailsData.currentWorkingStatus,
           income: qualificationDetailsData.income,
-        },
-        interest_and_hobbies: answer,
-        connection_status: connection_status,
-        connectionType: connectionType,
-
-      },
-    ];
+        }
+      }),
+      ...(sectionStatus["interest_and_hobbies"] !== false && { interest_and_hobbies: answer }),
+      connection_status,
+      connectionType
+    };
 
     res.status(200).json({
       success: true,
-      data,
+      profileData,
       message: "Profile fetched successfully!",
     });
   } catch (error) {

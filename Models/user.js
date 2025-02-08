@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from '../Utils/db.js';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+
 dotenv.config();
 
 import bcrypt from 'bcryptjs';
@@ -92,7 +93,7 @@ const User = sequelize.define('User', {
         allowNull: false,
         defaultValue: false,
     },
-
+   
     role: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -132,7 +133,19 @@ User.prototype.validPassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 
-await sequelize.sync({ force: false });
+
+
+const syncDB = async () => {
+    try {
+        await sequelize.sync({ alter: true }); // Use `alter: true` to avoid data loss
+        console.log('Database synced successfully'); 
+    } catch (error) {
+        console.error('Error syncing database:', error);
+    }
+};
+
+
+syncDB();
 
 
 

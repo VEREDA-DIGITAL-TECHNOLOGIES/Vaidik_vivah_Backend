@@ -1,4 +1,4 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import jwt from "jsonwebtoken";
 import Notification from '../Models/notification.model.js';
 
@@ -53,6 +53,8 @@ export const intializeSocket = (server) => {
             io.emit("sendFriendRequest", data);
         });
 
+       
+
         socket.on("disconnect", () => {
             console.log(`User disconnected: ${socket.data.userId}`);
         });
@@ -60,6 +62,9 @@ export const intializeSocket = (server) => {
 
     return io;
 };
+
+
+    
 
 // Export the io instance for reuse
 export const getSocketInstance = () => {
