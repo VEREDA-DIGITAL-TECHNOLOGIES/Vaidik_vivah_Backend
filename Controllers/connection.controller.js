@@ -70,7 +70,7 @@ export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
             body: {
                 type: notification.body.type,
                 senderId:notification.body.senderId,
-                senderName:notification.body.senderName,
+                senderName:notification.body.senderName, 
                 senderImage:notification.body.senderImage
             }
         });

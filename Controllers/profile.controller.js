@@ -63,7 +63,6 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
           postedBy: postedby.answer,
         },
         family_details: {
-          isFamily_details: toggleSection.isFamily_details,
           fatherOccupation: otherDetailsData.fatherOccupation,
           motherOccupation: otherDetailsData.motherOccupation,
           numberOfSiblings: otherDetailsData.numberOfSiblings,
@@ -74,7 +73,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
           weight: otherDetailsData.weight,
           bodyType: otherDetailsData.bodyType,
           language: otherDetailsData.language,
-          smokingHabbit: otherDetailsData.smokingHabbit,
+          smokingHabbit: otherDetailsData.smokingHabbit, 
           drinkingHabbit: otherDetailsData.drinkingHabbit,
           diet: otherDetailsData.diet,
           complexion: otherDetailsData.complexion,
@@ -603,7 +602,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           complexion: otherDetailsData.complexion,
         }
       }),
-      ...(sectionStatus["religious_background"] !== false && {
+      ...(sectionStatus["religious_details"] !== false && {
         religious_background: {
           religion: otherDetailsData.religion,
           community: otherDetailsData.community,
@@ -615,7 +614,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           motherTongue: otherDetailsData.motherTongue,
         }
       }),
-      ...(sectionStatus["location_background"] !== false && {
+      ...(sectionStatus["location_details"] !== false && {
         location_background: {
           country: locationDetailsData.country || "Not specified",
           state: locationDetailsData.state || "Not specified",
@@ -626,7 +625,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           residencyVisaStatus: locationDetailsData.residencyVisaStatus,
         }
       }),
-      ...(sectionStatus["education_and_financial"] !== false && {
+      ...(sectionStatus["education_and_financial_details"] !== false && {
         education_and_financial: {
           qualification: qualificationDetailsData.qualification,
           occupation: qualificationDetailsData.occupation,
@@ -634,7 +633,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           income: qualificationDetailsData.income,
         }
       }),
-      ...(sectionStatus["interest_and_hobbies"] !== false && { interest_and_hobbies: answer }),
+      ...(sectionStatus["interest_and_hobbies_details"] !== false && { interest_and_hobbies: answer }),
       connection_status,
       connectionType
     }];
