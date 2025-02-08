@@ -563,7 +563,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     }, {});
 
     // 🔹 Conditionally construct data object
-    const profileData = {
+    const profileData = [{
       fcmToken,
       uid,
       profileImage: imageUploadData.image,
@@ -637,11 +637,11 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
       ...(sectionStatus["interest_and_hobbies"] !== false && { interest_and_hobbies: answer }),
       connection_status,
       connectionType
-    };
+    }];
 
     res.status(200).json({
       success: true,
-      profileData,
+      data:profileData,
       message: "Profile fetched successfully!",
     });
   } catch (error) {
