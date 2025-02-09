@@ -64,7 +64,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       fcmToken,
       profileImage: imageUploadData?.image || "No Image",
       toggleStatus: toggleStatuses,
-      basic_and_lifestye: {
+      basic_and_lifestyle: {
         firstName: personalData?.firstName,
         lastName: personalData?.lastName,
         displayName: personalData?.displayName,
