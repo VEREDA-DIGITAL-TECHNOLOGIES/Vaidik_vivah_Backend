@@ -11,25 +11,26 @@ dotenv.config();
 
 
     //we have to add secure :true in production
- export  const accessTokenOptions ={
+    export const accessTokenOptions = {
+        domain: "wedlock.au",  // ✅ Set explicitly
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
         httpOnly: true,
-        sameSite: 'None',
+        sameSite: "None",
         secure: true,
         path: "/",
-    }
-        //we have to add secure :true in production
-
- export  const refreshTokenOptions ={
+    };
+    
+    export const refreshTokenOptions = {
+        domain: "wedlock.au",  // ✅ Set explicitly
         expires: new Date(Date.now() + refreshTokenExpire),
         maxAge: refreshTokenExpire,
         httpOnly: true,
-        sameSite: 'None',
+        sameSite: "None",
         secure: true,
         path: "/",
-       
-    }
+    };
+    
  
 
 export const sendToken = (user, statusCode, res,message) => {
