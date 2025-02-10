@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from '../Utils/db.js';
 import User from "./user.js";
 import { v4 as uuidv4 } from 'uuid';
-dotenv.config();
+dotenv.config(); 
 
 const sequelize = connectDB();
 
@@ -16,7 +16,7 @@ const Connection = sequelize.define('Connection', {
 
     connectionId: {
         type: DataTypes.UUID,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
         unique: true,

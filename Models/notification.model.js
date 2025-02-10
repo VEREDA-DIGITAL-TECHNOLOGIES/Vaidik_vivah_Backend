@@ -27,7 +27,7 @@ const Notification = sequelize.define('Notification', {
         type: DataTypes.UUID,
         primaryKey: true,
         allowNull: false,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4,
         unique: true,
     },
 

@@ -17,7 +17,7 @@ const Call = sequelize.define('Call', {
     callId: {
         type: DataTypes.UUID,
         allowNull: false,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
     },
      userId :{

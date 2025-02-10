@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import dotenv from 'dotenv';
 import connectDB from '../Utils/db.js';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+
 
 dotenv.config();
 
@@ -34,7 +34,7 @@ const User = sequelize.define('User', {
     userId: {
         type: DataTypes.UUID,
         primaryKey: true,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4, // Corrected UUID generation
         allowNull: false,
         unique: true,
     },

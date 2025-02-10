@@ -15,7 +15,6 @@ const happyStories = sequelize.define('happyStories', {
     },
     userId: {
         type: DataTypes.UUID,
-        defaultValue: () => uuidv4(),
         allowNull: false,
         references: {
             model: User,
@@ -25,7 +24,7 @@ const happyStories = sequelize.define('happyStories', {
     storyId: {
         type: DataTypes.UUID,
         primaryKey: true,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4,
         allowNull: false,
         unique: true,
     },

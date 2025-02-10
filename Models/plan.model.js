@@ -22,7 +22,7 @@ const plan = sequelize.define("plan", {
     planId: {
         type: DataTypes.UUID,
         primaryKey: true,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4,
         allowNull: false,
         unique: true,
     },

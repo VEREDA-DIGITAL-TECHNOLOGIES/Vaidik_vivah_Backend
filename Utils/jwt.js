@@ -16,7 +16,7 @@ dotenv.config();
         maxAge: accessTokenExpire,
         httpOnly: true,
         sameSite: 'Lax',
-        secure: false
+        secure: true
     }
         //we have to add secure :true in production
 
@@ -25,7 +25,7 @@ dotenv.config();
         maxAge: refreshTokenExpire,
         httpOnly: true,
         sameSite: 'Lax',
-        secure: false
+        secure: true
     }
  
 

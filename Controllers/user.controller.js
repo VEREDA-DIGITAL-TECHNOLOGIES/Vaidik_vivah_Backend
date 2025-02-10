@@ -15,7 +15,12 @@ import qualificationDetails from "../Models/qualificationDetails.model.js";
 import subscription from "../Models/subscription.model.js";
 import imageUpload from "../Models/imageUpload.model.js";
 import recommendation from "../Models/recommendation.model.js";
+import FavProfile from "../Models/favProfile.model.js";
 import Subscription from "../Models/subscription.model.js";
+import ToggleSection from "../Models/toggleSection.model.js";
+import Connection from "../Models/connection.model.js";
+import Notification from "../Models/notification.model.js";
+import Call from "../Models/call.model.js";
 dotenv.config();
 
 // Register user
@@ -530,7 +535,7 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
             message: "FCM token updated successfully",
             user,
         });
-        
+
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -546,22 +551,37 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
         if (!user) {
             return next(new errorhandler("User not found!", 404));
         }
-        await Subscription.destroy({ where: { userId } });
-        await Answer.destroy({ where: { userId } });
-        await locationDetails.destroy({ where: { userId } });
-        await otherDetails.destroy({ where: { userId } });
-        await personalDetails.destroy({ where: { userId } });
-        await qualificationDetails.destroy({ where: { userId } });
-        await imageUpload.destroy({ where: { userId } });
-        await recommendation.destroy({ where: { userId } });
+        // Delete dependent records first
+        await Promise.all([
+            Subscription.destroy({ where: { userId } }),
+            Answer.destroy({ where: { userId } }),
+            locationDetails.destroy({ where: { userId } }),
+            FavProfile.destroy({ where: { userId } }),
+            otherDetails.destroy({ where: { userId } }),
+            personalDetails.destroy({ where: { userId } }),
+            qualificationDetails.destroy({ where: { userId } }),
+            imageUpload.destroy({ where: { userId } }),
+            recommendation.destroy({ where: { userId } }),
+            Call.destroy({ where: { userId } }),
+            ToggleSection.destroy({ where: { userId } }),
+            Notification.destroy({ where: { userId } }),
+            Connection.destroy({ where: { [Op.or]: [{ receiverId: userId }, { senderId: userId }] } }),
+        ]);
+
+        // Delete user last
         await User.destroy({ where: { userId } });
 
+        // Send response immediately
         res.status(200).json({ success: true, message: "Your account deleted successfully!" });
+
+        // Remove from Redis (asynchronously)
+        redis.del(userId);
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
     }
-})
+});
+
 
 export const dummyRegister = catchAsyncError(async (req, res, next) => {
     try {

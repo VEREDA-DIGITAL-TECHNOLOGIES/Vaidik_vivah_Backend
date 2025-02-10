@@ -73,7 +73,7 @@ export const sendConnectionRequest = catchAsyncError(async (req, res, next) => {
                 senderName:notification.body.senderName, 
                 senderImage:notification.body.senderImage
             }
-        });
+        }); 
 
 
         io.to(receiverId).emit("connection_Status", {

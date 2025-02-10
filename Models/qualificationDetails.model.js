@@ -18,7 +18,6 @@ const qualificationDetails = sequelize.define('qualificationDetails', {
 
     userId: {
         type: DataTypes.UUID,
-        defaultValue: () => uuidv4(),
         allowNull: false,
         references: {
             model: User,

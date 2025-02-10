@@ -19,7 +19,6 @@ const personalDetails  = sequelize.define('personalDetails', {
 
     userId: {
         type: DataTypes.UUID,
-        defaultValue: () => uuidv4(),
         allowNull: false,
         references: {
             model: User,

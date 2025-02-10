@@ -16,7 +16,7 @@ const dropdown = sequelize.define('dropdown', {
     },
     dropdownId: {
         type: DataTypes.UUID,
-        defaultValue: () => uuidv4(),
+        defaultValue: DataTypes.UUIDV4,
         unique: true,
         primaryKey: true,
         allowNull: false,
