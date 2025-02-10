@@ -15,8 +15,9 @@ dotenv.config();
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
         httpOnly: true,
-        sameSite: 'Lax',
-        secure: true
+        sameSite: 'None',
+        secure: true,
+        domain: '.wedlock.au',
     }
         //we have to add secure :true in production
 
@@ -24,8 +25,9 @@ dotenv.config();
         expires: new Date(Date.now() + refreshTokenExpire),
         maxAge: refreshTokenExpire,
         httpOnly: true,
-        sameSite: 'Lax',
-        secure: true
+        sameSite: 'None',
+        secure: true,
+        domain: '.wedlock.au',
     }
  
 
