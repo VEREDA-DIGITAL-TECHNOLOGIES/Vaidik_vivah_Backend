@@ -17,7 +17,7 @@ dotenv.config();
         httpOnly: true,
         sameSite: 'None',
         secure: true,
-        domain: '.wedlock.au',
+        path: "/",
     }
         //we have to add secure :true in production
 
@@ -27,7 +27,8 @@ dotenv.config();
         httpOnly: true,
         sameSite: 'None',
         secure: true,
-        domain: '.wedlock.au',
+        path: "/",
+       
     }
  
 
