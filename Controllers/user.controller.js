@@ -310,9 +310,9 @@ export const updateAccessToken = catchAsyncError(async (req, res, next) => {
         const message = 'Could not refresh token';
         if (!decoded) {
             return next(new errorhandler(message, 401));
-        }
+        } 
         const session = await redis.get(decoded.userId);
-        if (!session) {
+        if (!session) { 
             return next(new errorhandler(message, 401));
         }
         const user = JSON.parse(session);

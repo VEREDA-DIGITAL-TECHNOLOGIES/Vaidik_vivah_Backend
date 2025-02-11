@@ -18,6 +18,7 @@ import dropdownRouter from './routes/dropdown.routes.js';
 import billingRouter from './routes/billing.routes.js';
 import callRouter from './routes/call.routes.js'
 import featureRouter from './routes/feature.routes.js';
+import webhookRouter from './routes/webhook.routes.js';
 import toggleRouter from './routes/toggle.routes.js';
 
 dotenv.config();
@@ -30,7 +31,6 @@ app.use(express.static("./public"));
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use(cookieParser());
 
 
 
@@ -49,6 +49,7 @@ app.use("/api/v1/happyStories", happyStoryRouter);
 app.use("/api/v1/plan", planRouter);
 app.use("/api/v1/subscription", subscriptionRouter);
 app.use("/api/v1/billing", billingRouter);
+app.use("/api/v1/payment-process", webhookRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/call", callRouter);
 app.use('/api/v1/dropdown',dropdownRouter);

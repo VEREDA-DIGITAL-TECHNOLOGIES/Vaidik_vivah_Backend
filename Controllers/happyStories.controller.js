@@ -7,7 +7,7 @@ import { uploadCloudinary } from "../Utils/cloudinary.js";
 export const addStory = catchAsyncError(async (req, res, next) => {
     try {
         const UserId = req.user.userId;
-       console.log(req.body)
+    
         const  {customerName, partnerName, description} = req.body;
         console.log(customerName, partnerName, description)
 

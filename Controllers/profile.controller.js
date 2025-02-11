@@ -235,7 +235,6 @@ export const updatePersonalBackground = catchAsyncError(async (req, res, next) =
 
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
 
-    console.log(height)
 
     if (!otherDetailsData) {
       return next(new errorhandler("Other details not found!", 400));
@@ -480,7 +479,6 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.user;
-    console.log(req.query)
 
     const response = await axios.get(
       "https://recommendation.vigorify.in/get_matches/",

@@ -50,7 +50,6 @@ export const toggleSection = catchAsyncError(async (req, res, next) => {
         });
 
     } catch (error) {
-        console.error("Toggle Section Error:", error);
         return next(new errorhandler("Internal Server Error", 500));
     }
 });

@@ -1197,7 +1197,6 @@ export const fetchAllDropdowns = catchAsyncError(async(req ,res ,next) => {
         });
 
 
-        console.log(data,'data')
         res.status(200).json({
             success: true,
             data: data,

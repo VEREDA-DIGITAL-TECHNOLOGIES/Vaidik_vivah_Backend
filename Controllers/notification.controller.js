@@ -12,7 +12,6 @@ const __dirname = path.dirname(__filename);
 const serviceAccountPath = path.join(__dirname, "../config/serviceAccountKey.json");
 
 const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
-console.log(serviceAccount, "serviceAccount");
 
 export const firebaseAdmin = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -48,14 +47,12 @@ export const sendNotification = catchAsyncError(async (req, res, next) => {
         };
 
         const response = await admin.messaging().send(message);
-        console.log("FCM Response:", response);
 
         res.status(200).json({
             success: true,
             data: response,
         });
     } catch (error) {
-        console.log(error)
         return next(new errorhandler(error.message, 500));
     }
 });

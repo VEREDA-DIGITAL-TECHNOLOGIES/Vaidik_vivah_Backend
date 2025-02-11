@@ -4,276 +4,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wedlock Invoice</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #EEF2FF;
-            margin: 0;
-            padding: 20px;
-            color: #1F2937;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #FFFFFF;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .header {
-            background: linear-gradient(to right, #2563EB, #4F46E5);
-            color: white;
-            padding: 24px;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .brand {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .order-id {
-            font-size: 14px;
-            opacity: 0.75;
-        }
-
-        .greeting {
-            font-size: 18px;
-            opacity: 0.9;
-        }
-
-        .thank-you {
-            font-size: 20px;
-            font-weight: 500;
-            margin-top: 8px;
-        }
-
-        .content {
-            padding: 24px;
-        }
-
-        .card {
-            background: #F9FAFB;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1F2937;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title svg {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .detail-label {
-            color: #6B7280;
-        }
-
-        .detail-value {
-            font-weight: 500;
-        }
-
-        .divider {
-            height: 1px;
-            background: #E5E7EB;
-            margin: 12px 0;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 18px;
-            font-weight: 600;
-            color: #2563EB;
-            padding-top: 12px;
-            border-top: 1px solid #E5E7EB;
-        }
-
-        .features-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            color: #4B5563;
-        }
-
-        .feature-item svg {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            color: #10B981;
-        }
-
-        .support-section {
-            text-align: center;
-            margin-top: 32px;
-        }
-
-        .support-text {
-            color: #6B7280;
-            margin-bottom: 16px;
-        }
-
-        .action-links {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        .action-link {
-            display: flex;
-            align-items: center;
-            color: #2563EB;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .action-link svg {
-            width: 16px;
-            height: 16px;
-            margin-right: 4px;
-        }
-
-        .action-link:hover {
-            color: #1D4ED8;
-        }
-
-        .footer {
-            text-align: center;
-            padding-top: 24px;
-            margin-top: 32px;
-            border-top: 1px solid #E5E7EB;
-            color: #9CA3AF;
-            font-size: 14px;
-        }
-
-        .footer p {
-            margin: 4px 0;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="header-top">
-                <div class="brand">Wedlock</div>
-                <div class="order-id">Invoice #<%= orderId %></div>
-            </div>
-            <div class="greeting">Hello <%= name %>,</div>
-            <div class="thank-you">Thank you for choosing our <%= planType %> plan!</div>
-        </div>
+<body style="font-family: Arial, sans-serif; background-color: #EEF2FF; margin: 0; padding: 20px; color: #1F2937;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+        <tr>
+            <td style="background: #2563EB; color: white; padding: 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td style="font-size: 24px; font-weight: bold;">Wedlock</td>
+                        <td style="font-size: 14px; opacity: 0.75; text-align: right;">Invoice #<%= orderId %></td>
+                    </tr>
+                </table>
+                <div style="font-size: 18px; opacity: 0.9;">Hello <%= name %>,</div>
+                <div style="font-size: 20px; font-weight: 500; margin-top: 8px;">Thank you for choosing our <%= planType %> plan!</div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <tr>
+                        <td style="font-size: 18px; font-weight: 600; color: #1F2937; margin-bottom: 16px;">Order Summary</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="color: #6B7280;">Plan Name</td>
+                                    <td style="font-weight: 500; text-align: right;"><%= planName %></td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #6B7280;">Plan Type</td>
+                                    <td style="font-weight: 500; text-align: right;"><%= planType %></td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #6B7280;">Valid Until</td>
+                                    <td style="font-weight: 500; text-align: right;"><%= validUpto %></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="height: 1px; background: #E5E7EB; margin: 12px 0;"></td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #6B7280;">Price</td>
+                                    <td style="font-weight: 500; text-align: right;">$<%= price %></td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #6B7280;">Tax</td>
+                                    <td style="font-weight: 500; text-align: right;">$<%= includedTax %></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 18px; font-weight: 600; color: #2563EB; padding-top: 12px; border-top: 1px solid #E5E7EB;">Total</td>
+                                    <td style="font-size: 18px; font-weight: 600; color: #2563EB; padding-top: 12px; border-top: 1px solid #E5E7EB; text-align: right;">$<%= total %></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
 
-        <div class="content">
-            <div class="card">
-                <div class="section-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </svg>
-                    Order Summary
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Plan Name</span>
-                    <span class="detail-value"><%= planName %></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Plan Type</span>
-                    <span class="detail-value"><%= planType %></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Valid Until</span>
-                    <span class="detail-value"><%= validUpto %></span>
-                </div>
-                <div class="divider"></div>
-                <div class="detail-row">
-                    <span class="detail-label">Price</span>
-                    <span class="detail-value">$<%= price %></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Tax</span>
-                    <span class="detail-value">$<%= includedTax %></span>
-                </div>
-                <div class="total-row">
-                    <span>Total</span>
-                    <span>$<%= total %></span>
-                </div>
-            </div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <tr>
+                        <td style="font-size: 18px; font-weight: 600; color: #1F2937; margin-bottom: 16px;">Features Included</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                <% features.forEach(function(feature) { %>
+                                    <li style="display: flex; align-items: center; margin-bottom: 8px; color: #4B5563;">
+                                        <span style="color: #10B981; margin-right: 8px;">✓</span>
+                                        <%= feature %>
+                                    </li>
+                                <% }); %>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
 
-            <div class="card">
-                <div class="section-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    </svg>
-                    Features Included
-                </div>
-                <ul class="features-list">
-                    <% features.forEach(function(feature) { %>
-                        <li class="feature-item">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            <%= feature %>
-                        </li>
-                    <% }); %>
-                </ul>
-            </div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align: center; margin-top: 32px;">
+                    <tr>
+                        <td style="color: #6B7280; margin-bottom: 16px;">Need help? Our support team is here for you 24/7</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="display: flex; justify-content: center; gap: 16px;">
+                                <tr style="display: flex; justify-content: center; gap: 16px;">
+                                    <td>
+                                        <a href="https://www.wedlock.au/contact-us" style="display: flex; align-items: center; color: #2563EB; text-decoration: none; font-weight: 500;">
+                                            <span style="margin-right: 4px;">✉️</span>
+                                            Contact Support
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="https://www.wedlock.au/user-dashboard" style="display: flex; align-items: center; color: #2563EB; text-decoration: none; font-weight: 500;">
+                                            <span style="margin-right: 4px;">📊</span>
+                                            View Dashboard
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
 
-            <div class="support-section">
-                <p class="support-text">Need help? Our support team is here for you 24/7</p>
-                <div class="action-links">
-                    <a href="#" class="action-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                        </svg>
-                        Contact Support
-                    </a>
-                    <a href="https://www.wedlock.au/user-dashboard" class="action-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                        View Dashboard
-                    </a>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>Thanks for being a great customer!</p>
-                <p>© 2025 Wedlock. All rights reserved.</p>
-            </div>
-        </div>
-    </div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align: center; padding-top: 24px; margin-top: 32px; border-top: 1px solid #E5E7EB; color: #9CA3AF; font-size: 14px;">
+                    <tr>
+                        <td>
+                            <p style="margin: 4px 0;">Thanks for being a great customer!</p>
+                            <p style="margin: 4px 0;">© 2025 Wedlock. All rights reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

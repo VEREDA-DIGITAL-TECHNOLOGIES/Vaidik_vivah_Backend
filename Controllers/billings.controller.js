@@ -45,7 +45,8 @@ export const getBillingInfo = catchAsyncError(async (req, res, next) => {
     }
 
     const remainingDays = expirationDate.diff(today, "days");
-    const totalDays = Math.floor((currentPlan.durationInMonths / 12) * 365.25);
+    const totalDays = expirationDate.diff(moment(latestSubscription.startDate), "days");
+
     const isYearly = currentPlan.durationInMonths >= 12;
 
     // Build response data
