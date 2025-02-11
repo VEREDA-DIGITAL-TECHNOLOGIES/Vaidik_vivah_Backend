@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import User from '../Models/user.js';
 import { redis } from "./redis.js";
 dotenv.config();
@@ -11,26 +12,22 @@ dotenv.config();
 
 
     //we have to add secure :true in production
-    export const accessTokenOptions = {
-        // domain: "wedlock.au",  // ✅ Set explicitly
+ export  const accessTokenOptions ={
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
         httpOnly: true,
-        sameSite: "Lax",
-        secure: true,
-        path: "/",
-    }; 
-    
-    export const refreshTokenOptions = {
-        domain: "wedlock.au",  // ✅ Set explicitly
+        sameSite: 'Lax',
+        secure: false
+    }
+        //we have to add secure :true in production
+
+ export  const refreshTokenOptions ={
         expires: new Date(Date.now() + refreshTokenExpire),
         maxAge: refreshTokenExpire,
         httpOnly: true,
-        sameSite: "Lax",
-        secure: true,
-        path: "/",
-    };
-    
+        sameSite: 'Lax',
+        secure: false
+    }
  
 
 export const sendToken = (user, statusCode, res,message) => {
