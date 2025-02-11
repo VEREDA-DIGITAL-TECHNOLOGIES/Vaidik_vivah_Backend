@@ -34,6 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
+
 app.use(cors({
   origin: ["https://wedlock.au", "https://admin.wedlock.au", 'http://localhost:5173', 'http://localhost:5176'],
   credentials: true,
