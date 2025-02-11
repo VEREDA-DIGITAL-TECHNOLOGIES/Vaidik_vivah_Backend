@@ -6,8 +6,9 @@ import jwt from "jsonwebtoken";
 //authenticated user
 
 export const isAuthenticated = catchAsyncError(async (req, res, next) => {
-    const accessToken = req.cookies.access_token || req.header("Authorization");
+    const accessToken = req.cookies?.access_token || req.header("Authorization");
    
+    console.log(accessToken);
 
     if (!accessToken) {
         return next(new errorhandler("Please login to Find perfect matches", 400));
