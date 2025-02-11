@@ -25,6 +25,7 @@ dotenv.config();
 
 
 
+app.use("/api/v1/payment-process", webhookRouter);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.static("./public"));
 
@@ -50,7 +51,6 @@ app.use("/api/v1/happyStories", happyStoryRouter);
 app.use("/api/v1/plan", planRouter);
 app.use("/api/v1/subscription", subscriptionRouter);
 app.use("/api/v1/billing", billingRouter);
-app.use("/api/v1/payment-process", webhookRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/call", callRouter);
 app.use('/api/v1/dropdown',dropdownRouter);
