@@ -49,7 +49,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
             mode: "payment",
  
             customer_email: req.user.email,
-            success_url: `${process.env.FRONTEND_URL}/Payment-Success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.FRONTEND_URL}/Payment-Success`,
             cancel_url: `${process.env.FRONTEND_URL}/cancel`,
             metadata: {
                 planId: planId,
@@ -197,6 +197,24 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
 //     }
 
 // })
+
+export const checkSubscriptionStatus = catchAsyncError(async (req, res, next) => {
+    try {
+        const userId = req.user.userId;
+
+        // Get the latest active subscription
+        const user = await User.findOne({ where: { userId } });
+
+        res.status(200).json({
+            success: true,
+            usertype: user.usertype,
+        });
+
+    } catch (error) {
+        return next(new errorhandler("Failed to fetch subscription status", 500));
+    }
+});
+
 
 
 
