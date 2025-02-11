@@ -17,10 +17,11 @@ import sendEmail from "../Utils/sendMail.js";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 
-
 export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
     const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
     const sig = req.headers["stripe-signature"];
+    console.log(sig);
+    console.log(req.body);
 
     let event;
     try {
@@ -34,7 +35,6 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
         return res.sendStatus(400);
     }
 
-   
     if (event.type === "checkout.session.completed") {
         const session = event.data.object;
 
@@ -104,7 +104,6 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
             console.error("Database update failed:", err);
         }
     }
-
 
     res.sendStatus(200);
 }); 
