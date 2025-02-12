@@ -35,11 +35,22 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
         return res.sendStatus(400);
     }
 
-    if (event.type === "checkout.session.completed") {
+    if (event.type === "checkout.session.completed" || event.type === "payment_intent.succeeded") {
         const session = event.data.object;
 
         const userId = session.metadata.userId;
         const planId = session.metadata.planId;
+
+          let deviceType;
+
+          if( event.type === 'checkout.session.completed'){
+            deviceType = 'Web';
+          }
+          else{
+            deviceType = 'Mobile';
+          }
+
+        
 
         try {
            
@@ -62,7 +73,7 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
                 userId,
                 paymentSucessId: session.id,
                 endDate,
-                deviceType: 'Web',
+                deviceType: deviceType,
                 paymentStatus: 'Completed',
             });
     
