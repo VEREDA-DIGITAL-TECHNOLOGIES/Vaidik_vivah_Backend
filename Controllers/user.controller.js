@@ -21,6 +21,8 @@ import ToggleSection from "../Models/toggleSection.model.js";
 import Connection from "../Models/connection.model.js";
 import Notification from "../Models/notification.model.js";
 import Call from "../Models/call.model.js";
+import admin from 'firebase-admin';
+import {firebaseAdmin} from "./notification.controller.js"
 dotenv.config();
 
 // Register user
@@ -384,6 +386,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
             return next(new errorhandler("Email not found!", 400));
         }
 
+
         const activationToken = createActivationToken(email);
         const activationCode = activationToken.activationCode;
 
@@ -466,6 +469,9 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
             return next(new errorhandler("Please Verify your email first!", 400));
         }
         const user = await User.findOne({ where: { email: verifiedUser.email } });
+        const firebaseUser = await admin.auth().getUserByEmail(user.email);
+        console.log(firebaseUser,"firebaseuser");
+        await admin.auth().updateUser(firebaseUser.uid, { password });
 
         user.password = password;
 
@@ -494,6 +500,18 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
             return next(new errorhandler("Please Verify your email first!", 400));
         }
         const user = await User.findOne({ where: { email: verifiedUser.email } });
+
+          
+        // Update password in Firebase Authentication
+        const firebaseUser = await admin.auth().getUserByEmail(user.email);
+        console.log(firebaseUser,"firebaseuser");
+        await admin.auth().updateUser(firebaseUser.uid, { password });
+
+          // Update password in your backend database
+          await user.save();
+     
+
+
 
         user.password = password;
 
