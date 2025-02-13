@@ -377,7 +377,8 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         }
 
         const user = await User.findOne({ where: { email } });
-
+        const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
+       
 
         if (!user) {
             return next(new errorhandler("Email not found!", 400));
@@ -389,6 +390,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         const data = {
             activationCode,
             email,
+            name: personalData.firstName + " " + personalData.lastName
         };
 
 
@@ -674,11 +676,6 @@ export const dummyPasswordForMobile = catchAsyncError(async (req, res, next) => 
     }
 
 });
-
-
-
-
-
 
 
 //for admin
