@@ -31,6 +31,8 @@ app.use(express.static("./public"));
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cookieParser());
+
 
 
 
@@ -68,3 +70,4 @@ app.get("/test", async (req, res, next) => {
 
 app.use(ErrorMiddleware);
 
+ 

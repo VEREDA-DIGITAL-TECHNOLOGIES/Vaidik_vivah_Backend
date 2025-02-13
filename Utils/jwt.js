@@ -15,7 +15,7 @@ dotenv.config();
  export  const accessTokenOptions ={
         expires: new Date(Date.now() + accessTokenExpire),
         maxAge: accessTokenExpire,
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'Lax',
         secure: false
     }
@@ -24,7 +24,7 @@ dotenv.config();
  export  const refreshTokenOptions ={
         expires: new Date(Date.now() + refreshTokenExpire),
         maxAge: refreshTokenExpire,
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'Lax',
         secure: false
     }

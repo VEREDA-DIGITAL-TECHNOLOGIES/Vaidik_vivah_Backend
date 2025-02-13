@@ -102,6 +102,8 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
 
+        console.log(req.body);
+
         if (!password) {
             return next(new errorhandler("Password is required!", 400));
         }
@@ -116,6 +118,7 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
         }
 
         const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
+     
         const { email } = user;
 
         if (password.length < 8) {
@@ -161,7 +164,7 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
 
 
 
-
+ 
         await recommendation.create(recommendationData);
 
 
