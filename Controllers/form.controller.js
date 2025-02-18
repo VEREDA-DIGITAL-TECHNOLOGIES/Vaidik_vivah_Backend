@@ -112,7 +112,6 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
 
     const userId = req.user.userId;
     const { caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth } = req.body;
-    console.log(req.body, "req.body")
 
     if (!caste || !community || !dateOfBirth || !timeOfBirth || !religion || !placeOfBirth) {
         return res.status(400).json({ success: false, message: "All fields are required!" });

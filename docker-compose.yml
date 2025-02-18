@@ -1,0 +1,10 @@
+version: '3'
+services:
+  backend:
+    container_name: wedlock-backend
+    build: .
+    ports:
+      - "3005:3005"
+    env_file:
+      - .env
+    restart: always

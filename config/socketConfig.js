@@ -15,16 +15,12 @@ export const intializeSocket = (server) => {
 
     io.use((socket, next) => {
         const token = socket.handshake.auth.token;
-        console.log(token, "socket token");
         if (!token) {
-            console.log("Authentication error");
             next(new Error("Authentication Error"));
         }
 
         try {
-            console.log("---------> inside try");
             const decodeToken = jwt.verify(token, process.env.ACCESSTOKEN);
-            console.log(decodeToken, "decodeToken");
             socket.data.userId = decodeToken.userId;
             next();
         } catch (err) {
@@ -39,9 +35,7 @@ export const intializeSocket = (server) => {
 
         socket.on("notifyUser", async (notification) => {
             try {
-                console.log("Notification received:", notification);
                 const newNotification = await Notification.create(notification);
-                console.log(newNotification, "newNotification");
                 io.emit("notifyUser", newNotification);
             } catch (error) {
                 console.log(error);
@@ -49,7 +43,6 @@ export const intializeSocket = (server) => {
         });
 
         socket.on("sendFriendRequest", (data) => {
-            console.log(data);
             io.emit("sendFriendRequest", data);
         });
 

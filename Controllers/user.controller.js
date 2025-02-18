@@ -102,7 +102,6 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { password, answer } = req.body;
 
-        console.log(req.body);
 
         if (!password) {
             return next(new errorhandler("Password is required!", 400));
@@ -473,7 +472,6 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
         }
         const user = await User.findOne({ where: { email: verifiedUser.email } });
         const firebaseUser = await admin.auth().getUserByEmail(user.email);
-        console.log(firebaseUser,"firebaseuser");
         await admin.auth().updateUser(firebaseUser.uid, { password });
 
         user.password = password;
@@ -507,7 +505,6 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
           
         // Update password in Firebase Authentication
         const firebaseUser = await admin.auth().getUserByEmail(user.email);
-        console.log(firebaseUser,"firebaseuser");
         await admin.auth().updateUser(firebaseUser.uid, { password });
 
           // Update password in your backend database
