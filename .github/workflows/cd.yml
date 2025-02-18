@@ -11,15 +11,29 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
     - name: Pull Docker Image
-      run: docker pull developermanishk/wedlock-backend:latest
-
-    - name: Delete Old Docker Container
-      run: sudo docker rm -f wedlock-backend || true
-
-    - name: Run Docker Container
       run: |
+        echo "Pulling latest Docker image..."
+        docker pull developermanishk/wedlock-backend:latest
+
+    - name: Stop and Remove Old Docker Container
+      run: |
+        echo "Stopping and removing old container..."
+        sudo docker stop wedlock-backend || true
+        sudo docker rm -f wedlock-backend || true
+
+    - name: Run New Docker Container
+      run: |
+        echo "Running new container..."
         sudo docker run -d -p 3005:3005 \
           --name wedlock-backend \
           --restart unless-stopped \
           developermanishk/wedlock-backend:latest
+
+    - name: Check Running Containers
+      run: |
+        echo "Current running containers:"
+        sudo docker ps -a
