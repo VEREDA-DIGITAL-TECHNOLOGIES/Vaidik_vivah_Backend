@@ -1,8 +1,6 @@
-import { Op } from "sequelize";
 import errorhandler from "../Utils/errorhandler.js";
 import User from "../Models/user.js";
 import Call from "../Models/call.model.js";
-
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 
 
@@ -54,8 +52,6 @@ export const UpdateCallDuration = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 });
-
-
 
 export const getCallDuration = catchAsyncError(async (req, res, next) => {
     try {

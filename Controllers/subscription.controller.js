@@ -2,8 +2,6 @@ import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import errorhandler from "../Utils/errorhandler.js";
 import subscription from "../Models/subscription.model.js";
 import User from '../Models/user.js'
-import personalDetails from "../Models/personalDetails.model.js";
-import sendMail from "../Utils/sendMail.js";
 import Recommendation from "../Models/recommendation.model.js";
 import { v4 as uuidv4 } from "uuid";
 import plan from "../Models/plan.model.js";
@@ -11,7 +9,6 @@ import Stripe from "stripe";
 import cron from "node-cron";
 import moment from 'moment';
 import { Op } from "sequelize";
-import sendEmail from "../Utils/sendMail.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -32,7 +29,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
         }
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card', 'alipay', 'klarna'],
+            payment_method_types: ['card', 'alipay', 'klarna','paypal','afterpay_clearpay'],
             line_items: [
                 {
                     price_data: {
@@ -67,9 +64,6 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler("Failed to create checkout session. Please try again later.", 500));
     }
 });
-
-
-
 export const checkSubscriptionStatus = catchAsyncError(async (req, res, next) => {
     try {
         const userId = req.user.userId;
@@ -86,10 +80,6 @@ export const checkSubscriptionStatus = catchAsyncError(async (req, res, next) =>
         return next(new errorhandler("Failed to fetch subscription status", 500));
     }
 });
-
-
-
-
 export const handlePaymentProcessForMobile = catchAsyncError(async (req, res, next) => {
     try {
 
@@ -139,7 +129,6 @@ export const handlePaymentProcessForMobile = catchAsyncError(async (req, res, ne
         return next(new errorhandler(error.message, 500));
     }
 })
-
 export const handleAutoExpiry = catchAsyncError(async (req, res, next) => {
     try {
         const subscriptionData = await subscription.findAll();
@@ -163,7 +152,6 @@ export const handleAutoExpiry = catchAsyncError(async (req, res, next) => {
     }
 
 })
-
 export const getSubscriptionPurchaseHistory = catchAsyncError(async (req, res, next) => {
 
     try {
@@ -201,8 +189,6 @@ export const getSubscriptionPurchaseHistory = catchAsyncError(async (req, res, n
         return next(new errorhandler(error.message, 500));
     }
 });
-
-
 cron.schedule('0 0 * * *', async () => {
     console.log('Running subscription expiry check at midnight...');
     handleAutoExpiry();

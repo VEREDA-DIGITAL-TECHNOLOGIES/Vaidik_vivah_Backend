@@ -3,7 +3,6 @@ import User from "../Models/user.js";
 import Subscription from "../Models/subscription.model.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import errorhandler from "../Utils/errorhandler.js";
-import { Op } from "sequelize";
 import moment from "moment";
 
 

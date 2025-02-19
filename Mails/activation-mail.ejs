@@ -89,13 +89,16 @@
         }
 
         .otp div {
-            font-size: 64px;
+            font-size: 62px;
             font-weight: 800;
             color: #007EAF;
             padding: 0 28px 0 28px;
             border: 2px solid #53ADAE;
-            border-radius: 12px;
+            border-radius: 10px;
             text-align: center;
+        }
+        #thakyou{
+            margin-top: 10;
         }
         #char{
             margin-right: 10px;
@@ -125,17 +128,17 @@
                 <img src="https://wedlock.au/newlogo.png" alt="Wedlock Logo" style="width: 300px; height: 100px;">
             </a>
             <div class="content">
-                <h2 id="title">Welcome to <span id="name">Wedlock</span></h2>
+                <h2 id="title">Welcome to <span id="name">Wedlock</span>!</h2>
                 <h3>Confirmation code</h3>
-                <p>You can use the below One Time Password (OTP) to Register.</p>
-                <p>Use This OTP </p>
+                <p>Verify your new Wedlock account</p>
+                <p>To verify your email address, please use the following One Time Password (OTP):</p>
                 <div class="otp">
                     <% activationCode.split('').forEach((char) => { %>
                         <div id="char"><%= char %></div>
                     <% }) %>
                 </div>
-                <p>In case you have not initiated this request, call us at +61 13009335625 or <a href="https://wedlock.au/contact-us">write to
-                        us</a>.</p>
+                <p>Do not share this OTP with anyone. Wedlock takes your account security very seriously. Wedlock will never ask you to disclose or verify your Wedlock password, OTP, credit card, or banking account number. If you receive a suspicious email with a link to update your account information, do not click on the link - instead, report the email to Wedlock for investigation.</a>.</p>
+                <p id="thakyou">Thank you!</p>
             </div>
             <div class="footer">
                 <p>The Wedlock Team</p>

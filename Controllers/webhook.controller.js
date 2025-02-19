@@ -83,7 +83,7 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
                 }
     
             }
-            const inclusive_Tax = ((planData.price * 10) / 100).toFixed(2);
+
             const email = user.email;
     
             const validUpto = moment(endDate).format('LLL');
@@ -94,7 +94,6 @@ export const handlePaymentSuccess = catchAsyncError(async (req, res, next) => {
                 planName: planData.planName,
                 planType: planData.planType,
                 validUpto: validUpto,
-                includedTax: inclusive_Tax,
                 price: planData.price,
                 features: planData.featureList,
                 total: planData.price,
