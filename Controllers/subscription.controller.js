@@ -24,12 +24,14 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
 
         const planData = await plan.findOne({ where: { planId } });
 
+       
+
         if (!planData) {
             return next(new errorhandler("Plan not found", 404));
         }
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card', 'alipay', 'klarna','paypal','afterpay_clearpay'],
+            payment_method_types: ['card', 'alipay', 'klarna'],
             line_items: [
                 {
                     price_data: {
@@ -54,6 +56,8 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
             },
         });
 
+        
+
 
         res.status(201).json({
             success: true,
@@ -61,6 +65,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
         });
 
     } catch (error) {
+        console.error("Stripe Error:", error.message);
         return next(new errorhandler("Failed to create checkout session. Please try again later.", 500));
     }
 });
