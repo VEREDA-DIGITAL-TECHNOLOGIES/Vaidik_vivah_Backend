@@ -40,7 +40,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
                             name: planData.planName,
                             description: planData.description,
                         },
-                        unit_amount: planData.price * 100,
+                        unit_amount: Math.round(planData.price * 100),
                     },
                     quantity: 1,
                 },
