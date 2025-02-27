@@ -384,8 +384,8 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
        
 
-        if (!user) {
-            return next(new errorhandler("Email not found!", 400));
+        if (!user || !personalData) {
+            return next(new errorhandler("User not registered with Wedlock!", 400));
         }
 
 
@@ -403,7 +403,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         await sendEmail({ email, subject: "Reset Your Password", template: "forgotPassword-mail.ejs", data });
 
         res.status(200).json({
-            success: true, message: `Please check your email: ${email} to Reset your Password!`,
+            success: true, message: `Please check your email: ${email} for a verification code!`,
             activationToken: activationToken.token,
         });
     }
@@ -426,7 +426,7 @@ export const verifyOtp = catchAsyncError(async (req, res, next) => {
 
         res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
 
-        return res.status(200).json({ success: true, message: "Reset Otp verified successfully!" });
+        return res.status(200).json({ success: true, message: "Reset OTP verified successfully!" });
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
@@ -446,7 +446,7 @@ export const verifyOtpForMobile = catchAsyncError(async (req, res, next) => {
         const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
 
 
-        return res.status(200).json({ success: true, message: "Reset Otp verified successfully!", token });
+        return res.status(200).json({ success: true, message: "Reset OTP verified successfully!", token });
 
     } catch (error) {
         return next(new errorhandler(error.message, 500));
