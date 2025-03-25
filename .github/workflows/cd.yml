@@ -12,7 +12,8 @@ jobs:
 
     steps:
     - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Pull Docker Image
       run: |
@@ -21,19 +22,19 @@ jobs:
 
     - name: Stop and Remove Old Docker Container
       run: |
-        echo "Stopping and removing old container..."
-        sudo docker stop wedlock-backend || true
-        sudo docker rm -f wedlock-backend || true
+        echo "Stopping and removing old container if exists..."
+        docker ps -a -q --filter "name=wedlock-backend" | grep -q . && docker stop wedlock-backend && docker rm -f wedlock-backend || echo "No container to remove."
 
     - name: Run New Docker Container
       run: |
         echo "Running new container..."
-        sudo docker run -d -p 3005:3005 \
+        docker run -d -p 3005:3005 \
           --name wedlock-backend \
           --restart unless-stopped \
+          --env-file /home/ubuntu/.env \
           developermanishk/wedlock-backend:latest
 
     - name: Check Running Containers
       run: |
         echo "Current running containers:"
-        sudo docker ps -a
+        docker ps
