@@ -17,7 +17,8 @@ import recommendation from "../Models/recommendation.model.js";
 import ToggleSection from "../Models/toggleSection.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
-import moment from 'moment';
+import moment from 'moment';  
+import { uploadToS3 } from "../Utils/upload_S3.js";
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
@@ -453,7 +454,7 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
     if (req.files && req.files.length > 0) {
       const userImagesLocal = req.files.map((file) => file.path);
 
-      const userImages = await uploadCloudinary(userImagesLocal);
+      const userImages = await uploadToS3(userImagesLocal);
 
       userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
         : [userImages.url];
