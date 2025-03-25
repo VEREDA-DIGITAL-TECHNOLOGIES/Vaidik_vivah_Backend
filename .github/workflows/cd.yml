@@ -28,7 +28,7 @@ jobs:
     - name: Run New Docker Container
       run: |
         echo "Running new container..."
-        docker run -d -p 80:3005 \
+        docker run -d -p 3005:3005 \
           --name wedlock-backend \
           --restart unless-stopped \
           --env-file /home/ubuntu/.env \
