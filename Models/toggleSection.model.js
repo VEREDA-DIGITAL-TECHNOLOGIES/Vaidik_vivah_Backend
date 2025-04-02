@@ -24,15 +24,20 @@ const ToggleSection = sequelize.define(
         section: {
             type: DataTypes.STRING,
             allowNull: false,
+            enum: ["location_details",
+                "education_and_financial_details",
+                "family_details",
+                "religious_details",
+                "personal_details"]
         },
         status: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
-            defaultValue: false,
+            defaultValue: true,
         },
     },
     {
-        timestamps: true, // Automatically handles createdAt & updatedAt
+        timestamps: true,
     }
 );
 

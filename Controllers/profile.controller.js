@@ -456,11 +456,10 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
 
       const userImages = await uploadToS3(userImagesLocal);
 
-      userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
-        : [userImages.url];
+      userImageUrls = Array.isArray(userImages) ? userImages : [userImages];
     }
 
-    const imageUploadData = await imageUpload.update({ image: userImageUrls }, { where: { userId } });
+     await imageUpload.update({ image: userImageUrls }, { where: { userId } });
 
 
     await recommendation.update({ image: userImageUrls }, { where: { userId } });
@@ -482,7 +481,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     const { userId } = req.user;
 
     const response = await axios.get(
-      "https://recommendation.vigorify.in/get_matches/",
+      "https://recommendation.wedlock.au/get_matches/",
       {
         params: {
           userId,          // dynamic value

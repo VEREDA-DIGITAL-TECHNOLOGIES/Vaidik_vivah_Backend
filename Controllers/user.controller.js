@@ -23,6 +23,7 @@ import Notification from "../Models/notification.model.js";
 import Call from "../Models/call.model.js";
 import admin from 'firebase-admin';
 import {firebaseAdmin} from "./notification.controller.js"
+
 dotenv.config();
 
 // Register user
@@ -161,13 +162,25 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             interest_and_hobbies: answer[11]?.answerValue
         };
 
-
+        const toggleSections = [
+            "location_details",
+            "education_and_financial_details",
+            "family_details",
+            "religious_details",
+            "personal_details",
+        ];
+        
+        const toggleData = toggleSections.map(section => ({
+            userId: existingUser.userId,
+            section,
+            status: true
+        }));
+        
+        
+        await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
 
  
         await recommendation.create(recommendationData);
-
-
-
 
         res.clearCookie("token");
         sendToken(existingUser, 200, res, "Password set successfully!");
@@ -247,6 +260,25 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
         };
 
 
+        const toggleSections = [
+            "location_details",
+            "education_and_financial_details",
+            "family_details",
+            "religious_details",
+            "personal_details",
+        ];
+        
+        const toggleData = toggleSections.map(section => ({
+            userId: existingUser.userId,
+            section,
+            status: true
+        }));
+        
+        
+        await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
+
+
+
         const existingRecommendation = await recommendation.findOne({ where: { userId: existingUser.userId } });
 
         if (existingRecommendation) {
@@ -308,7 +340,11 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
 
 export const updateAccessToken = catchAsyncError(async (req, res, next) => {
     try {
-        const refresh_token = req.cookies.refresh_token;
+        const refresh_token = req.cookies.refresh_token || req.headers["refresh_token"] || req.headers.authorization?.split(" ")[1];
+
+        if (!refresh_token) {
+            return next(new errorhandler("Please login to Find perfect matches", 400));
+        }
 
         const decoded = jwt.verify(refresh_token, process.env.REFRESHTOKEN);
         const message = 'Could not refresh token';
@@ -375,16 +411,26 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
     try {
         const { email } = req.body;
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            return next(new errorhandler("Invalid email format!", 400));
+        }
+
 
         if (!email) {
             return next(new errorhandler("Email is required!", 400));
         }
 
         const user = await User.findOne({ where: { email } });
-        const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
        
+        if (!user ) {
+            return next(new errorhandler("User not registered with Wedlock!", 400));
+        }
 
-        if (!user || !personalData) {
+        const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
+
+        if(!personalData){
             return next(new errorhandler("User not registered with Wedlock!", 400));
         }
 
