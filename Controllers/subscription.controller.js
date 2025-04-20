@@ -31,7 +31,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
         }
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card', 'alipay', 'klarna'],
+            payment_method_types: ['card',  'klarna'],
             line_items: [
                 {
                     price_data: {
@@ -56,9 +56,7 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
             },
         });
 
-        
-
-
+    
         res.status(201).json({
             success: true,
             url: session.url,
@@ -101,7 +99,7 @@ export const handlePaymentProcessForMobile = catchAsyncError(async (req, res, ne
         if (!planData) {
             return next(new errorhandler("Plan not found!", 404));
         }
-
+ 
         const endDate = moment().add(planData.durationInMonths, 'months').toDate();
 
         const orderId = `WDL${uuidv4().split('-')[0].toUpperCase()}`;

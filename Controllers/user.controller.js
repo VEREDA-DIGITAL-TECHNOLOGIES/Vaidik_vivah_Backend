@@ -22,7 +22,7 @@ import Connection from "../Models/connection.model.js";
 import Notification from "../Models/notification.model.js";
 import Call from "../Models/call.model.js";
 import admin from 'firebase-admin';
-import {firebaseAdmin} from "./notification.controller.js"
+import { firebaseAdmin } from "./notification.controller.js"
 
 dotenv.config();
 
@@ -118,11 +118,18 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
         }
 
         const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
-     
+
         const { email } = user;
 
-        if (password.length < 8) {
-            return next(new errorhandler("Password must be at least 8 characters!", 400));
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+            return next(
+                new errorhandler(
+                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+                    400
+                )
+            );
         }
 
         const existingUser = await User.create({
@@ -169,17 +176,17 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             "religious_details",
             "personal_details",
         ];
-        
+
         const toggleData = toggleSections.map(section => ({
             userId: existingUser.userId,
             section,
             status: true
         }));
-        
-        
+
+
         await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
 
- 
+
         await recommendation.create(recommendationData);
 
         res.clearCookie("token");
@@ -219,9 +226,18 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
         const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
         const { email } = user;
 
-        if (password.length < 8) {
-            return next(new errorhandler("Password must be at least 8 characters!", 400));
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+            return next(
+                new errorhandler(
+                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+                    400
+                )
+            );
         }
+
 
         const existingUser = await User.create({
             email,
@@ -267,14 +283,14 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             "religious_details",
             "personal_details",
         ];
-        
+
         const toggleData = toggleSections.map(section => ({
             userId: existingUser.userId,
             section,
             status: true
         }));
-        
-        
+
+
         await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
 
 
@@ -330,7 +346,7 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
 
         res.cookie("access_token", "", { maxAge: 1 });
         res.cookie("refresh_token", "", { maxAge: 1 });
-       
+
         res.status(200).json({ success: true, message: "Logout successful!" });
 
     } catch (error) {
@@ -350,9 +366,9 @@ export const updateAccessToken = catchAsyncError(async (req, res, next) => {
         const message = 'Could not refresh token';
         if (!decoded) {
             return next(new errorhandler(message, 401));
-        } 
+        }
         const session = await redis.get(decoded.userId);
-        if (!session) { 
+        if (!session) {
             return next(new errorhandler(message, 401));
         }
         const user = JSON.parse(session);
@@ -423,14 +439,14 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         }
 
         const user = await User.findOne({ where: { email } });
-       
-        if (!user ) {
+
+        if (!user) {
             return next(new errorhandler("User not registered with Wedlock!", 400));
         }
 
         const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
 
-        if(!personalData){
+        if (!personalData) {
             return next(new errorhandler("User not registered with Wedlock!", 400));
         }
 
@@ -516,9 +532,26 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
         if (!verifiedUser) {
             return next(new errorhandler("Please Verify your email first!", 400));
         }
+
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+            return next(
+                new errorhandler(
+                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+                    400
+                )
+            );
+        }
+
+
+
         const user = await User.findOne({ where: { email: verifiedUser.email } });
         const firebaseUser = await admin.auth().getUserByEmail(user.email);
         await admin.auth().updateUser(firebaseUser.uid, { password });
+
+
 
         user.password = password;
 
@@ -545,17 +578,29 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
 
         if (!verifiedUser) {
             return next(new errorhandler("Please Verify your email first!", 400));
+
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+        if (!passwordRegex.test(password)) {
+            return next(
+                new errorhandler(
+                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+                    400
+                )
+            );
         }
         const user = await User.findOne({ where: { email: verifiedUser.email } });
 
-          
+
         // Update password in Firebase Authentication
         const firebaseUser = await admin.auth().getUserByEmail(user.email);
         await admin.auth().updateUser(firebaseUser.uid, { password });
 
-          // Update password in your backend database
-          await user.save();
-     
+        // Update password in your backend database
+        await user.save();
+
 
 
 
