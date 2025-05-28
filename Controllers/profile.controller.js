@@ -18,7 +18,6 @@ import ToggleSection from "../Models/toggleSection.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
 import moment from 'moment';  
-import { uploadToS3 } from "../Utils/upload_S3.js";
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
@@ -440,40 +439,41 @@ export const updateInterstAndHobbies = catchAsyncError(
   }
 );
 export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
-  try {
+  try{ 
     const userId = req.user.userId;
 
 
-    if (!req.files) {
-      return next(new errorhandler("Please upload an image!", 400));
-    }
+        if (!req.files) {
+            return next(new errorhandler("Please upload an image!", 400));
+        }
+    
+    
+        let userImageUrls;
+    
+        if (req.files && req.files.length > 0) {
+            const userImagesLocal = req.files.map((file) => file.path);
+    
+            const userImages = await uploadCloudinary(userImagesLocal);
+    
+            userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
+                : [userImages.url];
+        }
+    
+        const imageUploadData = await imageUpload.update({ image: userImageUrls},{ where: { userId } });
 
-
-    let userImageUrls;
-
-    if (req.files && req.files.length > 0) {
-      const userImagesLocal = req.files.map((file) => file.path);
-
-      const userImages = await uploadToS3(userImagesLocal);
-
-      userImageUrls = Array.isArray(userImages) ? userImages : [userImages];
-    }
-
-     await imageUpload.update({ image: userImageUrls }, { where: { userId } });
-
-
-    await recommendation.update({ image: userImageUrls }, { where: { userId } });
-
-    await User.update({ isImageFormFilled: true }, { where: { userId } });
-
-    res.status(201).json({
-      success: true,
-      message: "Image uploaded successfully",
-    })
-  } catch (error) {
+    
+           await recommendation.update({image: userImageUrls}, { where: { userId } });
+    
+           await User.update({isImageFormFilled: true}, { where: { userId } });
+    
+          res.status(201).json({
+            success: true,
+            message: "Image uploaded successfully",
+        })
+  }catch(error){
     return next(new errorhandler(error.message, 500));
   }
-
+  
 })
 
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
@@ -481,7 +481,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     const { userId } = req.user;
 
     const response = await axios.get(
-      "https://recommendation.wedlock.au/get_matches/",
+      "https://reco.wedlock.com.au/get_matches/",
       {
         params: {
           userId,          // dynamic value

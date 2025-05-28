@@ -9,8 +9,6 @@ import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
 import recommendation from "../Models/recommendation.model.js";
-import { redis } from "../Utils/redis.js";
-import { uploadToS3 } from "../Utils/upload_S3.js";
 
 dotenv.config();
 
@@ -155,9 +153,10 @@ export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
         if (req.files && req.files.length > 0) {
             const userImagesLocal = req.files.map((file) => file.path);
 
-            const userImages = await uploadToS3(userImagesLocal);
+            const userImages = await uploadCloudinary(userImagesLocal);
 
-            userImageUrls = Array.isArray(userImages) ? userImages : [userImages];
+            userImageUrls = Array.isArray(userImages) ? userImages.map((image) => image.url)
+                : [userImages.url];
         }
 
         const imageUploadData = await imageUpload.create({ image: userImageUrls, userId });
@@ -180,5 +179,6 @@ export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
 
 
 })
+
 
 

@@ -19,12 +19,9 @@ const connectDB = () => {
             port: 5432,
             dialect: 'postgres',
 
-            dialectOptions: {
-                ssl: {
-                    require: false,
-                    rejectUnauthorized: false 
-                }
-            },
+            // dialectOptions: {
+               
+            // },
             logging: console.log,
            
         },
