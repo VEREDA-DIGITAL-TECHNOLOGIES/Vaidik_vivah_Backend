@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 dotenv.config();
 
 import bcrypt from 'bcryptjs';
+import plan from './plan.model.js';
 
 const sequelize = connectDB();
 
@@ -37,6 +38,15 @@ const User = sequelize.define('User', {
         defaultValue: DataTypes.UUIDV4, // Corrected UUID generation
         allowNull: false,
         unique: true,
+    },
+    planId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: {
+            model: plan,
+            key: 'planId',
+        },
+    
     },
     email: {
         type: DataTypes.STRING,

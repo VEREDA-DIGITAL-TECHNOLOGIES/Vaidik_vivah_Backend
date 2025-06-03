@@ -63,12 +63,12 @@ Connection.belongsTo(User, { foreignKey: 'receiverId', as: 'Receiver' });
 
 
 
-User.belongsTo(Plan, { foreignKey: 'userId', as: 'plan' }); 
+User.belongsTo(Plan, { foreignKey: 'planId', as: 'plans' }); 
 
-Plan.hasMany(User, { foreignKey: 'userId', as: 'users' }); 
+Plan.hasMany(User, { foreignKey: 'planId', as: 'users' }); 
 
-Subscription.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plan' });
+Subscription.belongsTo(User, { foreignKey: 'userId', as: 'users' });
+Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plans' });
 
 dropdown.belongsTo(dropDownType, { foreignKey: 'dropDownTypeId', as: 'dropDownType' });
 dropDownType.hasMany(dropdown, { foreignKey: 'dropDownTypeId', as: 'dropdowns' });

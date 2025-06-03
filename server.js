@@ -1,9 +1,8 @@
 import dotenv from 'dotenv';
 import {app} from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection } from './Models/association.js';
+import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection, Plan } from './Models/association.js';
 import Recommendation from './Models/recommendation.model.js';
-import plan from './Models/plan.model.js';
 import subscription from './Models/subscription.model.js';
 import call from './Models/call.model.js';
 import Notification from './Models/notification.model.js';
@@ -25,7 +24,8 @@ const startServer = async () => {
         await connectDB();
         const server = createServer(app);
         intializeSocket(server);
-
+                
+        await Plan.sync({force: false});
         await User.sync({ force: false });
         await Answer.sync({ force: false });
         await personalDetails.sync({ force: false });
@@ -37,7 +37,6 @@ const startServer = async () => {
         await FavProfile.sync({ force: false });
         await happyStories.sync({ force: false });
         await Connection.sync({ force: false });
-        await plan.sync({ force: false });
         await subscription.sync({ force: false });
         await dropDownType.sync({ force: false });
         await dropdown.sync({ force: false });

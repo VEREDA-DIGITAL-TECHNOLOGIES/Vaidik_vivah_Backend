@@ -28,7 +28,7 @@ const Subscription = sequelize.define('subscription', {
     },
     planId: {
         type:DataTypes.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: plan,
             key: 'planId',
