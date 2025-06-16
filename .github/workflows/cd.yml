@@ -5,7 +5,7 @@ on:
     workflows: ["CI Pipeline"]
     types:
       - completed
-
+ 
 jobs:
   deploy:
     runs-on: self-hosted
