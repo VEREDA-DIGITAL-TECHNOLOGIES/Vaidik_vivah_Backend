@@ -1,40 +1,46 @@
 name: CD Pipeline
- 
+
 on:
   workflow_run:
     workflows: ["CI Pipeline"]
     types:
       - completed
- 
+
 jobs:
   deploy:
     runs-on: self-hosted
-   
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set up Docker
+    - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker (if needed)
+      run: echo "No login needed for local build"
 
     - name: Build Docker Image
       run: |
-        echo "Building Docker image locally..."
+        echo "Building Docker image..."
         docker build -t wedlock-backend:latest .
 
-    - name: Stop and Remove Old Docker Container
+    - name: Stop and Remove Old Container
       run: |
-        echo "Stopping and removing old container if exists..."
-        docker ps -a -q --filter "name=wedlock-backend" | grep -q . && docker stop wedlock-backend && docker rm -f wedlock-backend || echo "No container to remove."
+        echo "Stopping and removing old container..."
+        docker ps -a -q --filter "name=wedlock-backend" | grep -q . \
+          && docker stop wedlock-backend && docker rm -f wedlock-backend \
+          || echo "No old container to remove."
 
-    - name: Run New Docker Container
+    - name: Run New Container
       run: |
         echo "Running new container..."
-        docker run -d -p 80:3005 \
+        docker run -d \
+          -p 80:3005 \
           --name wedlock-backend \
           --restart unless-stopped \
           --env-file /home/ubuntu/.env \
           wedlock-backend:latest
 
-    - name: Check Running Containers
+    - name: Show Running Containers
       run: docker ps
