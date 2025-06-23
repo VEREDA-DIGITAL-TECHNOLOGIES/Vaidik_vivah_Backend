@@ -39,7 +39,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-  origin: ["https://wedlock.com.au", "https://admin.wedlock.au", 'http://localhost:5173', ],
+  origin: ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:8000' ],
   credentials: true,
 }));
 

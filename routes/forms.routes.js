@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated} from '../Middlewares/auth.js';
-import { personalDetailsRegister,qualificationDetailsRegister,locationDetailsRegister,otherDetailsRegister,imageUploadRegister } from "../Controllers/form.controller.js";
+import { personalDetailsRegister,qualificationDetailsRegister,locationDetailsRegister,otherDetailsRegister,imageUploadRegister, gayatripa } from "../Controllers/form.controller.js";
 import { upload } from "../Middlewares/multer.js";
 
 
@@ -14,6 +14,7 @@ formRouter.post('/qualificationDetails',isAuthenticated,qualificationDetailsRegi
 formRouter.post('/locationDetails',isAuthenticated,locationDetailsRegister);
 formRouter.post('/otherDetails',isAuthenticated,otherDetailsRegister);
 formRouter.post('/profileImageUpload',isAuthenticated,upload.array('profileImage',3),imageUploadRegister);
+formRouter.post('/gayatriDetails', isAuthenticated, gayatripa);
 
 
 export default formRouter 

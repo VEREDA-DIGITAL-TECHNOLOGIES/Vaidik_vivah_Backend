@@ -31,12 +31,12 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
     const imageUploadData = await imageUpload.findOne({ where: { userId } }) || {};
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
     const toggleSection = await ToggleSection.findAll({ where: { userId } });
 
     const gender = await Answer.findOne({ where: { userId } });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
 
     const answer = basic_lifestyle?.answer || "Not specified";
 
@@ -108,8 +108,8 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         currentLocation: locationDetailsData?.currentLocation || "Not specified",
         cityOfResidence: locationDetailsData?.cityOfResidence || "Not specified",
         nationality: locationDetailsData?.nationality,
-        citizenShip: locationDetailsData?.citizenShip,
-        residencyVisaStatus: locationDetailsData?.residencyVisaStatus,
+        
+        
       },
       education_and_financial: {
         qualification: qualificationDetailsData?.qualification,
@@ -322,8 +322,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     currentLocation,
     cityOfResidence,
     nationality,
-    citizenShip,
-    residencyVisaStatus,
+    
+  
   } = req.body;
 
 
@@ -343,8 +343,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
       currentLocation,
       cityOfResidence,
       nationality,
-      citizenShip,
-      residencyVisaStatus,
+      
+     
     },
     { where: { userId } }
   );
@@ -356,8 +356,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
       currentLocation,
       cityOfResidence,
       nationality,
-      citizenShip,
-      residencyVisaStatus,
+      
+      
     },
     { where: { userId } }
   );
@@ -481,7 +481,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     const { userId } = req.user;
 
     const response = await axios.get(
-      "https://reco.wedlock.com.au/get_matches/",
+      "http://localhost:8000/api/get_matches/",
       {
         params: {
           userId,          // dynamic value
@@ -526,10 +526,10 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
     const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
     const gender = await Answer.findOne({ where: { userId, questionId: 1 } });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
     const answer = basic_lifestyle?.answer || "";
 
     // Fetch connection status
@@ -630,8 +630,8 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           currentLocation: locationDetailsData.currentLocation,
           cityOfResidence: locationDetailsData.cityOfResidence || "",
           nationality: locationDetailsData.nationality,
-          citizenShip: locationDetailsData.citizenShip,
-          residencyVisaStatus: locationDetailsData.residencyVisaStatus,
+          
+          
         }
       }),
       ...(sectionStatus["education_and_financial_details"] !== false && {
@@ -1028,10 +1028,10 @@ export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
     const gender = await Answer.findOne({ where: { userId } });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
     const answer = basic_lifestyle.answer;
 
     const data = {

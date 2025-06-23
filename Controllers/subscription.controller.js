@@ -13,9 +13,8 @@ import { Op } from "sequelize";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
-
     try {
-        const userId = req.user.userId
+        const userId = req.user.userId;
         const { planId } = req.body;
 
         if (!planId) {
@@ -24,18 +23,16 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
 
         const planData = await plan.findOne({ where: { planId } });
 
-       
-
         if (!planData) {
             return next(new errorhandler("Plan not found", 404));
         }
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card',  'klarna'],
+            payment_method_types: ['card'], // Stripe India may not support Klarna
             line_items: [
                 {
                     price_data: {
-                        currency: "aud",
+                        currency: "INR",
                         product_data: {
                             name: planData.planName,
                             description: planData.description,
@@ -46,7 +43,6 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
                 },
             ],
             mode: "payment",
- 
             customer_email: req.user.email,
             success_url: `${process.env.FRONTEND_URL}/Payment-Success`,
             cancel_url: `${process.env.FRONTEND_URL}/cancel`,
@@ -56,7 +52,6 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
             },
         });
 
-    
         res.status(201).json({
             success: true,
             url: session.url,
@@ -67,6 +62,63 @@ export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler("Failed to create checkout session. Please try again later.", 500));
     }
 });
+
+
+// export const createCheckoutSession = catchAsyncError(async (req, res, next) => {
+
+//     try {
+//         const userId = req.user.userId
+//         const { planId } = req.body;
+
+//         if (!planId) {
+//             return next(new errorhandler("Plan ID is required", 400));
+//         }
+
+//         const planData = await plan.findOne({ where: { planId } });
+
+       
+
+//         if (!planData) {
+//             return next(new errorhandler("Plan not found", 404));
+//         }
+
+//         const session = await stripe.checkout.sessions.create({
+//             payment_method_types: ['card',  'klarna'],
+//             line_items: [
+//                 {
+//                     price_data: {
+//                         currency: "INR",
+//                         product_data: {
+//                             name: planData.planName,
+//                             description: planData.description,
+//                         },
+//                         unit_amount: Math.round(planData.price * 100),
+//                     },
+//                     quantity: 1,
+//                 },
+//             ],
+//             mode: "payment",
+ 
+//             customer_email: req.user.email,
+//             success_url: `${process.env.FRONTEND_URL}/Payment-Success`,
+//             cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+//             metadata: {
+//                 planId: planId,
+//                 userId: userId
+//             },
+//         });
+
+    
+//         res.status(201).json({
+//             success: true,
+//             url: session.url,
+//         });
+
+//     } catch (error) {
+//         console.error("Stripe Error:", error.message);
+//         return next(new errorhandler("Failed to create checkout session. Please try again later.", 500));
+//     }
+// });
 export const checkSubscriptionStatus = catchAsyncError(async (req, res, next) => {
     try {
         const userId = req.user.userId;

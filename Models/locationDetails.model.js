@@ -23,10 +23,10 @@ const locationDetails = sequelize.define('locationDetails', {
             key: 'userId',
         },
     },
-    citizenShip: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
+    // citizenShip: {
+    //     type: DataTypes.STRING,
+    //     allowNull: false,
+    // },
     country:{
         type: DataTypes.STRING,
         allowNull: false,
@@ -35,10 +35,10 @@ const locationDetails = sequelize.define('locationDetails', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    austrailanVisaStatus: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
+    // austrailanVisaStatus: {
+    //     type: DataTypes.STRING,
+    //     allowNull: false,
+    // },
     currentLocation: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -55,11 +55,11 @@ const locationDetails = sequelize.define('locationDetails', {
         defaultValue:"Not Specified"
 
     },
-    residencyVisaStatus: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        defaultValue:"Not Specified"
-    },
+    // residencyVisaStatus: {
+    //     type: DataTypes.STRING,
+    //     allowNull: true,
+    //     defaultValue:"Not Specified"
+    // },
     
 })
 

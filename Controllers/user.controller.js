@@ -160,13 +160,13 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             email: existingUser.email,
             gender: answer[0]?.answerValue,
             lookingFor: answer[1]?.answerValue,
-            weddingGoals: answer[3]?.answerValue,
-            age: answer[6]?.answerValue,
-            lookingPartnerAge: answer[7]?.answerValue,
-            livingInAustralia: answer[8]?.answerValue,
-            horoscopeMatch: answer[9]?.answerValue,
-            castReligionMatterOrNot: answer[10]?.answerValue,
-            interest_and_hobbies: answer[11]?.answerValue
+            // weddingGoals: "dk",
+            age: answer[3]?.answerValue,
+            lookingPartnerAge: answer[4]?.answerValue,
+            // livingInAustralia: "dk",
+            horoscopeMatch: answer[5]?.answerValue,
+            castReligionMatterOrNot: answer[6]?.answerValue,
+            interest_and_hobbies: answer[7]?.answerValue
         };
 
         const toggleSections = [

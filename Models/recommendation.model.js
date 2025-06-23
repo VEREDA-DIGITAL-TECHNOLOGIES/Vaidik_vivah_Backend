@@ -185,10 +185,7 @@ const Recommendation = sequelize.define('Recommendation', {
         defaultValue: "Not Specified"
 
     },
-    citizenShip: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
+   
     country: {
         type: DataTypes.STRING,
         allowNull: true
@@ -197,10 +194,7 @@ const Recommendation = sequelize.define('Recommendation', {
         type: DataTypes.STRING,
         allowNull: true
     },
-    austrailanVisaStatus: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
+  
     currentLocation: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -216,11 +210,7 @@ const Recommendation = sequelize.define('Recommendation', {
         defaultValue: "Not Specified"
 
     },
-    residencyVisaStatus: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        defaultValue: "Not Specified"
-    },
+    
     gender:
     {
         type: DataTypes.STRING,
@@ -231,10 +221,7 @@ const Recommendation = sequelize.define('Recommendation', {
         allowNull: true,
 
     },
-    weddingGoals: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
+   
     age: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -243,10 +230,7 @@ const Recommendation = sequelize.define('Recommendation', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    livingInAustralia: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
+   
     horoscopeMatch: {
         type: DataTypes.STRING,
         allowNull: true,

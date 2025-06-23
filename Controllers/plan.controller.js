@@ -22,7 +22,7 @@ export const createPlan = catchAsyncError(async (req, res, next) => {
   
       const stripePrice = await stripe.prices.create({
         unit_amount: Math.round(price * 100), 
-        currency: "aud",
+        currency: "INR",
         recurring: {
           interval: "month",
         },
