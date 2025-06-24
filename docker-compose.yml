@@ -8,3 +8,12 @@ services:
     env_file:
       - .env
     restart: always
+    depends_on:
+      - redis
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"  # <-- Confirm your host IP
+
+  redis:
+    image: redis:latest
+    container_name: wedlock-redis
+    restart: always
