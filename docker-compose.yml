@@ -22,4 +22,6 @@ services:
 
 networks:
   vaidikvivah-network:
+    name: vaidikvivah-network   
     driver: bridge
+
