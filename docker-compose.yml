@@ -1,7 +1,7 @@
 version: '3'
 services:
   backend:
-    container_name: wedlock-backend
+    container_name: vaidikvivah-backend
     build: .
     ports:
       - "3005:3005"
@@ -10,10 +10,16 @@ services:
     restart: always
     depends_on:
       - redis
-    extra_hosts:
-      - "host.docker.internal:172.17.0.1"  # <-- Confirm your host IP
+    networks:
+      - vaidikvivah-network
 
   redis:
     image: redis:latest
-    container_name: wedlock-redis
+    container_name: vaidikvivah-redis
     restart: always
+    networks:
+      - vaidikvivah-network
+
+networks:
+  wedlock-network:
+    driver: bridge
