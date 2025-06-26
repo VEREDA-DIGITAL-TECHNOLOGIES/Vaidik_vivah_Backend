@@ -4,7 +4,7 @@ services:
     container_name: vaidikvivah-backend
     build: .
     ports:
-      - "3005:3005"           # Assuming your backend listens on 3005
+      - "3005:3005"
     env_file:
       - .env
     restart: always
@@ -20,22 +20,10 @@ services:
     networks:
       - vaidikvivah-network
 
-  nginx:
-    image: nginx:latest
-    container_name: vaidikvivah-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-    depends_on:
-      - backend
-    networks:
-      - vaidikvivah-network
-
 networks:
   vaidikvivah-network:
-    name: vaidikvivah-network
+    name: vaidikvivah-network   
     driver: bridge
+
+
+
