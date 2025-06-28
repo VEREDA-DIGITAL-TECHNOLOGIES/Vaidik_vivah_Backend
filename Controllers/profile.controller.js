@@ -17,7 +17,9 @@ import recommendation from "../Models/recommendation.model.js";
 import ToggleSection from "../Models/toggleSection.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
-import moment from 'moment';  
+import moment from 'moment'; 
+import { getSocketInstance } from '../config/socketConfig.js'
+import Notification from "../Models/notification.model.js"; 
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
@@ -481,7 +483,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     const { userId } = req.user;
 
     const response = await axios.get(
-      "http://localhost:8000/api/get_matches/",
+      "https://185.199.52.18:8005/api/get_matches/",
       {
         params: {
           userId,          // dynamic value
@@ -512,150 +514,150 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 
 
 
-export const UserDetails = catchAsyncError(async (req, res, next) => {
-  try {
-    const connectedUserId = req.user.userId;
-    const { userId } = req.body;
+// export const UserDetails = catchAsyncError(async (req, res, next) => {
+//   try {
+//     const connectedUserId = req.user.userId;
+//     const { userId } = req.body;
 
-    // Fetch user details
-    const user = await User.findOne({ where: { userId } });
-    const fcmToken = user.fcmToken;
-    const uid = user.uid;
-    const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
-    const locationDetailsData = await locationDetails.findOne({ where: { userId } });
-    const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
-    const gender = await Answer.findOne({ where: { userId, questionId: 1 } });
-    const age = await Answer.findOne({ where: { userId, questionId: 4 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
-    const answer = basic_lifestyle?.answer || "";
+//     // Fetch user details
+//     const user = await User.findOne({ where: { userId } });
+//     const fcmToken = user.fcmToken;
+//     const uid = user.uid;
+//     const personalData = await personalDetails.findOne({ where: { userId } });
+//     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+//     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
+//     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
+//     const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
+//     const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
+//     const gender = await Answer.findOne({ where: { userId, questionId: 1 } });
+//     const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+//     const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
+//     const answer = basic_lifestyle?.answer || "";
 
-    // Fetch connection status
-    const connectionStatus = await connection.findOne({
-      where: {
-        [Op.or]: [
-          { senderId: connectedUserId, receiverId: userId },
-          { receiverId: connectedUserId, senderId: userId }
-        ]
-      }
-    });
+//     // Fetch connection status
+//     const connectionStatus = await connection.findOne({
+//       where: {
+//         [Op.or]: [
+//           { senderId: connectedUserId, receiverId: userId },
+//           { receiverId: connectedUserId, senderId: userId }
+//         ]
+//       }
+//     });
 
-    const connection_status = (() => {
-      if (connectionStatus) {
-        if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
-          return 'no connection';
-        }
-        return connectionStatus.status;
-      }
-      return 'no connection';
-    })();
+//     const connection_status = (() => {
+//       if (connectionStatus) {
+//         if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
+//           return 'no connection';
+//         }
+//         return connectionStatus.status;
+//       }
+//       return 'no connection';
+//     })();
 
-    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
-    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
+//     const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
+//     const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
 
-    const connectionType = (() => {
-      if (isSender) return 'sender';
-      if (isReceiver) return 'receiver';
-      return 'none';
-    })();
+//     const connectionType = (() => {
+//       if (isSender) return 'sender';
+//       if (isReceiver) return 'receiver';
+//       return 'none';
+//     })();
 
-    // 🔹 Fetch ToggleSection to check enabled/disabled status
-    const toggleSections = await ToggleSection.findAll({ where: { userId } });
+//     // 🔹 Fetch ToggleSection to check enabled/disabled status
+//     const toggleSections = await ToggleSection.findAll({ where: { userId } });
 
-    // Convert to a map for quick lookup
-    const sectionStatus = toggleSections.reduce((acc, section) => {
-      acc[section.section] = section.status; // Example: { "family_details": false, "education_and_financial": true }
-      return acc;
-    }, {});
+//     // Convert to a map for quick lookup
+//     const sectionStatus = toggleSections.reduce((acc, section) => {
+//       acc[section.section] = section.status; // Example: { "family_details": false, "education_and_financial": true }
+//       return acc;
+//     }, {});
 
-    // 🔹 Conditionally construct data object
-    const profileData = [{
-      fcmToken,
-      uid,
-      profileImage: imageUploadData.image,
-      userType: user.usertype,
-      ...(sectionStatus["basic_and_lifestyle"] !== false && {
-        basic_and_lifestyle: {
-          userId,
-          firstName: personalData.firstName,
-          lastName: personalData.lastName,
-          displayName: personalData.displayName,
-          gender: gender.answer,
-          age: age.answer,
-          about: personalData.aboutYourSelf,
-          religion: otherDetailsData.religion,
-          maritalStatus: personalData.maritalStatus,
-          numberOfChildren: personalData.numberOfChildren,
-          postedBy: postedby.answer,
-        }
-      }),
-      ...(sectionStatus["family_details"] !== false && {
-        family_details: {
-          fatherOccupation: otherDetailsData.fatherOccupation,
-          motherOccupation: otherDetailsData.motherOccupation,
-          numberOfSiblings: otherDetailsData.numberOfSiblings,
-          livingWithFamily: otherDetailsData.livingWithFamily,
-        }
-      }),
-      ...(sectionStatus["personal_details"] !== false && {
-        personal_background: {
-          height: otherDetailsData.height,
-          weight: otherDetailsData.weight,
-          bodyType: otherDetailsData.bodyType,
-          language: otherDetailsData.language,
-          smokingHabbit: otherDetailsData.smokingHabbit,
-          drinkingHabbit: otherDetailsData.drinkingHabbit,
-          diet: otherDetailsData.diet,
-          complexion: otherDetailsData.complexion,
-        }
-      }),
-      ...(sectionStatus["religious_details"] !== false && {
-        religious_background: {
-          religion: otherDetailsData.religion,
-          community: otherDetailsData.community,
-          subCommunity: otherDetailsData.subCommunity,
-          gotra: otherDetailsData.gotra,
-          timeOfBirth: otherDetailsData.timeOfBirth,
-          dateOfBirth: otherDetailsData.dateOfBirth,
-          placeOfBirth: otherDetailsData.placeOfBirth,
-          motherTongue: otherDetailsData.motherTongue,
-        }
-      }),
-      ...(sectionStatus["location_details"] !== false && {
-        location_background: {
-          country: locationDetailsData.country || "Not specified",
-          state: locationDetailsData.state || "Not specified",
-          currentLocation: locationDetailsData.currentLocation,
-          cityOfResidence: locationDetailsData.cityOfResidence || "",
-          nationality: locationDetailsData.nationality,
+//     // 🔹 Conditionally construct data object
+//     const profileData = [{
+//       fcmToken,
+//       uid,
+//       profileImage: imageUploadData.image,
+//       userType: user.usertype,
+//       ...(sectionStatus["basic_and_lifestyle"] !== false && {
+//         basic_and_lifestyle: {
+//           userId,
+//           firstName: personalData.firstName,
+//           lastName: personalData.lastName,
+//           displayName: personalData.displayName,
+//           gender: gender.answer,
+//           age: age.answer,
+//           about: personalData.aboutYourSelf,
+//           religion: otherDetailsData.religion,
+//           maritalStatus: personalData.maritalStatus,
+//           numberOfChildren: personalData.numberOfChildren,
+//           postedBy: postedby.answer,
+//         }
+//       }),
+//       ...(sectionStatus["family_details"] !== false && {
+//         family_details: {
+//           fatherOccupation: otherDetailsData.fatherOccupation,
+//           motherOccupation: otherDetailsData.motherOccupation,
+//           numberOfSiblings: otherDetailsData.numberOfSiblings,
+//           livingWithFamily: otherDetailsData.livingWithFamily,
+//         }
+//       }),
+//       ...(sectionStatus["personal_details"] !== false && {
+//         personal_background: {
+//           height: otherDetailsData.height,
+//           weight: otherDetailsData.weight,
+//           bodyType: otherDetailsData.bodyType,
+//           language: otherDetailsData.language,
+//           smokingHabbit: otherDetailsData.smokingHabbit,
+//           drinkingHabbit: otherDetailsData.drinkingHabbit,
+//           diet: otherDetailsData.diet,
+//           complexion: otherDetailsData.complexion,
+//         }
+//       }),
+//       ...(sectionStatus["religious_details"] !== false && {
+//         religious_background: {
+//           religion: otherDetailsData.religion,
+//           community: otherDetailsData.community,
+//           subCommunity: otherDetailsData.subCommunity,
+//           gotra: otherDetailsData.gotra,
+//           timeOfBirth: otherDetailsData.timeOfBirth,
+//           dateOfBirth: otherDetailsData.dateOfBirth,
+//           placeOfBirth: otherDetailsData.placeOfBirth,
+//           motherTongue: otherDetailsData.motherTongue,
+//         }
+//       }),
+//       ...(sectionStatus["location_details"] !== false && {
+//         location_background: {
+//           country: locationDetailsData.country || "Not specified",
+//           state: locationDetailsData.state || "Not specified",
+//           currentLocation: locationDetailsData.currentLocation,
+//           cityOfResidence: locationDetailsData.cityOfResidence || "",
+//           nationality: locationDetailsData.nationality,
           
           
-        }
-      }),
-      ...(sectionStatus["education_and_financial_details"] !== false && {
-        education_and_financial: {
-          qualification: qualificationDetailsData.qualification,
-          occupation: qualificationDetailsData.occupation,
-          workingStatus: qualificationDetailsData.currentWorkingStatus,
-          income: qualificationDetailsData.income,
-        }
-      }),
-      ...(sectionStatus["interest_and_hobbies_details"] !== false && { interest_and_hobbies: answer }),
-      connection_status,
-      connectionType
-    }];
+//         }
+//       }),
+//       ...(sectionStatus["education_and_financial_details"] !== false && {
+//         education_and_financial: {
+//           qualification: qualificationDetailsData.qualification,
+//           occupation: qualificationDetailsData.occupation,
+//           workingStatus: qualificationDetailsData.currentWorkingStatus,
+//           income: qualificationDetailsData.income,
+//         }
+//       }),
+//       ...(sectionStatus["interest_and_hobbies_details"] !== false && { interest_and_hobbies: answer }),
+//       connection_status,
+//       connectionType
+//     }];
 
-    res.status(200).json({
-      success: true,
-      data: profileData,
-      message: "Profile fetched successfully!",
-    });
-  } catch (error) {
-    return next(new errorhandler(error.message, 500));
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       data: profileData,
+//       message: "Profile fetched successfully!",
+//     });
+//   } catch (error) {
+//     return next(new errorhandler(error.message, 500));
+//   }
+// });
 
 // export const filterProfiles = catchAsyncError(async (req, res, next) => {
 //   try {
@@ -1104,4 +1106,195 @@ export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
 
 
 })
+
+
+
+
+export const UserDetails= catchAsyncError(async (req, res, next) => {
+  try {
+    const connectedUserId = req.user.userId;
+    const { userId } = req.body;
+
+    if (connectedUserId === userId) {
+      return res.status(400).json({
+        success: false,
+        message: "You can't view your own profile this way.",
+      });
+    }
+
+    const user = await User.findOne({ where: { userId } });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const [
+      personalData,
+      qualificationDetailsData,
+      locationDetailsData,
+      otherDetailsData,
+      imageUploadData,
+      basic_lifestyle,
+      gender,
+      age,
+      postedby,
+    ] = await Promise.all([
+      personalDetails.findOne({ where: { userId } }),
+      qualificationDetails.findOne({ where: { userId } }),
+      locationDetails.findOne({ where: { userId } }),
+      otherDetails.findOne({ where: { userId } }),
+      imageUpload.findOne({ where: { userId } }),
+      Answer.findOne({ where: { userId, questionId: 8 } }),
+      Answer.findOne({ where: { userId, questionId: 1 } }),
+      Answer.findOne({ where: { userId, questionId: 4 } }),
+      Answer.findOne({ where: { userId, questionId: 6 } }),
+    ]);
+
+    const answer = basic_lifestyle?.answer || "";
+
+    try {
+      const viewerData = await personalDetails.findOne({ where: { userId: connectedUserId } });
+      const viewerImageData = await imageUpload.findOne({ where: { userId: connectedUserId } });
+
+      if (viewerData) {
+        const notification = await Notification.create({
+          userId: userId,
+          title: "Profile Viewed",
+          message: `${viewerData.firstName} ${viewerData.lastName} viewed your profile.`,
+          body: {
+            type: "profile_viewed",
+            senderId: connectedUserId,
+            senderName: `${viewerData.firstName} ${viewerData.lastName}`,
+            senderImage: viewerImageData?.image?.[0] || null,
+          },
+        });
+
+        const io = getSocketInstance();
+        io.to(userId).emit("profile_viewed", {
+          notificationId: notification.notificationId,
+          title: notification.title,
+          message: notification.message,
+          body: notification.body,
+        });
+      }
+    } catch (_) {
+      // Notification failure is non-critical; skip
+    }
+
+    const connectionStatus = await connection.findOne({
+      where: {
+        [Op.or]: [
+          { senderId: connectedUserId, receiverId: userId },
+          { receiverId: connectedUserId, senderId: userId },
+        ],
+      },
+    });
+
+    const connection_status = connectionStatus
+      ? ["cancelled", "rejected"].includes(connectionStatus.status)
+        ? "no connection"
+        : connectionStatus.status
+      : "no connection";
+
+    const connectionType = connectionStatus
+      ? connectionStatus.senderId === connectedUserId
+        ? "sender"
+        : "receiver"
+      : "none";
+
+    const toggleSections = await ToggleSection.findAll({ where: { userId } });
+    const sectionStatus = toggleSections.reduce((acc, section) => {
+      acc[section.section] = section.status;
+      return acc;
+    }, {});
+
+    const profileData = [{
+      fcmToken: user.fcmToken,
+      uid: user.uid,
+      profileImage: imageUploadData?.image || "",
+      userType: user.usertype,
+      ...(sectionStatus["basic_and_lifestyle"] !== false && {
+        basic_and_lifestyle: {
+          userId,
+          firstName: personalData?.firstName,
+          lastName: personalData?.lastName,
+          displayName: personalData?.displayName,
+          gender: gender?.answer,
+          age: age?.answer,
+          about: personalData?.aboutYourSelf,
+          religion: otherDetailsData?.religion,
+          maritalStatus: personalData?.maritalStatus,
+          numberOfChildren: personalData?.numberOfChildren,
+          postedBy: postedby?.answer,
+        },
+      }),
+      ...(sectionStatus["family_details"] !== false && {
+        family_details: {
+          fatherOccupation: otherDetailsData?.fatherOccupation,
+          motherOccupation: otherDetailsData?.motherOccupation,
+          numberOfSiblings: otherDetailsData?.numberOfSiblings,
+          livingWithFamily: otherDetailsData?.livingWithFamily,
+        },
+      }),
+      ...(sectionStatus["personal_details"] !== false && {
+        personal_background: {
+          height: otherDetailsData?.height,
+          weight: otherDetailsData?.weight,
+          bodyType: otherDetailsData?.bodyType,
+          language: otherDetailsData?.language,
+          smokingHabbit: otherDetailsData?.smokingHabbit,
+          drinkingHabbit: otherDetailsData?.drinkingHabbit,
+          diet: otherDetailsData?.diet,
+          complexion: otherDetailsData?.complexion,
+        },
+      }),
+      ...(sectionStatus["religious_details"] !== false && {
+        religious_background: {
+          religion: otherDetailsData?.religion,
+          community: otherDetailsData?.community,
+          subCommunity: otherDetailsData?.subCommunity,
+          gotra: otherDetailsData?.gotra,
+          timeOfBirth: otherDetailsData?.timeOfBirth,
+          dateOfBirth: otherDetailsData?.dateOfBirth,
+          placeOfBirth: otherDetailsData?.placeOfBirth,
+          motherTongue: otherDetailsData?.motherTongue,
+        },
+      }),
+      ...(sectionStatus["location_details"] !== false && {
+        location_background: {
+          country: locationDetailsData?.country || "Not specified",
+          state: locationDetailsData?.state || "Not specified",
+          currentLocation: locationDetailsData?.currentLocation,
+          cityOfResidence: locationDetailsData?.cityOfResidence || "",
+          nationality: locationDetailsData?.nationality,
+        },
+      }),
+      ...(sectionStatus["education_and_financial_details"] !== false && {
+        education_and_financial: {
+          qualification: qualificationDetailsData?.qualification,
+          occupation: qualificationDetailsData?.occupation,
+          workingStatus: qualificationDetailsData?.currentWorkingStatus,
+          income: qualificationDetailsData?.income,
+        },
+      }),
+      ...(sectionStatus["interest_and_hobbies_details"] !== false && {
+        interest_and_hobbies: answer,
+      }),
+      connection_status,
+      connectionType,
+    }];
+
+    return res.status(200).json({
+      success: true,
+      data: profileData,
+      message: "Profile fetched successfully!",
+    });
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
 

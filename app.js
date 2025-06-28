@@ -20,6 +20,8 @@ import callRouter from './routes/call.routes.js'
 import featureRouter from './routes/feature.routes.js';
 import webhookRouter from './routes/webhook.routes.js';
 import toggleRouter from './routes/toggle.routes.js';
+import uploadDocuments from './routes/document.routes.js';
+
 
 dotenv.config();
 
@@ -39,7 +41,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:8000' ],
+  origin: ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:8000', "https://vaidikvivah.in", "https://185.199.52.18:8005","http://185.199.52.18:8005" ],
   credentials: true,
 }));
 
@@ -58,6 +60,8 @@ app.use("/api/v1/call", callRouter);
 app.use('/api/v1/dropdown',dropdownRouter);
 app.use('/api/v1/feature',featureRouter);
 app.use('/api/v1/toggle',toggleRouter);
+app.use('/api/v1/uploadDocuments',uploadDocuments );
+
 
 
 

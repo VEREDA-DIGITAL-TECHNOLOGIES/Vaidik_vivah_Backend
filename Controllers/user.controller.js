@@ -112,7 +112,7 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
         }
 
         const token = req.cookies.token;
-
+        
         if (!token) {
             return next(new errorhandler("Please Verify your email first!", 400));
         }
@@ -260,19 +260,33 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             }
         }
 
+        // const recommendationData = {
+        //     userId: existingUser.userId,
+        //     usertype: existingUser.usertype,
+        //     email: existingUser.email,
+        //     gender: answer.find(a => a.questionId === 1)?.answerValue,
+        //     lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
+        //     weddingGoals: answer.find(a => a.questionId === 4)?.answerValue,
+        //     age: answer.find(a => a.questionId === 7)?.answerValue,
+        //     lookingPartnerAge: answer.find(a => a.questionId === 8)?.answerValue,
+        //     livingInAustralia: answer.find(a => a.questionId === 9)?.answerValue,
+        //     horoscopeMatch: answer.find(a => a.questionId === 10)?.answerValue,
+        //     castReligionMatterOrNot: answer.find(a => a.questionId === 11)?.answerValue,
+        //     interest_and_hobbies: answer.find(a => a.questionId === 12)?.answerValue
+        // };
+
         const recommendationData = {
             userId: existingUser.userId,
             usertype: existingUser.usertype,
             email: existingUser.email,
             gender: answer.find(a => a.questionId === 1)?.answerValue,
             lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
-            weddingGoals: answer.find(a => a.questionId === 4)?.answerValue,
-            age: answer.find(a => a.questionId === 7)?.answerValue,
-            lookingPartnerAge: answer.find(a => a.questionId === 8)?.answerValue,
-            livingInAustralia: answer.find(a => a.questionId === 9)?.answerValue,
-            horoscopeMatch: answer.find(a => a.questionId === 10)?.answerValue,
-            castReligionMatterOrNot: answer.find(a => a.questionId === 11)?.answerValue,
-            interest_and_hobbies: answer.find(a => a.questionId === 12)?.answerValue
+            age: answer.find(a => a.questionId === 4)?.answerValue,
+            lookingPartnerAge: answer.find(a => a.questionId === 5)?.answerValue,
+            horoscopeMatch: answer.find(a => a.questionId === 6)?.answerValue,
+            castReligionMatterOrNot: answer.find(a => a.questionId === 7)?.answerValue,
+            interest_and_hobbies: answer.find(a => a.questionId === 8)?.answerValue?.split(', ') || []
+
         };
 
 
@@ -441,13 +455,13 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         const user = await User.findOne({ where: { email } });
 
         if (!user) {
-            return next(new errorhandler("User not registered with Wedlock!", 400));
+            return next(new errorhandler("User not registered with Vaidik vivah!", 400));
         }
 
         const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
 
         if (!personalData) {
-            return next(new errorhandler("User not registered with Wedlock!", 400));
+            return next(new errorhandler("User not registered with Vaidik vivah!", 400));
         }
 
 

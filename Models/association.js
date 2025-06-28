@@ -15,6 +15,8 @@ import Notification from './notification.model.js';
 import dropDownType from './dropdowntype.model.js';
 import ToggleSection from './toggleSection.model.js';
 import gayatri from './gayatri.model.js';
+import documentUpload from './document.model.js';
+
 
 
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -36,6 +38,8 @@ locationDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(imageUpload, { foreignKey: 'userId', as: 'imageUpload' });
 imageUpload.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+User.hasMany(documentUpload, { foreignKey: 'userId', as: 'documentUpload' });
+documentUpload.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 User.hasMany(qualificationDetails, { foreignKey: 'userId', as: 'qualificationDetails' });
 qualificationDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
@@ -95,4 +99,8 @@ ToggleSection.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 
 
-export { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,Plan,Subscription,dropdown,dropDownType,Notification ,ToggleSection,gayatri};
+export { User, Answer, personalDetails, otherDetails, locationDetails,
+     imageUpload, qualificationDetails,FavProfile,happyStories,Connection,
+     Plan,Subscription,dropdown,dropDownType,Notification ,
+    ToggleSection, gayatri, documentUpload
+};

@@ -28,9 +28,9 @@
     "stripe": "^17.2.0",
     "uuid": "^10.0.0"
   },
-  "name": "wedlock-backend",
+  "name": "vaidikvivah-backend",
   "version": "1.0.0",
-  "description": "wedlock backend",
+  "description": "vaidikvivah backend",
   "main": "app.js",
   "type": "module",
   "scripts": {
