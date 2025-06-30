@@ -41,7 +41,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:8000', "https://vaidikvivah.in", "https://185.199.52.18:8005","http://185.199.52.18:8005" ],
+  origin: ['http://localhost:5173', 'http://localhost:3001', 'http://localhost:8000', "https://vaidikvivah.in", "https://recommend.vaidikvivah.in" ],
   credentials: true,
 }));
 

@@ -483,7 +483,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     const { userId } = req.user;
 
     const response = await axios.get(
-      "https://185.199.52.18:8005/api/get_matches/",
+      "https://recommend.vaidikvivah.in/api/get_matches/",
       {
         params: {
           userId,          // dynamic value
