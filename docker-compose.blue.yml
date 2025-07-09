@@ -1,0 +1,31 @@
+version: '3'
+services:
+    backend_blue:
+        build:
+            context: .
+            dockerfile: ${DOCKERFILE}
+            args:
+               CACHEBUST: ${CACHEBUST:-$(date +%s)}
+               DOCKER_AWS_ACCESS_KEY_ID: ${DOCKER_AWS_ACCESS_KEY_ID}
+               DOCKER_AWS_SECRET_ACCESS_KEY: ${DOCKER_AWS_SECRET_ACCESS_KEY}
+            no_cache: true
+        image: vaidikvivah-backend:blue
+        container_name: vaidikvivah-backend-blue
+        ports:
+            - '3005:3005'
+        networks:
+            - vaidikvivah-network
+        restart: always
+        env_file:
+            - .env
+        environment:
+            - TZ=Asia/Kolkata
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+          start_period: 10s
+networks:
+  vaidikvivah-network:
+    external: true

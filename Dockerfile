@@ -5,17 +5,13 @@ FROM node:23
 WORKDIR /app
 
 # Copy package.json and package-lock.json first
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 # Install dependencies
-RUN npm install --omit=dev
+RUN npm install
 
 # Copy the rest of the app
 COPY . .
-
-# Expose application port
-EXPOSE 3005
-
 
 
 # Start the app (Ensure this matches your setup)
