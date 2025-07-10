@@ -1,21 +1,22 @@
 import dotenv from 'dotenv';
 import {app} from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer, personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails, FavProfile, happyStories, Connection, dropDownType, dropdown, ToggleSection, Plan, gayatri, documentUpload } from './Models/association.js';
+import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection, Plan,gayatri } from './Models/association.js';
 import Recommendation from './Models/recommendation.model.js';
 import subscription from './Models/subscription.model.js';
 import call from './Models/call.model.js';
 import Notification from './Models/notification.model.js';
 import { createServer } from 'http';
 import { intializeSocket } from './config/socketConfig.js';
-
-
-
+import block from './Models/block.model.js';
+import documentUpload from './Models/gayatri.model.js';
+import report from './Models/report.model.js';
+import Admin from './Models/Admin/Admin.modal.js';
 
 dotenv.config();
 
 
-const PORT = process.env.PORT || 3005;
+const PORT = process.env.PORT || 3000;
 
 
 
@@ -45,10 +46,10 @@ const startServer = async () => {
         await Notification.sync({ force: false });
         await ToggleSection.sync({ force: false }); 
         await gayatri.sync({ force: false }); 
-        await documentUpload.sync({ force: false }); 
-
-
-        
+        await block.sync({ force: false })
+        await documentUpload.sync({ force: false });
+        await report.sync({ force: false }); 
+        await Admin.sync({ force: false }); 
 
         console.log('Tables synchronized');
 
@@ -57,7 +58,7 @@ const startServer = async () => {
         //     console.log(`Server is running on port ${PORT}`);
         // });
 
-        server.listen(PORT, '0.0.0.0', () => {
+        server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
         

@@ -30,6 +30,4 @@ profileRouter.get('/discoverProfiles',isAuthenticated,discoverProfiles)
 profileRouter.get('/getProfilePercentage',isAuthenticated,getProfilePercentage)
 
 
-
-
 export default profileRouter

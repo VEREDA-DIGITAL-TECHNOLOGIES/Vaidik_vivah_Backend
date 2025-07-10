@@ -1,104 +1,118 @@
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import errorhandler from "../Utils/errorhandler.js";
 import plan from "../Models/plan.model.js";
+import dotenv from 'dotenv';
+import { createRazorpayInstance } from "../config/razorpay.config.js";
 
-import Stripe from "stripe";
+dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Razorpay instance
+const razorpay = createRazorpayInstance();
 
+// CREATE PLAN
 export const createPlan = catchAsyncError(async (req, res, next) => {
+  const { userId } = req.user;
 
-    try {
-        const {userId} = req.user
-      const { planName, price, durationInMonths, description ,planType,featureList} = req.body;
-  
-      if (!planName || !price || !durationInMonths || !description || !planType || !featureList) {
-        return next(new errorhandler("Please enter all fields", 400));
-      }
-  
-      const product = await stripe.products.create({
-        name: planName + " Plan",
-      });
-  
-      const stripePrice = await stripe.prices.create({
-        unit_amount: Math.round(price * 100), 
+  try {
+    const {
+      planName,
+      price,
+      durationInMonths,
+      description,
+      planType,
+      featureList,
+    } = req.body;
+
+    console.log(req.body);
+
+    if (
+      !planName ||
+      !price ||
+      !durationInMonths ||
+      !description ||
+      !planType ||
+      !featureList
+    ) {
+      return next(new errorhandler("Please enter all fields", 400));
+    }
+
+    // Razorpay expects amount in paise
+    const amountInPaise = parseInt(price) * 100;
+
+    // Create Razorpay Plan
+    const razorpayPlan = await razorpay.plans.create({
+      period: "monthly",
+      interval: durationInMonths,
+      item: {
+        name: `${planName} Plan`,
+        amount: amountInPaise,
         currency: "INR",
-        recurring: {
-          interval: "month",
-        },
-        product: product.id,
-      });
-  
-      const newPlan = await plan.create({
-        planName,
-        price,
-        durationInMonths,
-        stripePriceId: stripePrice.id,
-        description,
-        userId,
-        planType,
-        featureList
-      });
-  
-      res.status(201).json({
-        success: true,
-        data: newPlan,
-        message: "Plan created successfully!",
-      });
-    } catch (error) {
-      return next(new errorhandler(error.message, 500));
-    }
-  });
-  
+        description: description,
+      },
+    });
 
+    const newPlan = await plan.create({
+      planName,
+      price,
+      durationInMonths,
+      razorpayPriceId: razorpayPlan.id,
+      description,
+      userId,
+      planType,
+      featureList,
+    });
 
+    res.status(201).json({
+      success: true,
+      data: newPlan,
+      message: "Plan created successfully with Razorpay!",
+    });
+  } catch (error) {
+    console.log(error);
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+// GET ALL PLANS
 export const getAllPlans = catchAsyncError(async (req, res, next) => {
-    const plans = await plan.findAll();
-    if (!plans) {
-      return res.status(404).json({ success: false, message: "Plans not found!" });
-    }
+  const plans = await plan.findAll();
+  if (!plans) {
+    return res.status(404).json({ success: false, message: "Plans not found!" });
+  }
 
-    const data = plans.map((plan) => {
-        return {
-            id: plan.planId,
-            planName: plan.planName,
-            price: plan.price,
-            durationInMonths: plan.durationInMonths,
-            description: plan.description,
-            planType: plan.planType,
-            featureList: plan.featureList
-        }
-    })
+  const data = plans.map((plan) => {
+    return {
+      id: plan.planId,
+      planName: plan.planName,
+      price: plan.price,
+      durationInMonths: plan.durationInMonths,
+      description: plan.description,
+      planType: plan.planType,
+      featureList: plan.featureList,
+    };
+  });
 
+  res.status(200).json({
+    success: true,
+    data: data,
+    message: "Plans fetched successfully!",
+  });
+});
 
-    res.status(200).json({
-        success: true,
-        data: data,
-        message: "Plans fetched successfully!",
-
-    })
-})
-
-
+// DELETE PLAN
 export const deletePlan = catchAsyncError(async (req, res, next) => {
-    const { planId } = req.params;
+  const { planId } = req.params;
 
-    try {
+  const planData = await plan.findOne({ where: { planId } });
 
-        const planData = await plan.findOne({ where: { id: planId } });
+  if (!planData) {
+    return next(new errorhandler("Plan not found!", 404));
+  }
 
-        if (!planData) {
-            return next(new errorhandler("Plan not found!", 404));
-        }
+  await plan.destroy({ where: { planId } });
 
-        await plan.destroy({ where: { id: planId } });
-
-        res.status(200).json({
-            success: true,
-            message: "Plan deleted successfully!",
-        });
-
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
-    }
-})
+  res.status(200).json({
+    success: true,
+    message: "Plan deleted successfully!",
+  });
+});

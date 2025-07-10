@@ -1,28 +1,10 @@
 version: '3'
 services:
   backend:
-    container_name: vaidikvivah-backend
+    container_name: wedlock-backend
     build: .
     ports:
-      - "3005:3005"
+      - "3007:3007"
     env_file:
       - .env
     restart: always
-    depends_on:
-      - redis
-    networks:
-      - vaidikvivah-network
-
-  redis:
-    image: redis:latest
-    container_name: vaidikvivah-redis
-    restart: always
-    networks:
-      - vaidikvivah-network
-
-networks:
-  vaidikvivah-network:
-    name: vaidikvivah-network   
-    driver: bridge
-
-

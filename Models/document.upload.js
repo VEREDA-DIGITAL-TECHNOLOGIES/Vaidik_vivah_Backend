@@ -1,7 +1,9 @@
 import { DataTypes } from 'sequelize';
-import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
 import connectDB from '../Utils/db.js';
+import { v4 as uuidv4 } from 'uuid';
 
+dotenv.config();
 const sequelize = connectDB();
 
 const documentUpload = sequelize.define('documentUpload', {
@@ -15,7 +17,7 @@ const documentUpload = sequelize.define('documentUpload', {
     type: DataTypes.UUID,
     defaultValue: () => uuidv4(),
     allowNull: false,
-
+  
   },
   documentType: {
     type: DataTypes.STRING,
@@ -30,12 +32,10 @@ const documentUpload = sequelize.define('documentUpload', {
     allowNull: false,
   },
   isVerified: {
-    type: DataTypes.ENUM('pending', 'verified', 'rejected'),
+    type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'pending',
-  },
-}, {
-  timestamps: true,
+    defaultValue: 'pending', // 'pending' | 'verified' | 'rejected'
+  }
 });
 
 export default documentUpload;
