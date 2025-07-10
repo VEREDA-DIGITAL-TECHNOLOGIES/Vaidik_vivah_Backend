@@ -13,11 +13,11 @@ const plan = sequelize.define("plan", {
     unique: true,
   },
   planName: {
-    type: DataTypes.ENUM("Standard", "Premium", "Exclusive"),
+    type: DataTypes.ENUM("Standard", "Gold", "Platinum","Diamond"),
     allowNull: true,
   },
   planType: {
-    type: DataTypes.ENUM("Monthly", "Yearly"),
+    type: DataTypes.ENUM("Monthly"),
     allowNull: true,
   },
   featureList: {
@@ -32,9 +32,9 @@ const plan = sequelize.define("plan", {
   durationInMonths: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    defaultValue: 1,
+    defaultValue: 3,
   },
-  stripePriceId: {
+  razorpayPriceId: {
     type: DataTypes.STRING,
     allowNull: true,
   },

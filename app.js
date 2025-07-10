@@ -20,7 +20,13 @@ import callRouter from './routes/call.routes.js'
 import featureRouter from './routes/feature.routes.js';
 import webhookRouter from './routes/webhook.routes.js';
 import toggleRouter from './routes/toggle.routes.js';
-
+import Documentrouter from './routes/document.routes.js';
+import BlockRouter from './routes/block.routes.js';
+import paymentrazopay from './routes/payments.route.js'
+import ReportRouter from './routes/report.routes.js';
+import filerouter from './routes/file.routes.js';
+import adminRouter from './routes/Admin/admin.routes.js';
+import adminDashboardRouter from './routes/Admin/dashboard.route.js';
 dotenv.config();
 
 
@@ -39,7 +45,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-  origin: ["https://wedlock.com.au", "https://admin.wedlock.au", 'http://localhost:5173', ],
+  origin: ['http://localhost:5173', 'http://localhost:3001', "https://recommend.vaidikvivah.in", 'http://localhost:8000', "https://vaidikvivah.in","https://vedvivah.in" ],
   credentials: true,
 }));
 
@@ -58,8 +64,17 @@ app.use("/api/v1/call", callRouter);
 app.use('/api/v1/dropdown',dropdownRouter);
 app.use('/api/v1/feature',featureRouter);
 app.use('/api/v1/toggle',toggleRouter);
+app.use('/api/v1/uploadDocuments',Documentrouter)
+app.use('/api/v1/block', BlockRouter);
+app.use('/api/v1/payment', paymentrazopay);
+app.use('/api/v1/report', ReportRouter);
+app.use("/api/files", filerouter);
+app.use("/api/admin/", adminRouter);
 
 
+//admin 
+
+app.use('/api/v1/admin', adminDashboardRouter);
 
 app.get("/test", async (req, res, next) => {
   res.status(200).json({

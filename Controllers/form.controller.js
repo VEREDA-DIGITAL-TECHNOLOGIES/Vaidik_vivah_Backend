@@ -9,6 +9,7 @@ import errorhandler from "../Utils/errorhandler.js";
 import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
 import recommendation from "../Models/recommendation.model.js";
+import Gayatri from "../Models/gayatri.model.js";
 
 dotenv.config();
 
@@ -83,9 +84,9 @@ export const qualificationDetailsRegister = catchAsyncError(async (req, res, nex
 
 export const locationDetailsRegister = catchAsyncError(async (req, res, next) => {
     const userId = req.user.userId;
-    const { citizenShip, country, state, austrailanVisaStatus } = req.body;
+    const { country, state } = req.body;
 
-    if (!citizenShip || !country || !state || !austrailanVisaStatus) {
+    if ( !country || !state) {
         return  res.status(400).json({ success: false, message: "All fields are required!" });
     }
 
@@ -95,9 +96,9 @@ export const locationDetailsRegister = catchAsyncError(async (req, res, next) =>
         return res.status(400).json({ success: false, message: "Location details already exist!" });
     }
 
-    const locationDetailsData = await locationDetails.create({ citizenShip, country, state, austrailanVisaStatus, userId });
+    const locationDetailsData = await locationDetails.create({  country, state, userId });
 
-    await recommendation.update({ citizenShip, country, state, austrailanVisaStatus }, { where: { userId } });
+    await recommendation.update({  country, state }, { where: { userId } });
 
     await User.update({ isLocationFormFilled: true }, { where: { userId } });
     res.status(201).json({
@@ -181,4 +182,30 @@ export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
 })
 
 
+
+
+export const gayatripa = catchAsyncError(async (req, res,next) => {
+    const userId = req.user.userId;
+
+    const { isMember, dikshaId } = req.body;
+
+    
+
+    const gayatridetails = await Gayatri.findOne({ where: { userId } });
+
+    if (gayatridetails) {
+        return res.status(400).json({ success: false, message: "Gayatri detail already exist!" });
+    }
+    try {
+        const gayatri = await Gayatri.create({ userId, isMember, dikshaId });
+        res.status(201).json({
+            success:true,
+            message: "Gayatri details added successfully",
+            gayatri
+        }
+            );
+    } catch (error) {
+        return next(new errorhandler(error.message, 500));
+    }
+});
 

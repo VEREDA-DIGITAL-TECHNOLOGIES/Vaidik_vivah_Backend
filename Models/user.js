@@ -69,7 +69,7 @@ const User = sequelize.define('User', {
         },
     },
     usertype: {
-        type: DataTypes.ENUM('Exclusive', 'Standard','Premium'),
+        type: DataTypes.ENUM("Standard", "Gold", "Platinum", "Diamond"),
         allowNull: false,
         defaultValue: 'Standard',
     },

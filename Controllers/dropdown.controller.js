@@ -417,6 +417,7 @@ export const fatherOccupationDropdown = catchAsyncError(async(req ,res ,next) =>
     }
     
 })
+ 
 
 export const  motherOccupationDropdown = catchAsyncError(async(req ,res ,next) => {
     try {

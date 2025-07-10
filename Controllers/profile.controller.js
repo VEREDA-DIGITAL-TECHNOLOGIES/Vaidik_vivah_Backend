@@ -18,6 +18,15 @@ import ToggleSection from "../Models/toggleSection.model.js";
 import { redis } from "../Utils/redis.js";
 import axios from "axios";
 import moment from 'moment';  
+import sequelize from '../Utils/db.js';
+import { QueryTypes } from 'sequelize';
+import Connection from "../Models/connection.model.js";
+import Block from "../Models/block.model.js";
+
+
+
+import {getSocketInstance} from '../config/socketConfig.js'
+import Notification from "../Models/notification.model.js";
 dotenv.config();
 
 export const myDetails = catchAsyncError(async (req, res, next) => {
@@ -31,12 +40,12 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
     const imageUploadData = await imageUpload.findOne({ where: { userId } }) || {};
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
     const toggleSection = await ToggleSection.findAll({ where: { userId } });
 
     const gender = await Answer.findOne({ where: { userId } });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
 
     const answer = basic_lifestyle?.answer || "Not specified";
 
@@ -108,8 +117,8 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         currentLocation: locationDetailsData?.currentLocation || "Not specified",
         cityOfResidence: locationDetailsData?.cityOfResidence || "Not specified",
         nationality: locationDetailsData?.nationality,
-        citizenShip: locationDetailsData?.citizenShip,
-        residencyVisaStatus: locationDetailsData?.residencyVisaStatus,
+        
+        
       },
       education_and_financial: {
         qualification: qualificationDetailsData?.qualification,
@@ -322,8 +331,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
     currentLocation,
     cityOfResidence,
     nationality,
-    citizenShip,
-    residencyVisaStatus,
+    
+  
   } = req.body;
 
 
@@ -343,8 +352,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
       currentLocation,
       cityOfResidence,
       nationality,
-      citizenShip,
-      residencyVisaStatus,
+      
+     
     },
     { where: { userId } }
   );
@@ -356,8 +365,8 @@ export const updateLocationDetails = catchAsyncError(async (req, res, next) => {
       currentLocation,
       cityOfResidence,
       nationality,
-      citizenShip,
-      residencyVisaStatus,
+      
+      
     },
     { where: { userId } }
   );
@@ -476,22 +485,98 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   
 })
 
+// export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
+//   try {
+//     const { userId } = req.user; // destructure userId from req.user
+
+//     const response = await axios.get("http://0.0.0.0:8000/api/get_matches", {
+//       params: {
+//         userId,          // ✅ fixed: this now correctly sets the userId query param
+//         ...req.query     // ✅ spreads pagination: page & pageSize
+//       }
+//     });
+
+//     // ✅ Filter out incomplete profiles
+//     const profiles = response.data.filter((profile) =>
+//       profile.gender &&
+//       profile.age &&
+//       profile.firstName &&
+//       profile.lastName &&
+//       profile.displayName &&
+//       profile.occupation &&
+//       profile.state &&
+//       profile.country &&
+//       profile.maritalStatus &&
+//       profile.profileImages &&
+//       profile.profileImages.length > 0
+//     );
+
+//     if (!profiles || profiles.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         profiles: [],
+//         message: "No matches found",
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       profiles,
+//     });
+
+//   } catch (error) {
+//     return next(new errorhandler(error.message, 500));
+//   }
+// });
+
+//  fixed matched profile with unblcked user with alll 
+
+
+
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.user;
 
-    const response = await axios.get(
-      "https://reco.wedlock.com.au/get_matches/",
-      {
-        params: {
-          userId,          // dynamic value
-          ...req.query     // spreads existing query parameters
-        }
+    const blockRelations = await Block.findAll({
+      where: {
+        [Op.or]: [
+          { blockerUserId: userId },
+          { blockedUserId: userId }
+        ]
       }
+    });
+
+
+    const blockedUserIds = blockRelations.map(block => (
+      block.blockerUserId === userId ? block.blockedUserId : block.blockerUserId
+    ));
+
+
+    const response = await axios.get("https://recommend.vaidikvivah.in/api/get_matches", {
+      params: {
+        userId,
+        ...req.query
+      }
+    });
+
+
+    let profiles = response.data.filter((profile) =>
+      profile.gender &&
+      profile.age &&
+      profile.firstName &&
+      profile.lastName &&
+      profile.displayName &&
+      profile.occupation &&
+      profile.state &&
+      profile.country &&
+      profile.maritalStatus &&
+      profile.profileImages &&
+      profile.profileImages.length > 0
     );
 
 
-    const profiles = response.data.filter((profile) => profile.gender !== null && profile.age !== null && profile.firstName !== null && profile.lastName !== null && profile.displayName !== null && profile.occupation !== null && profile.state !== null && profile.country !== null && profile.maritalStatus !== null && profile.profileImages !== null);
+    profiles = profiles.filter(profile => !blockedUserIds.includes(profile.userId));
+
 
     if (!profiles || profiles.length === 0) {
       return res.status(404).json({
@@ -505,10 +590,162 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       success: true,
       profiles,
     });
+
   } catch (error) {
     return next(new errorhandler(error.message, 500));
   }
 });
+
+
+
+
+
+// export const UserDetails = catchAsyncError(async (req, res, next) => {
+//   try {
+//     const connectedUserId = req.user.userId;
+//     const { userId } = req.body;
+
+//     // Fetch user details
+//     const user = await User.findOne({ where: { userId } });
+//     const fcmToken = user.fcmToken;
+//     const uid = user.uid;
+//     const personalData = await personalDetails.findOne({ where: { userId } });
+//     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
+//     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
+//     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
+//     const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
+//     const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
+//     const gender = await Answer.findOne({ where: { userId, questionId: 1 } });
+//     const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+//     const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+//     const answer = basic_lifestyle?.answer || "";
+
+//     // Fetch connection status
+//     const connectionStatus = await connection.findOne({
+//       where: {
+//         [Op.or]: [
+//           { senderId: connectedUserId, receiverId: userId },
+//           { receiverId: connectedUserId, senderId: userId }
+//         ]
+//       }
+//     });
+
+//     const connection_status = (() => {
+//       if (connectionStatus) {
+//         if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
+//           return 'no connection';
+//         }
+//         return connectionStatus.status;
+//       }
+//       return 'no connection';
+//     })();
+
+//     const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
+//     const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
+
+//     const connectionType = (() => {
+//       if (isSender) return 'sender';
+//       if (isReceiver) return 'receiver';
+//       return 'none';
+//     })();
+
+//     // 🔹 Fetch ToggleSection to check enabled/disabled status
+//     const toggleSections = await ToggleSection.findAll({ where: { userId } });
+
+//     // Convert to a map for quick lookup
+//     const sectionStatus = toggleSections.reduce((acc, section) => {
+//       acc[section.section] = section.status; // Example: { "family_details": false, "education_and_financial": true }
+//       return acc;
+//     }, {});
+
+//     // 🔹 Conditionally construct data object
+//     const profileData = [{
+//       fcmToken,
+//       uid,
+//       profileImage: imageUploadData.image,
+//       userType: user.usertype,
+//       ...(sectionStatus["basic_and_lifestyle"] !== false && {
+//         basic_and_lifestyle: {
+//           userId,
+//           firstName: personalData.firstName,
+//           lastName: personalData.lastName,
+//           displayName: personalData.displayName,
+//           gender: gender.answer,
+//           age: age.answer,
+//           about: personalData.aboutYourSelf,
+//           religion: otherDetailsData.religion,
+//           maritalStatus: personalData.maritalStatus,
+//           numberOfChildren: personalData.numberOfChildren,
+//           postedBy: postedby.answer,
+//         }
+//       }),
+//       ...(sectionStatus["family_details"] !== false && {
+//         family_details: {
+//           fatherOccupation: otherDetailsData.fatherOccupation,
+//           motherOccupation: otherDetailsData.motherOccupation,
+//           numberOfSiblings: otherDetailsData.numberOfSiblings,
+//           livingWithFamily: otherDetailsData.livingWithFamily,
+//         }
+//       }),
+//       ...(sectionStatus["personal_details"] !== false && {
+//         personal_background: {
+//           height: otherDetailsData.height,
+//           weight: otherDetailsData.weight,
+//           bodyType: otherDetailsData.bodyType,
+//           language: otherDetailsData.language,
+//           smokingHabbit: otherDetailsData.smokingHabbit,
+//           drinkingHabbit: otherDetailsData.drinkingHabbit,
+//           diet: otherDetailsData.diet,
+//           complexion: otherDetailsData.complexion,
+//         }
+//       }),
+//       ...(sectionStatus["religious_details"] !== false && {
+//         religious_background: {
+//           religion: otherDetailsData.religion,
+//           community: otherDetailsData.community,
+//           subCommunity: otherDetailsData.subCommunity,
+//           gotra: otherDetailsData.gotra,
+//           timeOfBirth: otherDetailsData.timeOfBirth,
+//           dateOfBirth: otherDetailsData.dateOfBirth,
+//           placeOfBirth: otherDetailsData.placeOfBirth,
+//           motherTongue: otherDetailsData.motherTongue,
+//         }
+//       }),
+//       ...(sectionStatus["location_details"] !== false && {
+//         location_background: {
+//           country: locationDetailsData.country || "Not specified",
+//           state: locationDetailsData.state || "Not specified",
+//           currentLocation: locationDetailsData.currentLocation,
+//           cityOfResidence: locationDetailsData.cityOfResidence || "",
+//           nationality: locationDetailsData.nationality,
+          
+          
+//         }
+//       }),
+//       ...(sectionStatus["education_and_financial_details"] !== false && {
+//         education_and_financial: {
+//           qualification: qualificationDetailsData.qualification,
+//           occupation: qualificationDetailsData.occupation,
+//           workingStatus: qualificationDetailsData.currentWorkingStatus,
+//           income: qualificationDetailsData.income,
+//         }
+//       }),
+//       ...(sectionStatus["interest_and_hobbies_details"] !== false && { interest_and_hobbies: answer }),
+//       connection_status,
+//       connectionType
+//     }];
+
+//     res.status(200).json({
+//       success: true,
+//       data: profileData,
+//       message: "Profile fetched successfully!",
+//     });
+//   } catch (error) {
+//     return next(new errorhandler(error.message, 500));
+//   }
+// });
+
+
 
 
 
@@ -517,258 +754,310 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const connectedUserId = req.user.userId;
     const { userId } = req.body;
 
-    // Fetch user details
+   
+
+    if (connectedUserId === userId) {
+      return res.status(400).json({
+        success: false,
+        message: "You can't view your own profile this way.",
+      });
+    }
+
+    // 🔍 Fetch viewed user
     const user = await User.findOne({ where: { userId } });
-    const fcmToken = user.fcmToken;
-    const uid = user.uid;
-    const personalData = await personalDetails.findOne({ where: { userId } });
-    const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
-    const locationDetailsData = await locationDetails.findOne({ where: { userId } });
-    const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const imageUploadData = (await imageUpload.findOne({ where: { userId } })) || "";
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
-    const gender = await Answer.findOne({ where: { userId, questionId: 1 } });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    // 🔍 Fetch all profile data in parallel
+    const [
+      personalData,
+      qualificationDetailsData,
+      locationDetailsData,
+      otherDetailsData,
+      imageUploadData,
+      basic_lifestyle,
+      gender,
+      age,
+      postedby
+    ] = await Promise.all([
+      personalDetails.findOne({ where: { userId } }),
+      qualificationDetails.findOne({ where: { userId } }),
+      locationDetails.findOne({ where: { userId } }),
+      otherDetails.findOne({ where: { userId } }),
+      imageUpload.findOne({ where: { userId } }),
+      Answer.findOne({ where: { userId, questionId: 8 } }),
+      Answer.findOne({ where: { userId, questionId: 1 } }),
+      Answer.findOne({ where: { userId, questionId: 4 } }),
+      Answer.findOne({ where: { userId, questionId: 6 } }),
+    ]);
+
     const answer = basic_lifestyle?.answer || "";
 
-    // Fetch connection status
+ 
+    try {
+      const viewerData = await personalDetails.findOne({ where: { userId: connectedUserId } });
+      const viewerImageData = await imageUpload.findOne({ where: { userId: connectedUserId } });
+
+      if (!viewerData) {
+        console.warn("🚨 Viewer data not found, skipping notification.");
+      } else {
+        const notification = await Notification.create({
+          userId: userId,
+          title: "Profile Viewed",
+          message: `${viewerData.firstName} ${viewerData.lastName} viewed your profile.`,
+          body: {
+            type: "profile_viewed",
+            senderId: connectedUserId,
+            senderName: `${viewerData.firstName} ${viewerData.lastName}`,
+            senderImage: viewerImageData?.image?.[0] || null,
+          },
+        });
+
+        console.log("Notification created:", notification.notificationId);
+
+        const io = getSocketInstance();
+        io.to(userId).emit("profile_viewed", {
+          notificationId: notification.notificationId,
+          title: notification.title,
+          message: notification.message,
+          body: notification.body,
+        });
+        console.log("📡 Notification emitted to socket");
+      }
+    } catch (notifyErr) {
+      console.warn("⚠️ Notification error:", notifyErr.message);
+    }
+
+  
     const connectionStatus = await connection.findOne({
       where: {
         [Op.or]: [
           { senderId: connectedUserId, receiverId: userId },
-          { receiverId: connectedUserId, senderId: userId }
-        ]
-      }
+          { receiverId: connectedUserId, senderId: userId },
+        ],
+      },
     });
 
-    const connection_status = (() => {
-      if (connectionStatus) {
-        if (connectionStatus.status === 'cancelled' || connectionStatus.status === 'rejected') {
-          return 'no connection';
-        }
-        return connectionStatus.status;
-      }
-      return 'no connection';
-    })();
+    const connection_status = connectionStatus
+      ? ["cancelled", "rejected"].includes(connectionStatus.status)
+        ? "no connection"
+        : connectionStatus.status
+      : "no connection";
 
-    const isSender = connectionStatus && connectionStatus.senderId === connectedUserId;
-    const isReceiver = connectionStatus && connectionStatus.receiverId === connectedUserId;
+    const connectionType = connectionStatus
+      ? connectionStatus.senderId === connectedUserId
+        ? "sender"
+        : "receiver"
+      : "none";
 
-    const connectionType = (() => {
-      if (isSender) return 'sender';
-      if (isReceiver) return 'receiver';
-      return 'none';
-    })();
-
-    // 🔹 Fetch ToggleSection to check enabled/disabled status
+    // 📚 Fetch toggle sections
     const toggleSections = await ToggleSection.findAll({ where: { userId } });
-
-    // Convert to a map for quick lookup
     const sectionStatus = toggleSections.reduce((acc, section) => {
-      acc[section.section] = section.status; // Example: { "family_details": false, "education_and_financial": true }
+      acc[section.section] = section.status;
       return acc;
     }, {});
 
-    // 🔹 Conditionally construct data object
+
     const profileData = [{
-      fcmToken,
-      uid,
-      profileImage: imageUploadData.image,
+      fcmToken: user.fcmToken,
+      uid: user.uid,
+      profileImage: imageUploadData?.image || "",
       userType: user.usertype,
       ...(sectionStatus["basic_and_lifestyle"] !== false && {
         basic_and_lifestyle: {
           userId,
-          firstName: personalData.firstName,
-          lastName: personalData.lastName,
-          displayName: personalData.displayName,
-          gender: gender.answer,
-          age: age.answer,
-          about: personalData.aboutYourSelf,
-          religion: otherDetailsData.religion,
-          maritalStatus: personalData.maritalStatus,
-          numberOfChildren: personalData.numberOfChildren,
-          postedBy: postedby.answer,
-        }
+          firstName: personalData?.firstName,
+          lastName: personalData?.lastName,
+          displayName: personalData?.displayName,
+          gender: gender?.answer,
+          age: age?.answer,
+          about: personalData?.aboutYourSelf,
+          religion: otherDetailsData?.religion,
+          maritalStatus: personalData?.maritalStatus,
+          numberOfChildren: personalData?.numberOfChildren,
+          postedBy: postedby?.answer,
+        },
       }),
       ...(sectionStatus["family_details"] !== false && {
         family_details: {
-          fatherOccupation: otherDetailsData.fatherOccupation,
-          motherOccupation: otherDetailsData.motherOccupation,
-          numberOfSiblings: otherDetailsData.numberOfSiblings,
-          livingWithFamily: otherDetailsData.livingWithFamily,
-        }
+          fatherOccupation: otherDetailsData?.fatherOccupation,
+          motherOccupation: otherDetailsData?.motherOccupation,
+          numberOfSiblings: otherDetailsData?.numberOfSiblings,
+          livingWithFamily: otherDetailsData?.livingWithFamily,
+        },
       }),
       ...(sectionStatus["personal_details"] !== false && {
         personal_background: {
-          height: otherDetailsData.height,
-          weight: otherDetailsData.weight,
-          bodyType: otherDetailsData.bodyType,
-          language: otherDetailsData.language,
-          smokingHabbit: otherDetailsData.smokingHabbit,
-          drinkingHabbit: otherDetailsData.drinkingHabbit,
-          diet: otherDetailsData.diet,
-          complexion: otherDetailsData.complexion,
-        }
+          height: otherDetailsData?.height,
+          weight: otherDetailsData?.weight,
+          bodyType: otherDetailsData?.bodyType,
+          language: otherDetailsData?.language,
+          smokingHabbit: otherDetailsData?.smokingHabbit,
+          drinkingHabbit: otherDetailsData?.drinkingHabbit,
+          diet: otherDetailsData?.diet,
+          complexion: otherDetailsData?.complexion,
+        },
       }),
       ...(sectionStatus["religious_details"] !== false && {
         religious_background: {
-          religion: otherDetailsData.religion,
-          community: otherDetailsData.community,
-          subCommunity: otherDetailsData.subCommunity,
-          gotra: otherDetailsData.gotra,
-          timeOfBirth: otherDetailsData.timeOfBirth,
-          dateOfBirth: otherDetailsData.dateOfBirth,
-          placeOfBirth: otherDetailsData.placeOfBirth,
-          motherTongue: otherDetailsData.motherTongue,
-        }
+          religion: otherDetailsData?.religion,
+          community: otherDetailsData?.community,
+          subCommunity: otherDetailsData?.subCommunity,
+          gotra: otherDetailsData?.gotra,
+          timeOfBirth: otherDetailsData?.timeOfBirth,
+          dateOfBirth: otherDetailsData?.dateOfBirth,
+          placeOfBirth: otherDetailsData?.placeOfBirth,
+          motherTongue: otherDetailsData?.motherTongue,
+        },
       }),
       ...(sectionStatus["location_details"] !== false && {
         location_background: {
-          country: locationDetailsData.country || "Not specified",
-          state: locationDetailsData.state || "Not specified",
-          currentLocation: locationDetailsData.currentLocation,
-          cityOfResidence: locationDetailsData.cityOfResidence || "",
-          nationality: locationDetailsData.nationality,
-          citizenShip: locationDetailsData.citizenShip,
-          residencyVisaStatus: locationDetailsData.residencyVisaStatus,
-        }
+          country: locationDetailsData?.country || "Not specified",
+          state: locationDetailsData?.state || "Not specified",
+          currentLocation: locationDetailsData?.currentLocation,
+          cityOfResidence: locationDetailsData?.cityOfResidence || "",
+          nationality: locationDetailsData?.nationality,
+        },
       }),
       ...(sectionStatus["education_and_financial_details"] !== false && {
         education_and_financial: {
-          qualification: qualificationDetailsData.qualification,
-          occupation: qualificationDetailsData.occupation,
-          workingStatus: qualificationDetailsData.currentWorkingStatus,
-          income: qualificationDetailsData.income,
-        }
+          qualification: qualificationDetailsData?.qualification,
+          occupation: qualificationDetailsData?.occupation,
+          workingStatus: qualificationDetailsData?.currentWorkingStatus,
+          income: qualificationDetailsData?.income,
+        },
       }),
-      ...(sectionStatus["interest_and_hobbies_details"] !== false && { interest_and_hobbies: answer }),
+      ...(sectionStatus["interest_and_hobbies_details"] !== false && {
+        interest_and_hobbies: answer,
+      }),
       connection_status,
-      connectionType
+      connectionType,
     }];
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: profileData,
       message: "Profile fetched successfully!",
     });
   } catch (error) {
+    console.error("Error in UserDetails:", error.message);
     return next(new errorhandler(error.message, 500));
   }
 });
 
-// export const filterProfiles = catchAsyncError(async (req, res, next) => {
-//   try {
-//     const { userId } = req.user;
-//     const religion = req.query.religion ? req.query.religion.split(",") : null;
-//     const ethnicity = req.query.ethnicity ? req.query.ethnicity.split(",") : null;
-//     const community = req.query.community ? req.query.community.split(",") : null;
-//     const {
-//       ageRange,
-//       heightRange,
-//       income,
-//       highestQualification,
-//       smokingHabbit,
-//       workingwith,
-//       maritalStatus,
-//       eatingHabbits,
 
-//     } = req.query; 
 
-//     const currentUser = await recommendation.findOne({ where: { userId } });
-//     const lookingFor = currentUser?.lookingFor;
+export const filterProfiles = catchAsyncError(async (req, res, next) => {
+  try {
+    const { userId } = req.user;
+    const religion = req.query.religion ? req.query.religion.split(",") : null;
+    const ethnicity = req.query.ethnicity ? req.query.ethnicity.split(",") : null;
+    const community = req.query.community ? req.query.community.split(",") : null;
+    const {
+      ageRange,
+      heightRange,
+      income,
+      highestQualification,
+      smokingHabbit,
+      workingwith,
+      maritalStatus,
+      eatingHabbits,
 
-//     const Users = await User.findAll({
-//       where: {
-//         userId: { [Op.ne]: userId },
-//       },
-//     });
+    } = req.query; 
 
-//     const userIds = Users.map((user) => user.userId);
-//     const [age1, age2] = ageRange?.split("-") || [];
-//     const [height1, height2] = heightRange?.split("-") || [];
+    const currentUser = await recommendation.findOne({ where: { userId } });
+    const lookingFor = currentUser?.lookingFor;
 
-//     const recommendedUsers = await recommendation.findAll({
-//       where: {
-//         userId: { [Op.in]: userIds },
-//         gender: lookingFor,
-//         [Op.or]: [
-//           { age: { [Op.between]: [age1, age2] } },
-//           { height: { [Op.between]: [height1, height2] } },
-//           { income: income || { [Op.ne]: null } },
-//           { nationality: ethnicity && !ethnicity.includes("All") ? { [Op.in]: ethnicity } : { [Op.ne]: null } },
-//           {
-//             religion: religion && !religion.includes("All") ? { [Op.in]: religion } : { [Op.ne]: null },
-//           },
-//           { qualification: highestQualification && highestQualification !== "All" ? highestQualification : { [Op.ne]: null } },
-//           { smokingHabbit: smokingHabbit || { [Op.ne]: null } },
-//           { diet: eatingHabbits && eatingHabbits !== "All" ? eatingHabbits : { [Op.ne]: null } },
-//           { occupation: workingwith && workingwith !== "All" ? workingwith : { [Op.ne]: null } },
-//           { maritalStatus: maritalStatus && maritalStatus !== "All" ? maritalStatus : { [Op.ne]: null } },
-//           { community: community && community !== "All" ? community : { [Op.ne]: null } },
-//         ],
-//       },
-//     });
+    const Users = await User.findAll({
+      where: {
+        userId: { [Op.ne]: userId },
+      },
+    });
 
-//     const totalScore = 100;
-//     const weights = {
-//       religion: 10,
-//       age: 10,
-//       height: 10,
-//       income: 10,
-//       ethnicity: 10,
-//       highestQualification: 10,
-//       smokingHabbit: 10,
-//       occupation: 10,
-//       maritalStatus: 10,
-//       eatingHabbits: 10,
-//       community: 10,
-//     };
+    const userIds = Users.map((user) => user.userId);
+    const [age1, age2] = ageRange?.split("-") || [];
+    const [height1, height2] = heightRange?.split("-") || [];
 
-//     const data = recommendedUsers.map((user) => {
-//       let matchScore = 0;
+    const recommendedUsers = await recommendation.findAll({
+      where: {
+        userId: { [Op.in]: userIds },
+        gender: lookingFor,
+        [Op.or]: [
+          { age: { [Op.between]: [age1, age2] } },
+          { height: { [Op.between]: [height1, height2] } },
+          { income: income || { [Op.ne]: null } },
+          { nationality: ethnicity && !ethnicity.includes("All") ? { [Op.in]: ethnicity } : { [Op.ne]: null } },
+          {
+            religion: religion && !religion.includes("All") ? { [Op.in]: religion } : { [Op.ne]: null },
+          },
+          { qualification: highestQualification && highestQualification !== "All" ? highestQualification : { [Op.ne]: null } },
+          { smokingHabbit: smokingHabbit || { [Op.ne]: null } },
+          { diet: eatingHabbits && eatingHabbits !== "All" ? eatingHabbits : { [Op.ne]: null } },
+          { occupation: workingwith && workingwith !== "All" ? workingwith : { [Op.ne]: null } },
+          { maritalStatus: maritalStatus && maritalStatus !== "All" ? maritalStatus : { [Op.ne]: null } },
+          { community: community && community !== "All" ? community : { [Op.ne]: null } },
+        ],
+      },
+    });
 
-//       if (user.religion === currentUser.religion) matchScore += weights.religion;
-//       if (user.age >= age1 && user.age <= age2) matchScore += weights.age;
-//       if (user.height >= height1 && user.height <= height2) matchScore += weights.height;
-//       if (user.income === income) matchScore += weights.income;
-//       if (user.nationality === ethnicity) matchScore += weights.ethnicity;
-//       if (user.qualification === highestQualification) matchScore += weights.highestQualification;
-//       if (user.smokingHabbit === smokingHabbit) matchScore += weights.smokingHabbit;
-//       if (user.occupation === workingwith) matchScore += weights.occupation;
-//       if (user.maritalStatus === maritalStatus) matchScore += weights.maritalStatus;
-//       if (user.diet === eatingHabbits) matchScore += weights.eatingHabbits;
-//       if (user.community === community) matchScore += weights.community;
+    const totalScore = 100;
+    const weights = {
+      religion: 10,
+      age: 10,
+      height: 10,
+      income: 10,
+      ethnicity: 10,
+      highestQualification: 10,
+      smokingHabbit: 10,
+      occupation: 10,
+      maritalStatus: 10,
+      eatingHabbits: 10,
+      community: 10,
+    };
 
-//       const matchPercentage = (matchScore / totalScore) * 100;
-//       return {
-//         userId: user.userId,
-//         gender: user.gender,
-//         religion: user.religion,
-//         age: user.age,
-//         maritalStatus: user.maritalStatus,
-//         firstName: user.firstName,
-//         lastName: user.lastName,
-//         displayName: user.displayName,
-//         occupation: user.occupation,
-//         state: user.state,
-//         country: user.country,
-//         userType: user.usertype,
-//         profileImages: user.image,
-//         match_percentage: matchPercentage,
-//       };
-//     });
+    const data = recommendedUsers.map((user) => {
+      let matchScore = 0;
 
-//     return res.status(200).json({
-//       success: true,
-//       data: {
-//         profiles: data,
-//       },
-//     });
-//   } catch (error) {
-//     return next(new errorhandler(error.message, 500));
-//   }
-// });
+      if (user.religion === currentUser.religion) matchScore += weights.religion;
+      if (user.age >= age1 && user.age <= age2) matchScore += weights.age;
+      if (user.height >= height1 && user.height <= height2) matchScore += weights.height;
+      if (user.income === income) matchScore += weights.income;
+      if (user.nationality === ethnicity) matchScore += weights.ethnicity;
+      if (user.qualification === highestQualification) matchScore += weights.highestQualification;
+      if (user.smokingHabbit === smokingHabbit) matchScore += weights.smokingHabbit;
+      if (user.occupation === workingwith) matchScore += weights.occupation;
+      if (user.maritalStatus === maritalStatus) matchScore += weights.maritalStatus;
+      if (user.diet === eatingHabbits) matchScore += weights.eatingHabbits;
+      if (user.community === community) matchScore += weights.community;
+
+      const matchPercentage = (matchScore / totalScore) * 100;
+      return {
+        userId: user.userId,
+        gender: user.gender,
+        religion: user.religion,
+        age: user.age,
+        maritalStatus: user.maritalStatus,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        displayName: user.displayName,
+        occupation: user.occupation,
+        state: user.state,
+        country: user.country,
+        userType: user.usertype,
+        profileImages: user.image,
+        match_percentage: matchPercentage,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        profiles: data,
+      },
+    });
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
 
 export const filterFieldCount = catchAsyncError(async (req, res, next) => {
 
@@ -1028,10 +1317,10 @@ export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
     const qualificationDetailsData = await qualificationDetails.findOne({ where: { userId } });
     const locationDetailsData = await locationDetails.findOne({ where: { userId } });
     const otherDetailsData = await otherDetails.findOne({ where: { userId } });
-    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 12 } });
+    const basic_lifestyle = await Answer.findOne({ where: { userId, questionId: 8 } });
     const gender = await Answer.findOne({ where: { userId } });
-    const age = await Answer.findOne({ where: { userId, questionId: 7 } });
-    const postedby = await Answer.findOne({ where: { userId, questionId: 6 } });
+    const age = await Answer.findOne({ where: { userId, questionId: 4 } });
+    const postedby = await Answer.findOne({ where: { userId, questionId: 3 } });
     const answer = basic_lifestyle.answer;
 
     const data = {
@@ -1104,4 +1393,6 @@ export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
 
 
 })
+
+
 

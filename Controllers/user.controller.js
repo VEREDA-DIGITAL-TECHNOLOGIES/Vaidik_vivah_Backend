@@ -75,7 +75,7 @@ export const createActivationToken = (email) => {
 
     return { activationCode, token };
 };
-
+ 
 //for web app activate user
 export const activateUser = catchAsyncError(async (req, res, next) => {
     try {
@@ -160,13 +160,13 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
             email: existingUser.email,
             gender: answer[0]?.answerValue,
             lookingFor: answer[1]?.answerValue,
-            weddingGoals: answer[3]?.answerValue,
-            age: answer[6]?.answerValue,
-            lookingPartnerAge: answer[7]?.answerValue,
-            livingInAustralia: answer[8]?.answerValue,
-            horoscopeMatch: answer[9]?.answerValue,
-            castReligionMatterOrNot: answer[10]?.answerValue,
-            interest_and_hobbies: answer[11]?.answerValue
+            // weddingGoals: "dk",
+            age: answer[3]?.answerValue,
+            lookingPartnerAge: answer[4]?.answerValue,
+            // livingInAustralia: "dk",
+            horoscopeMatch: answer[5]?.answerValue,
+            castReligionMatterOrNot: answer[6]?.answerValue,
+            interest_and_hobbies: answer[7]?.answerValue
         };
 
         const toggleSections = [
@@ -266,14 +266,14 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
             email: existingUser.email,
             gender: answer.find(a => a.questionId === 1)?.answerValue,
             lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
-            weddingGoals: answer.find(a => a.questionId === 4)?.answerValue,
-            age: answer.find(a => a.questionId === 7)?.answerValue,
-            lookingPartnerAge: answer.find(a => a.questionId === 8)?.answerValue,
-            livingInAustralia: answer.find(a => a.questionId === 9)?.answerValue,
-            horoscopeMatch: answer.find(a => a.questionId === 10)?.answerValue,
-            castReligionMatterOrNot: answer.find(a => a.questionId === 11)?.answerValue,
-            interest_and_hobbies: answer.find(a => a.questionId === 12)?.answerValue
+            age: answer.find(a => a.questionId === 4)?.answerValue,
+            lookingPartnerAge: answer.find(a => a.questionId === 5)?.answerValue,
+            horoscopeMatch: answer.find(a => a.questionId === 6)?.answerValue,
+            castReligionMatterOrNot: answer.find(a => a.questionId === 7)?.answerValue,
+            interest_and_hobbies: answer.find(a => a.questionId === 8)?.answerValue?.split(', ') || []
+
         };
+        
 
 
         const toggleSections = [
@@ -310,36 +310,44 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
     }
 });
 
+
+
 export const loginUser = catchAsyncError(async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return next(new errorhandler("You are not registered!", 400));
-        }
-        if (!email || !password) {
-            return next(new errorhandler("Please enter email and password!", 400));
-        }
+  try {
+    const { email, password } = req.body;
 
-        const isPasswordMatched = await user.validPassword(password);
-
-        if (!isPasswordMatched) {
-            return next(new errorhandler("Invalid email or password!", 400));
-        }
-
-        // const userData = {
-        //     userid: user.userId,
-        //     email: user.email,
-        //     usertype: user.usertype,
-        //     role: user.role,
-        //     isVerified: user.isVerified
-        // }
-        sendToken(user, 200, res, "Login successfull!");
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
+    if (!email || !password) {
+      return next(new errorhandler("Please enter email and password!", 400));
     }
 
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return next(new errorhandler("You are not registered!", 400));
+    }
+
+    const isPasswordMatched = await user.validPassword(password);
+
+    if (!isPasswordMatched) {
+      return next(new errorhandler("Invalid email or password!", 400));
+    }
+
+
+    const details = await personalDetails.findOne({
+      where: { userId: user.userId },
+      attributes: ['displayName'],
+    });
+
+  
+    user.setDataValue('userName', details?.displayName || null);
+
+ 
+    sendToken(user, 200, res, "Login successful!");
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
 });
+
 
 export const logoutUser = catchAsyncError(async (req, res, next) => {
     try {
@@ -441,7 +449,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
         const user = await User.findOne({ where: { email } });
 
         if (!user) {
-            return next(new errorhandler("User not registered with Wedlock!", 400));
+            return next(new errorhandler("User not registered !", 400));
         }
 
         const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
@@ -883,3 +891,31 @@ export const AllCustomers = catchAsyncError(async (req, res, next) => {
     }
 })
 
+
+export const getUserTypeAndGender = catchAsyncError(async (req, res, next) => {
+    try {
+        const userId = req.user.userId; 
+  
+      if (!userId) {
+        return next(new errorhandler('userId is required in body', 400));
+      }
+  
+      const user = await recommendation.findOne({
+        where: { userId },
+        attributes: ['usertype', 'gender'],
+      });
+  
+      if (!user) {
+        return next(new errorhandler('User not found', 404));
+      }
+  
+      res.status(200).json({
+        success: true,
+        userType: user.usertype,
+        gender: user.gender,
+      });
+    } catch (error) {
+      return next(new errorhandler(error.message, 500));
+    }
+  });
+  
