@@ -4,13 +4,8 @@ services:
         build:
             context: .
             dockerfile: ${DOCKERFILE}
-            args:
-               CACHEBUST: ${CACHEBUST:-$(date +%s)}
-               DOCKER_AWS_ACCESS_KEY_ID: ${DOCKER_AWS_ACCESS_KEY_ID}
-               DOCKER_AWS_SECRET_ACCESS_KEY: ${DOCKER_AWS_SECRET_ACCESS_KEY}
-            no_cache: true
-        image: vaidikvivah-backend:blue
-        container_name: vaidikvivah-backend-blue
+        image: backend:blue
+        container_name: backend-blue
         ports:
             - '3005:3005'
         networks:
