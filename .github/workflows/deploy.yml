@@ -23,7 +23,7 @@ jobs:
           ssh -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << EOF
             set -e
             echo "Changing to directory"
-            cd ~/Vaidik_vivah_backend
+            cd ~/Vaidik_vivah_Backend
 
             echo "Pulling latest Code" 
             git pull origin main
