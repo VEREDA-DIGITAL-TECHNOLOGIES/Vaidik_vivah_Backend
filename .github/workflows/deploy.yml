@@ -26,7 +26,7 @@ jobs:
             cd ~/Vaidik_vivah_Backend
 
             echo "Pulling latest Code" 
-            git pull origin main
+            git pull origin Main
 
             echo "Detecting currently running deployment color..."
             CURRENT_RUNNING=\$(docker ps --filter "name=backend-green" --filter "status=running" --format "{{.Names}}")
