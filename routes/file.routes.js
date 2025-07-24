@@ -9,6 +9,6 @@ const filerouter = express.Router();
 filerouter.post("/upload", isAuthenticated, upload.single("file"), uploadSingleFile);
 
 // Delete a file (body must include publicId)
-filerouter.delete("/delete", isAuthenticated, deleteSingleFile);
+filerouter.delete("/delete",  deleteSingleFile);
 
 export default filerouter;

@@ -12,7 +12,7 @@ import block from './Models/block.model.js';
 import documentUpload from './Models/gayatri.model.js';
 import report from './Models/report.model.js';
 import Admin from './Models/Admin/Admin.modal.js';
-
+import AdminApiLog from './Models/Admin/AdminApiLog.model.js';
 dotenv.config();
 
 
@@ -50,7 +50,7 @@ const startServer = async () => {
         await documentUpload.sync({ force: false });
         await report.sync({ force: false }); 
         await Admin.sync({ force: false }); 
-
+        await AdminApiLog.sync({ force: false }); 
         console.log('Tables synchronized');
 
 
