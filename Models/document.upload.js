@@ -32,9 +32,9 @@ const documentUpload = sequelize.define('documentUpload', {
     allowNull: false,
   },
   isVerified: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('pending', 'verified', 'rejected', 'suspended'),
     allowNull: false,
-    defaultValue: 'pending', // 'pending' | 'verified' | 'rejected'
+    defaultValue: 'pending', 
   }
 });
 

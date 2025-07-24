@@ -27,6 +27,9 @@ import ReportRouter from './routes/report.routes.js';
 import filerouter from './routes/file.routes.js';
 import adminRouter from './routes/Admin/admin.routes.js';
 import adminDashboardRouter from './routes/Admin/dashboard.route.js';
+import AdminUserRouter from './routes/Admin/admin.userDetails.route.js';
+import admintransactionRouter from './routes/Admin/transactions.routes.js';
+import adminControl from './routes/Admin/admin.user.contorl.route.js';
 dotenv.config();
 
 
@@ -45,7 +48,7 @@ app.use(cookieParser());
 
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3001', "https://recommend.vaidikvivah.in", 'http://localhost:8000', "https://vaidikvivah.in","https://vedvivah.in" ],
+  origin: ["https://wedlock.com.au", "https://admin.wedlock.au", 'http://localhost:5173', 'http://localhost:3001' ],
   credentials: true,
 }));
 
@@ -70,11 +73,14 @@ app.use('/api/v1/payment', paymentrazopay);
 app.use('/api/v1/report', ReportRouter);
 app.use("/api/files", filerouter);
 app.use("/api/admin/", adminRouter);
+app.use("/api/admin-dashboard/user-details", adminDashboardRouter);
+app.use("/api/admin/transactions", admintransactionRouter);
+app.use("/api/admin/control", adminControl);
+
+// adminControl
 
 
-//admin 
-
-app.use('/api/v1/admin', adminDashboardRouter);
+app.use('/api/admin-dashboard', AdminUserRouter);
 
 app.get("/test", async (req, res, next) => {
   res.status(200).json({
