@@ -561,7 +561,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 
     
 
-    const response = await axios.get("recommend.vedvivah.com/api/get_matches", {
+    const response = await axios.get("https://recommend.vedvivah.com/api/get_matches", {
       params: {
         userId,
         ...req.query
