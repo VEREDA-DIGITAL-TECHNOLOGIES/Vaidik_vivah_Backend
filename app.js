@@ -48,8 +48,15 @@ app.use(cookieParser());
 
 
 app.use(cors({
-  origin: ["https://Vedvivah.com", "https://admin.vedvivah.com","recommend.vedvivah.com", 'http://localhost:5173', 'http://localhost:3001' ],
-  credentials: true,
+  origin: [
+    "https://vedvivah.com",
+    "https://www.vedvivah.com",
+    "https://admin.vedvivah.com",
+    "https://recommend.vedvivah.com",
+    "http://localhost:5173",
+    "http://localhost:3001"
+  ],
+  credentials: true
 }));
 
 app.use("/api/v1/user", userRouter);
