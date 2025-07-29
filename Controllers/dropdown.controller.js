@@ -358,6 +358,7 @@ export const IncomeDropdown = catchAsyncError(async(req ,res ,next) => {
         return {
             id: dropdown.id,
             value: dropdown.dropdownValue,
+            dropdown:dropdown.dropdownId,
         };
     });
 
@@ -1121,6 +1122,7 @@ export const casteDropdown = catchAsyncError(async(req ,res ,next) => {
         return {
             id: dropdown.id,
             value: dropdown.dropdownValue,
+            dropdown:dropdown.dropdownId,
         };
     });
 
