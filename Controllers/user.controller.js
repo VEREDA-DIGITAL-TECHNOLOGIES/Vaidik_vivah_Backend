@@ -894,10 +894,10 @@ export const AllCustomers = catchAsyncError(async (req, res, next) => {
 
 export const getUserTypeAndGender = catchAsyncError(async (req, res, next) => {
     try {
-        const userId = req.user.userId; 
-  
+      const userId = req.user?.userId;
+      console.log("🆔 userId from req.user:", req.user?.userId);
       if (!userId) {
-        return next(new errorhandler('userId is required in body', 400));
+        return next(new errorhandler('userId is required', 400));
       }
   
       const user = await recommendation.findOne({
@@ -906,7 +906,16 @@ export const getUserTypeAndGender = catchAsyncError(async (req, res, next) => {
       });
   
       if (!user) {
-        return next(new errorhandler('User not found', 404));
+        // ✅ Return default type instead of 404 if needed:
+        return res.status(200).json({
+          success: true,
+          userType: 'Standard',  // fallback userType
+          gender: '',            // or fetch from Users table if needed
+          message: 'User not found in recommendation, default values returned',
+        });
+  
+        // Or if you want to keep strict:
+        // return next(new errorhandler('User not found', 404));
       }
   
       res.status(200).json({
@@ -914,8 +923,10 @@ export const getUserTypeAndGender = catchAsyncError(async (req, res, next) => {
         userType: user.usertype,
         gender: user.gender,
       });
+  
     } catch (error) {
       return next(new errorhandler(error.message, 500));
     }
   });
+  
   

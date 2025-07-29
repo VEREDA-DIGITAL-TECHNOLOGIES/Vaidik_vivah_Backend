@@ -30,6 +30,7 @@ import adminDashboardRouter from './routes/Admin/dashboard.route.js';
 import AdminUserRouter from './routes/Admin/admin.userDetails.route.js';
 import admintransactionRouter from './routes/Admin/transactions.routes.js';
 import adminControl from './routes/Admin/admin.user.contorl.route.js';
+import bannerRouter from './routes/Admin/banner.routes.js';
 dotenv.config();
 
 
@@ -83,7 +84,7 @@ app.use("/api/admin/", adminRouter);
 app.use("/api/admin-dashboard/user-details", adminDashboardRouter);
 app.use("/api/admin/transactions", admintransactionRouter);
 app.use("/api/admin/control", adminControl);
-
+app.use("/api/admin/banner", bannerRouter);
 // adminControl
 
 

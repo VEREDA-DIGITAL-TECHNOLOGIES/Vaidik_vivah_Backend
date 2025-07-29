@@ -17,6 +17,7 @@ import ToggleSection from './toggleSection.model.js';
 import gayatri from './gayatri.model.js';
 import documentUpload from './document.upload.js';
 import Recommendation from './recommendation.model.js';
+import Call from './call.model.js';
 
 // Answers
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -29,6 +30,12 @@ personalDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 // Other Details
 User.hasMany(otherDetails, { foreignKey: 'userId', as: 'otherDetails' });
 otherDetails.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+
+
+// Calls
+User.hasMany(Call, { foreignKey: 'userId', as: 'calls', onDelete: 'CASCADE' }); // Optional: CASCADE
+Call.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'CASCADE' });
 
 // Gayatri
 User.hasMany(gayatri, { foreignKey: 'userId', as: 'gayatri' });
@@ -112,5 +119,6 @@ export {
   Notification,
   ToggleSection,
   gayatri,
-  Recommendation
+  Recommendation,
+  Call
 };

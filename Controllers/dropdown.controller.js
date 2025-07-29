@@ -992,6 +992,7 @@ export const maritalStatusDropdown = catchAsyncError(async(req ,res ,next) => {
     const data = dropdownData.map((dropdown) => {
         return {
             id: dropdown.id,
+            dropdown:dropdown.dropdownId,
             value: dropdown.dropdownValue,
         };
     });

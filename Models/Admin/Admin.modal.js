@@ -45,7 +45,7 @@ Admin.prototype.validPassword = async function (password) {
 
 const syncDB = async () => {
     try {
-        await sequelize.sync({ alter: true }); // Use `alter: true` to avoid data loss
+        await sequelize.sync({ alter: false }); 
         console.log('Database synced successfully'); 
     } catch (error) {
         console.error('Error syncing database:', error);

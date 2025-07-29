@@ -15,7 +15,7 @@ Documentrouter.post(
 
 Documentrouter.get('/get-document', isAuthenticated, getDocument);
 
-Documentrouter.patch('/verify-document/:id', verifyDocument); 
+// Documentrouter.patch('/verify-document/:id', verifyDocument); 
 
 Documentrouter.delete('/delete-document', isAuthenticated, deleteDocument);
 

@@ -20,7 +20,8 @@ import {
   Notification,
   ToggleSection,
   gayatri,
-  Recommendation
+  Recommendation,
+  Call
 } from '../../Models/association.js';
 
 const sequelize = connectDB(); // ✅ Ensure sequelize instance is available
@@ -38,6 +39,7 @@ export const deleteUserAccount = catchAsyncError(async (req, res, next) => {
       personalDetails.destroy({ where: { userId }, transaction }),
       otherDetails.destroy({ where: { userId }, transaction }),
       locationDetails.destroy({ where: { userId }, transaction }),
+      await Call.destroy({ where: { userId }, transaction }),
       imageUpload.destroy({ where: { userId }, transaction }),
       qualificationDetails.destroy({ where: { userId }, transaction }),
       FavProfile.destroy({
@@ -166,8 +168,8 @@ export const updateDocumentStatus = async (req, res) => {
       const isWoman = reco.gender?.toLowerCase() === 'woman';
 
       if (isWoman) {
-        user.usertype = 'Diamond';
-        reco.usertype = 'Diamond';
+        user.usertype = 'Gold';
+        reco.usertype = 'Gold';
         await user.save();
         await reco.save();
       }

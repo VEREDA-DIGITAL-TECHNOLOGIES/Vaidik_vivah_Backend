@@ -13,6 +13,8 @@ import documentUpload from './Models/gayatri.model.js';
 import report from './Models/report.model.js';
 import Admin from './Models/Admin/Admin.modal.js';
 import AdminApiLog from './Models/Admin/AdminApiLog.model.js';
+import Banner from './Models/Admin/app.banner.js';
+import { Sequelize } from 'sequelize';
 dotenv.config();
 
 
@@ -22,7 +24,7 @@ const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
     try {
-       connectDB();
+    await  connectDB();
         const server = createServer(app);
         intializeSocket(server);
                 
@@ -51,12 +53,10 @@ const startServer = async () => {
         await report.sync({ force: false }); 
         await Admin.sync({ force: false }); 
         await AdminApiLog.sync({ force: false }); 
+        await Banner.sync({force:false});
         console.log('Tables synchronized');
 
 
-        // app.listen(PORT, () => {
-        //     console.log(`Server is running on port ${PORT}`);
-        // });
 
         server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
