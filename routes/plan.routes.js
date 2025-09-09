@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated } from "../Middlewares/auth.js";
-import { createPlan,getAllPlans,deletePlan } from "../Controllers/plan.controller.js";
+import { createPlan,getAllPlans,deletePlan,getPlanById,updatePlan } from "../Controllers/plan.controller.js";
 
 
 const planRouter = express.Router();
@@ -8,5 +8,8 @@ const planRouter = express.Router();
 planRouter.post('/createPlan',isAuthenticated,createPlan);
 planRouter.get('/getAllPlans',getAllPlans);
 planRouter.delete('/deletePlan',isAuthenticated,deletePlan)
+
+planRouter.post("/getPlan", getPlanById);          // body { planId }
+planRouter.put("/updatePlan", updatePlan);
  
 export default planRouter

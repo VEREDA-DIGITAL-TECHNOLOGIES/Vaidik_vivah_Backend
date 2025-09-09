@@ -99,20 +99,45 @@ export const getAllPlans = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// DELETE PLAN
-export const deletePlan = catchAsyncError(async (req, res, next) => {
-  const { planId } = req.params;
+
+
+
+// GET single plan using body
+export const getPlanById = catchAsyncError(async (req, res, next) => {
+  const { planId } = req.body;
+  if (!planId) return next(new errorhandler("planId is required", 400));
 
   const planData = await plan.findOne({ where: { planId } });
+  if (!planData) return next(new errorhandler("Plan not found!", 404));
 
-  if (!planData) {
-    return next(new errorhandler("Plan not found!", 404));
-  }
+  res.status(200).json({ success: true, data: planData, message: "Plan fetched." });
+});
+
+// UPDATE plan using body
+export const updatePlan = catchAsyncError(async (req, res, next) => {
+  const { planId, planName, price, durationInMonths, description, planType, featureList } = req.body;
+  if (!planId) return next(new errorhandler("planId is required", 400));
+
+  const planData = await plan.findOne({ where: { planId } });
+  if (!planData) return next(new errorhandler("Plan not found!", 404));
+
+  await plan.update(
+    { planName, price, durationInMonths, description, planType, featureList },
+    { where: { planId } }
+  );
+
+  const updated = await plan.findOne({ where: { planId } });
+  res.status(200).json({ success: true, data: updated, message: "Plan updated." });
+});
+
+// DELETE plan using body
+export const deletePlan = catchAsyncError(async (req, res, next) => {
+  const { planId } = req.body;
+  if (!planId) return next(new errorhandler("planId is required", 400));
+
+  const planData = await plan.findOne({ where: { planId } });
+  if (!planData) return next(new errorhandler("Plan not found!", 404));
 
   await plan.destroy({ where: { planId } });
-
-  res.status(200).json({
-    success: true,
-    message: "Plan deleted successfully!",
-  });
+  res.status(200).json({ success: true, message: "Plan deleted successfully!" });
 });

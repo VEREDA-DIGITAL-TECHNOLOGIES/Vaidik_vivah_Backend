@@ -57,21 +57,22 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
     }
 
   
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp='123456'
     await redis.set(`otp:${email}`, otp, { EX: 300 });
 
 
     try {
         
-        await sendEmail({
-            email,
-            subject: "Your Login OTP",
-            template: "admin-login.ejs",
-            data: { 
-                activationCode: otp, 
-                email 
-            }
-        });
+        // await sendEmail({
+        //     email,
+        //     subject: "Your Login OTP",
+        //     template: "admin-login.ejs",
+        //     data: { 
+        //         activationCode: otp, 
+        //         email 
+        //     }
+        // });
 
         res.status(200).json({
             success: true,
