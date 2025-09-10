@@ -5,7 +5,7 @@ import { createContact,getAllContacts,getContactById,deleteContact,markContacted
 
 
 
-
+import { isAdminAuthenticated } from "../Middlewares/admin/isAdminAuthenticated.js";
 
 const contactRouter = express.Router();
 
@@ -13,15 +13,15 @@ const contactRouter = express.Router();
 contactRouter.post("/", createContact);
 
 
-contactRouter.post("/admin/get-all", getAllContacts);
+contactRouter.post("/admin/get-all",isAdminAuthenticated, getAllContacts);
 
 
-contactRouter.post("/admin/get", getContactById);
+contactRouter.post("/admin/get", isAdminAuthenticated,getContactById);
 
 
-contactRouter.post("/admin/delete", deleteContact);
+contactRouter.post("/admin/delete", isAdminAuthenticated,deleteContact);
 
 
-contactRouter.post("/admin/contacted-back", markContactedBack);
+contactRouter.post("/admin/contacted-back",isAdminAuthenticated, markContactedBack);
 
 export default contactRouter;
