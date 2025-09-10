@@ -14,6 +14,7 @@ import report from './Models/report.model.js';
 import Admin from './Models/Admin/Admin.modal.js';
 import AdminApiLog from './Models/Admin/AdminApiLog.model.js';
 import Banner from './Models/Admin/app.banner.js';
+import Contact from './Models/Contact.js';
 import { Sequelize } from 'sequelize';
 dotenv.config();
 
@@ -54,6 +55,7 @@ const startServer = async () => {
         await Admin.sync({ force: false }); 
         await AdminApiLog.sync({ force: false }); 
         await Banner.sync({force:false});
+        await Contact.sync({force:false});
         console.log('Tables synchronized');
 
 
