@@ -6,7 +6,7 @@ import {
 } from '../../Controllers/Admin/admin.user.controller.js';
 
 import { isAdminAuthenticated } from '../../Middlewares/admin/isAdminAuthenticated.js';
-
+import { logApiRequest } from '../../Middlewares/admin/logApiRequest.js';
 const adminControl = express.Router();
 
 // ✅ Apply isAdminAuthenticated middleware to all secure routes

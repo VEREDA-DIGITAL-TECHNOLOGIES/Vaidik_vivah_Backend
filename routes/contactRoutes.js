@@ -6,22 +6,22 @@ import { createContact,getAllContacts,getContactById,deleteContact,markContacted
 
 
 import { isAdminAuthenticated } from "../Middlewares/admin/isAdminAuthenticated.js";
-
+import { logApiRequest } from "../Middlewares/admin/logApiRequest.js";
 const contactRouter = express.Router();
 
 
 contactRouter.post("/", createContact);
 
 
-contactRouter.post("/admin/get-all",isAdminAuthenticated, getAllContacts);
+contactRouter.post("/admin/get-all",isAdminAuthenticated,logApiRequest, getAllContacts);
 
 
-contactRouter.post("/admin/get", isAdminAuthenticated,getContactById);
+contactRouter.post("/admin/get", isAdminAuthenticated,logApiRequest,getContactById);
 
 
-contactRouter.post("/admin/delete", isAdminAuthenticated,deleteContact);
+contactRouter.post("/admin/delete", isAdminAuthenticated,logApiRequest,deleteContact);
 
 
-contactRouter.post("/admin/contacted-back",isAdminAuthenticated, markContactedBack);
+contactRouter.post("/admin/contacted-back",isAdminAuthenticated,logApiRequest, markContactedBack);
 
 export default contactRouter;
