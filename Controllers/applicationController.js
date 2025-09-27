@@ -1,5 +1,5 @@
 import { Application, Plan } from '../Models/association.js';
-import { validateApplication } from '../utils/validation.js';
+
 import { uploadCloudinary } from '../Utils/cloudinary.js';
 import { catchAsyncError } from '../middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
