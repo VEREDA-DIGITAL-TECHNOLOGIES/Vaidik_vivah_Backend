@@ -1,7 +1,7 @@
 import { Application, Plan } from '../Models/association.js';
 
 import { uploadCloudinary } from '../Utils/cloudinary.js';
-import { catchAsyncError } from '../middlewares/catchAsyncError.js';
+import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
 
 export const createApplication = catchAsyncError(async (req, res, next) => {
