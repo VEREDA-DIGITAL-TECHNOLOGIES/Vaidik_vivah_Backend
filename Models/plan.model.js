@@ -13,7 +13,7 @@ const plan = sequelize.define("plan", {
     unique: true,
   },
   planName: {
-    type: DataTypes.ENUM("Standard", "Gold", "Platinum","Diamond"),
+    type: DataTypes.ENUM("Standard", "Gold", "Platinum","Diamond","Vivah Sansakar"),
     allowNull: true,
   },
   planType: {

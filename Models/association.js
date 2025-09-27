@@ -18,6 +18,7 @@ import gayatri from './gayatri.model.js';
 import documentUpload from './document.upload.js';
 import Recommendation from './recommendation.model.js';
 import Call from './call.model.js';
+import Application from './application.js';
 
 // Answers
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -99,6 +100,10 @@ documentUpload.belongsTo(User, { foreignKey: 'userId', as: 'user' }); // Optiona
 User.hasMany(Recommendation, { foreignKey: 'userId', as: 'recommendations' });
 Recommendation.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// Application
+Application.belongsTo(Plan, { foreignKey: 'planId', as: 'plans' });
+Plan.hasMany(Application, { foreignKey: 'planId', as: 'applications' });
+
 // Final Export
 export {
   User,
@@ -120,5 +125,6 @@ export {
   ToggleSection,
   gayatri,
   Recommendation,
-  Call
+  Call,
+  Application
 };

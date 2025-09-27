@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import {app} from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection, Plan,gayatri } from './Models/association.js';
+import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection, Plan,gayatri, Application } from './Models/association.js';
 import Recommendation from './Models/recommendation.model.js';
 import subscription from './Models/subscription.model.js';
 import call from './Models/call.model.js';
@@ -56,6 +56,8 @@ const startServer = async () => {
         await AdminApiLog.sync({ force: false }); 
         await Banner.sync({force:false});
         await Contact.sync({force:false});
+        await Application.sync({force:false});
+
         console.log('Tables synchronized');
 
 

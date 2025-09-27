@@ -32,6 +32,7 @@ import admintransactionRouter from './routes/Admin/transactions.routes.js';
 import adminControl from './routes/Admin/admin.user.contorl.route.js';
 import bannerRouter from './routes/Admin/banner.routes.js';
 import contactRouter from './routes/contactRoutes.js';
+import ApplicationRouter from "./routes/applicationRoutes.js"
 dotenv.config();
 
 
@@ -91,6 +92,9 @@ app.use("/api/admin/contact",contactRouter)
 
 
 app.use('/api/admin-dashboard', AdminUserRouter);
+app.use('/api/v1/application-plan', ApplicationRouter);
+
+
 
 app.get("/test", async (req, res, next) => {
   res.status(200).json({
