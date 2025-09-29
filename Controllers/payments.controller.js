@@ -9,6 +9,7 @@ import Recommendation from "../Models/recommendation.model.js";
 import { v4 as uuidv4 } from "uuid";
 import moment from "moment";
 import dotenv from 'dotenv';
+import Application from "../Models/application.js";
 
 dotenv.config();
 const razorpayInstance = createRazorpayInstance();
@@ -82,6 +83,7 @@ export const verifyRazorpayPayment = catchAsyncError(async (req, res, next) => {
 
     await User.update({ usertype: planData.planName }, { where: { userId } });
     await Recommendation.update({ usertype: planData.planName }, { where: { userId } });
+    await Application.update({status:"completed"}, {where:{}});
 
     res.status(200).json({ success: true, message: "Payment verified and subscription created" });
 });
