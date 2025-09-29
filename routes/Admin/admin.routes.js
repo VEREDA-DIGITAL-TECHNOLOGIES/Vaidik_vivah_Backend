@@ -12,7 +12,7 @@ import { logApiRequest } from '../../Middlewares/admin/logApiRequest.js';
 import { updateAdminAccessToken } from '../../Controllers/Admin/admin.controller.js';
 const adminRouter = express.Router();
 
-adminRouter.post('/register', registerAdmin);
+// adminRouter.post('/register', registerAdmin);
 adminRouter.post('/login', adminLogin);
 adminRouter.post('/verify-otp', logApiRequest, verifyLoginOtp);
 adminRouter.get('/refresh-token',updateAdminAccessToken  )
