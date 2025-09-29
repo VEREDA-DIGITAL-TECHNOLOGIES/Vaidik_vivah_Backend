@@ -83,7 +83,7 @@ export const verifyRazorpayPayment = catchAsyncError(async (req, res, next) => {
 
     await User.update({ usertype: planData.planName }, { where: { userId } });
     await Recommendation.update({ usertype: planData.planName }, { where: { userId } });
-    // await Application.update({status:"completed"}, {where:{}});
+    await Application.update({status:"completed"}, {where:{userId}});
 
     res.status(200).json({ success: true, message: "Payment verified and subscription created" });
 });

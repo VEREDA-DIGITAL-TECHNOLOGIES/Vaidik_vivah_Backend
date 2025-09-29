@@ -5,6 +5,7 @@ import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
 
 export const createApplication = catchAsyncError(async (req, res, next) => {
+  const userId = req.user.userId;
   // Since we're using FormData, we need to parse it differently
   // Make sure you have proper middleware for file uploads
   console.log('📦 Received files:', req.files);
@@ -69,6 +70,7 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     // Create application
     const application = await Application.create({
       planId:req.body.planId,
+      userId:userId,
       planName:"Diamond",
       nom: req.body.nom,
       fatherName: req.body.fatherName,
@@ -94,6 +96,8 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     console.log('📋 APPLICATION DETAILS:');
     console.log('   📝 Plan:', req.body.planName);
     console.log('   📝 Plan:', req.body.planId);
+    console.log('   📝 Plan userId:', userId);
+
 
     console.log('   👤 Applicant:', req.body.nom);
     console.log('   👥 Partner:', req.body.partnerName);
