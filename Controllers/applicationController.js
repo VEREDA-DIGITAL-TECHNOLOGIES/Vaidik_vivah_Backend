@@ -207,7 +207,7 @@ export const getApplications = catchAsyncError(async (req, res, next) => {
 
   const { count, rows: applications } = await Application.findAndCountAll({
     where: whereClause,
-    include: [{ model: Plan, as: 'plan' }],
+    include: [{ model: Plan, as: 'plans' }],
     order: [['createdAt', 'DESC']],
     limit: parseInt(limit),
     offset: parseInt(offset),
