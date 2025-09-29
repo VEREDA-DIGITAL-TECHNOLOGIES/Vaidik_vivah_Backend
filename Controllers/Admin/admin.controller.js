@@ -57,8 +57,8 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
     }
 
   
-    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otp='123456'
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // const otp='123456'
     await redis.set(`otp:${email}`, otp, { EX: 300 });
 
 
