@@ -5,7 +5,7 @@ import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
 
 export const createApplication = catchAsyncError(async (req, res, next) => {
-  const userId = req.user.userId;
+  
   // Since we're using FormData, we need to parse it differently
   // Make sure you have proper middleware for file uploads
   console.log('📦 Received files:', req.files);
@@ -15,7 +15,7 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
   const requiredFields = [
     'planName', 'nom', 'fatherName', 'loginId', 'address', 'penaltyType',
     'partnerName', 'partnerFatherName', 'partnerLoginId', 'partnerAddress',
-    'yourMobNo', 'partnerMobNo', 'parentsMobNo', 'partnerParentsMobNo',"planId"
+    'yourMobNo', 'partnerMobNo', 'parentsMobNo', 'partnerParentsMobNo',"planId","userId"
   ];
 
   const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -70,7 +70,7 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     // Create application
     const application = await Application.create({
       planId:req.body.planId,
-      userId:userId,
+      userId:req.body.userId,
       planName:"Diamond",
       nom: req.body.nom,
       fatherName: req.body.fatherName,
@@ -96,7 +96,7 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     console.log('📋 APPLICATION DETAILS:');
     console.log('   📝 Plan:', req.body.planName);
     console.log('   📝 Plan:', req.body.planId);
-    console.log('   📝 Plan userId:', userId);
+    console.log('   📝 Plan userId:',req.body.userId);
 
 
     console.log('   👤 Applicant:', req.body.nom);
