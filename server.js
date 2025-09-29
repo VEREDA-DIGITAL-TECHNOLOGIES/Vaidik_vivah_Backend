@@ -56,7 +56,7 @@ const startServer = async () => {
         await AdminApiLog.sync({ force: false }); 
         await Banner.sync({force:false});
         await Contact.sync({force:false});
-        await Application.sync({force:true});
+        await Application.sync({force:false});
 
         console.log('Tables synchronized');
 
