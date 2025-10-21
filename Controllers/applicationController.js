@@ -5,125 +5,92 @@ import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
 
 export const createApplication = catchAsyncError(async (req, res, next) => {
-  
-  // Since we're using FormData, we need to parse it differently
-  // Make sure you have proper middleware for file uploads
+
   console.log('📦 Received files:', req.files);
   console.log('📦 Received body:', req.body);
 
-  // Validate required fields
   const requiredFields = [
-    'planName', 'nom', 'fatherName', 'loginId', 'address', 'penaltyType',
-    'partnerName', 'partnerFatherName', 'partnerLoginId', 'partnerAddress',
-    'yourMobNo', 'partnerMobNo', 'parentsMobNo', 'partnerParentsMobNo',"planId","userId"
+    'planName','nom','fatherName','loginId','address','penaltyType',
+    'partnerName','partnerFatherName','partnerLoginId','partnerAddress',
+    'yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo','planId','userId'
   ];
+  const missingFields = requiredFields.filter(f => !req.body[f]);
+  if (missingFields.length)
+    return next(new errorhandler(`Missing required fields: ${missingFields.join(', ')}`,400));
 
-  const missingFields = requiredFields.filter(field => !req.body[field]);
-  if (missingFields.length > 0) {
-    return next(new errorhandler(`Missing required fields: ${missingFields.join(', ')}`, 400));
-  }
+  const mobileFields = ['yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo'];
+  const invalidMobiles = mobileFields.filter(f => !/^\d{10}$/.test(req.body[f]||''));
+  if (invalidMobiles.length)
+    return next(new errorhandler(`Invalid mobile numbers: ${invalidMobiles.join(', ')}`,400));
 
-  // Validate mobile numbers
-  const mobileFields = ['yourMobNo', 'partnerMobNo', 'parentsMobNo', 'partnerParentsMobNo'];
-  const invalidMobiles = mobileFields.filter(field => {
-    const value = req.body[field];
-    return !value || !/^\d{10}$/.test(value);
-  });
-
-  if (invalidMobiles.length > 0) {
-    return next(new errorhandler(`Invalid mobile numbers: ${invalidMobiles.join(', ')}. Must be 10 digits.`, 400));
-  }
-
-  // Check if required files are uploaded
-  const requiredFiles = ['yourIdPost', 'parentsIdPost', 'partnerIdPost', 'partnerParentsIdPost'];
-  const missingFiles = requiredFiles.filter(field => !req.files?.[field]);
-
-  if (missingFiles.length > 0) {
-    return next(new errorhandler(`Missing required files: ${missingFiles.join(', ')}`, 400));
-  }
+  const requiredFiles = ['yourIdPost','parentsIdPost','partnerIdPost','partnerParentsIdPost'];
+  const missingFiles = requiredFiles.filter(f => !req.files?.[f]);
+  if (missingFiles.length)
+    return next(new errorhandler(`Missing required files: ${missingFiles.join(', ')}`,400));
 
   try {
-    // Upload all files to Cloudinary in parallel
-    const uploadPromises = requiredFiles.map(async (field) => {
+    // ✅ Upload using in-memory buffer instead of file.path
+    const uploadPromises = requiredFiles.map(async field => {
       const file = req.files[field][0];
-      const uploadResult = await uploadCloudinary(file.path);
-      return {
-        field,
-        url: uploadResult.secure_url,
-        publicId: uploadResult.public_id
-      };
+      const result = await new Promise((resolve, reject) => {
+        const stream = cloudinary.v2.uploader.upload_stream(
+          { folder: 'vivah_applications', resource_type: 'auto' },
+          (err, uploadResult) => err ? reject(err) : resolve(uploadResult)
+        );
+        stream.end(file.buffer); // <-- key change
+      });
+      return { field, url: result.secure_url, publicId: result.public_id };
     });
 
     const uploadResults = await Promise.all(uploadPromises);
-
-    // Create cloudinaryUrls object from upload results
     const cloudinaryUrls = {};
-    uploadResults.forEach(result => {
-      cloudinaryUrls[`${result.field}Url`] = result.url;
-      cloudinaryUrls[`${result.field}PublicId`] = result.publicId;
+    uploadResults.forEach(r => {
+      cloudinaryUrls[`${r.field}Url`] = r.url;
+      cloudinaryUrls[`${r.field}PublicId`] = r.publicId;
     });
 
-    // Parse boolean values
     const parentsCertified = req.body.parentsCertified === 'true';
     const partnerParentsCertified = req.body.partnerParentsCertified === 'true';
 
-    // Create application
     const application = await Application.create({
       planId:req.body.planId,
       userId:req.body.userId,
       planName:"Diamond",
-      nom: req.body.nom,
-      fatherName: req.body.fatherName,
-      loginId: req.body.loginId,
-      address: req.body.address,
-      penaltyType: req.body.penaltyType,
-      partnerName: req.body.partnerName,
-      partnerFatherName: req.body.partnerFatherName,
-      partnerLoginId: req.body.partnerLoginId,
-      partnerAddress: req.body.partnerAddress,
-      yourMobNo: req.body.yourMobNo,
-      partnerMobNo: req.body.partnerMobNo,
+      nom:req.body.nom,
+      fatherName:req.body.fatherName,
+      loginId:req.body.loginId,
+      address:req.body.address,
+      penaltyType:req.body.penaltyType,
+      partnerName:req.body.partnerName,
+      partnerFatherName:req.body.partnerFatherName,
+      partnerLoginId:req.body.partnerLoginId,
+      partnerAddress:req.body.partnerAddress,
+      yourMobNo:req.body.yourMobNo,
+      partnerMobNo:req.body.partnerMobNo,
       parentsCertified,
-      parentsMobNo: req.body.parentsMobNo,
-      partnerParentsMobNo: req.body.partnerParentsMobNo,
+      parentsMobNo:req.body.parentsMobNo,
+      partnerParentsMobNo:req.body.partnerParentsMobNo,
       partnerParentsCertified,
       ...cloudinaryUrls,
-      paymentAmount: parseFloat(req.body.applicationFee) || 1000.00,
-      applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : new Date(),
+      paymentAmount:parseFloat(req.body.applicationFee)||1000.00,
+      applicationDate:req.body.applicationDate?new Date(req.body.applicationDate):new Date(),
     });
 
     console.log('🚀 ===== VIVAH SANSAKAR APPLICATION SUBMITTED =====');
-    console.log('📋 APPLICATION DETAILS:');
-    console.log('   📝 Plan:', req.body.planName);
-    console.log('   📝 Plan:', req.body.planId);
-    console.log('   📝 Plan userId:',req.body.userId);
-
-
-    console.log('   👤 Applicant:', req.body.nom);
-    console.log('   👥 Partner:', req.body.partnerName);
-    console.log('   ⚖️  Penalty Type:', req.body.penaltyType);
-    console.log('   📞 Contact Numbers:', {
-      applicant: req.body.yourMobNo,
-      partner: req.body.partnerMobNo,
-      parents: req.body.parentsMobNo,
-      partnerParents: req.body.partnerParentsMobNo,
-    });
-    console.log('   📎 Files Uploaded:', uploadResults.length);
     console.log('   🆔 Application ID:', application.id);
-    console.log('   ⏰ Submitted at:', new Date().toLocaleString());
     console.log('===================================================');
 
     res.status(201).json({
-      success: true,
-      message: 'Application submitted successfully',
-      data: application,
+      success:true,
+      message:'Application submitted successfully',
+      data:application,
     });
-
   } catch (uploadError) {
     console.error('❌ File upload error:', uploadError);
-    return next(new errorhandler('File upload failed. Please try again.', 500));
+    return next(new errorhandler('File upload failed. Please try again.',500));
   }
 });
+
 
 // export const createApplication = catchAsyncError(async (req, res, next) => {
 //   // Validate request body
