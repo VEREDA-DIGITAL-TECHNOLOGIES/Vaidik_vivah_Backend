@@ -1,4 +1,4 @@
-  import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import express from "express";
 export const app = express();
 import cors from "cors";
@@ -36,7 +36,7 @@ import ApplicationRouter from "./routes/applicationRoutes.js"
 dotenv.config();
 
 
-
+app.use('/api/v1/application-plan', ApplicationRouter);
 app.use("/api/v1/payment-process", webhookRouter);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.static("./public"));
@@ -62,6 +62,12 @@ app.use(cors({
   credentials: true
 }));
 
+
+
+app.use((req, res, next) => {
+  console.log(`➡️ [${req.method}] ${req.originalUrl}`);
+  next();
+});
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/question", questionRouter);
 app.use("/api/v1/form", formRouter);
@@ -89,10 +95,10 @@ app.use("/api/admin/control", adminControl);
 app.use("/api/admin/banner", bannerRouter);
 app.use("/api/admin/contact",contactRouter)
 // adminControl
-
+app.use('/api/v1/application-plan', ApplicationRouter);
 
 app.use('/api/admin-dashboard', AdminUserRouter);
-app.use('/api/v1/application-plan', ApplicationRouter);
+
 
 
 
