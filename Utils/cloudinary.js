@@ -12,6 +12,21 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+
+
+export const uploadBufferToCloudinary = async (buffer, folder = "vivah_applications") => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "auto" },
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+};
+
 const uploadCloudinary = async (localFilePaths) => {
   try {
     if (!localFilePaths) {

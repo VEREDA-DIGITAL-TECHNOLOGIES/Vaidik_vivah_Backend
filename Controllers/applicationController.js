@@ -1,14 +1,19 @@
 import { Application, Plan } from '../Models/association.js';
-
+import { v2 as cloudinary } from "cloudinary";
 import { uploadCloudinary } from '../Utils/cloudinary.js';
 import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
+import fs from "fs";
+import path from "path";
+
+import { uploadBufferToCloudinary } from '../Utils/cloudinary.js';
+
 
 export const createApplication = catchAsyncError(async (req, res, next) => {
-
   console.log('📦 Received files:', req.files);
   console.log('📦 Received body:', req.body);
 
+  // ✅ Validate required fields
   const requiredFields = [
     'planName','nom','fatherName','loginId','address','penaltyType',
     'partnerName','partnerFatherName','partnerLoginId','partnerAddress',
@@ -18,31 +23,28 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
   if (missingFields.length)
     return next(new errorhandler(`Missing required fields: ${missingFields.join(', ')}`,400));
 
+  // ✅ Validate mobile numbers
   const mobileFields = ['yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo'];
   const invalidMobiles = mobileFields.filter(f => !/^\d{10}$/.test(req.body[f]||''));
   if (invalidMobiles.length)
     return next(new errorhandler(`Invalid mobile numbers: ${invalidMobiles.join(', ')}`,400));
 
+  // ✅ Validate required files
   const requiredFiles = ['yourIdPost','parentsIdPost','partnerIdPost','partnerParentsIdPost'];
   const missingFiles = requiredFiles.filter(f => !req.files?.[f]);
   if (missingFiles.length)
     return next(new errorhandler(`Missing required files: ${missingFiles.join(', ')}`,400));
 
   try {
-    // ✅ Upload using in-memory buffer instead of file.path
+    // ✅ Upload buffers directly to Cloudinary (no temp file)
     const uploadPromises = requiredFiles.map(async field => {
       const file = req.files[field][0];
-      const result = await new Promise((resolve, reject) => {
-        const stream = cloudinary.v2.uploader.upload_stream(
-          { folder: 'vivah_applications', resource_type: 'auto' },
-          (err, uploadResult) => err ? reject(err) : resolve(uploadResult)
-        );
-        stream.end(file.buffer); // <-- key change
-      });
-      return { field, url: result.secure_url, publicId: result.public_id };
+      const uploaded = await uploadBufferToCloudinary(file.buffer);
+      return { field, url: uploaded.secure_url, publicId: uploaded.public_id };
     });
 
     const uploadResults = await Promise.all(uploadPromises);
+
     const cloudinaryUrls = {};
     uploadResults.forEach(r => {
       cloudinaryUrls[`${r.field}Url`] = r.url;
@@ -53,27 +55,27 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     const partnerParentsCertified = req.body.partnerParentsCertified === 'true';
 
     const application = await Application.create({
-      planId:req.body.planId,
-      userId:req.body.userId,
-      planName:"Diamond",
-      nom:req.body.nom,
-      fatherName:req.body.fatherName,
-      loginId:req.body.loginId,
-      address:req.body.address,
-      penaltyType:req.body.penaltyType,
-      partnerName:req.body.partnerName,
-      partnerFatherName:req.body.partnerFatherName,
-      partnerLoginId:req.body.partnerLoginId,
-      partnerAddress:req.body.partnerAddress,
-      yourMobNo:req.body.yourMobNo,
-      partnerMobNo:req.body.partnerMobNo,
+      planId: req.body.planId,
+      userId: req.body.userId,
+      planName: req.body.planName || "Diamond",
+      nom: req.body.nom,
+      fatherName: req.body.fatherName,
+      loginId: req.body.loginId,
+      address: req.body.address,
+      penaltyType: req.body.penaltyType,
+      partnerName: req.body.partnerName,
+      partnerFatherName: req.body.partnerFatherName,
+      partnerLoginId: req.body.partnerLoginId,
+      partnerAddress: req.body.partnerAddress,
+      yourMobNo: req.body.yourMobNo,
+      partnerMobNo: req.body.partnerMobNo,
       parentsCertified,
-      parentsMobNo:req.body.parentsMobNo,
-      partnerParentsMobNo:req.body.partnerParentsMobNo,
+      parentsMobNo: req.body.parentsMobNo,
+      partnerParentsMobNo: req.body.partnerParentsMobNo,
       partnerParentsCertified,
       ...cloudinaryUrls,
-      paymentAmount:parseFloat(req.body.applicationFee)||1000.00,
-      applicationDate:req.body.applicationDate?new Date(req.body.applicationDate):new Date(),
+      paymentAmount: parseFloat(req.body.applicationFee) || 1000.00,
+      applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : new Date(),
     });
 
     console.log('🚀 ===== VIVAH SANSAKAR APPLICATION SUBMITTED =====');
@@ -81,93 +83,16 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     console.log('===================================================');
 
     res.status(201).json({
-      success:true,
-      message:'Application submitted successfully',
-      data:application,
+      success: true,
+      message: 'Application submitted successfully',
+      data: application,
     });
+
   } catch (uploadError) {
     console.error('❌ File upload error:', uploadError);
-    return next(new errorhandler('File upload failed. Please try again.',500));
+    return next(new errorhandler('File upload failed. Please try again.', 500));
   }
 });
-
-
-// export const createApplication = catchAsyncError(async (req, res, next) => {
-//   // Validate request body
-//   const { error, value } = validateApplication(req.body);
-//   if (error) {
-//     return next(new errorhandler(`Validation failed: ${error.details.map(detail => detail.message).join(', ')}`, 400));
-//   }
-
-//   // Check if plan exists
-//   const plan = await Plan.findByPk(value.planId);
-//   if (!plan) {
-//     return next(new errorhandler('Plan not found', 404));
-//   }
-
-//   // Check if required files are uploaded
-//   const requiredFiles = ['yourIdPost', 'parentsIdPost', 'partnerIdPost', 'partnerParentsIdPost'];
-//   const missingFiles = requiredFiles.filter(field => !req.files?.[field]);
-
-//   if (missingFiles.length > 0) {
-//     return next(new errorhandler(`Missing required files: ${missingFiles.join(', ')}`, 400));
-//   }
-
-//   // Upload all files to Cloudinary in parallel
-//   const uploadPromises = requiredFiles.map(async (field) => {
-//     const file = req.files[field][0];
-//     const uploadResult = await uploadCloudinary(file.path);
-//     return {
-//       field,
-//       url: uploadResult.secure_url,
-//       publicId: uploadResult.public_id
-//     };
-//   });
-
-//   const uploadResults = await Promise.all(uploadPromises);
-
-//   // Create cloudinaryUrls object from upload results
-//   const cloudinaryUrls = {};
-//   uploadResults.forEach(result => {
-//     cloudinaryUrls[`${result.field}Url`] = result.url;
-//     cloudinaryUrls[`${result.field}PublicId`] = result.publicId;
-//   });
-
-//   // Create application
-//   const application = await Application.create({
-//     ...value,
-//     ...cloudinaryUrls,
-//     paymentAmount: 1000.00,
-//   });
-
-//   // Include plan details in response
-//   const applicationWithPlan = await Application.findByPk(application.id, {
-//     include: [{ model: Plan, as: 'plan' }],
-//   });
-
-//   console.log('🚀 ===== VIVAH SANSAKAR APPLICATION SUBMITTED =====');
-//   console.log('📋 APPLICATION DETAILS:');
-//   console.log('   📝 Plan:', plan.name);
-//   console.log('   👤 Applicant:', value.nom);
-//   console.log('   👥 Partner:', value.partnerName);
-//   console.log('   ⚖️  Penalty Type:', value.penaltyType);
-//   console.log('   📞 Contact Numbers:', {
-//     applicant: value.yourMobNo,
-//     partner: value.partnerMobNo,
-//     parents: value.parentsMobNo,
-//     partnerParents: value.partnerParentsMobNo,
-//   });
-//   console.log('   📎 Files Uploaded:', uploadResults.length);
-//   console.log('   🆔 Application ID:', application.id);
-//   console.log('   ⏰ Submitted at:', new Date().toLocaleString());
-//   console.log('===================================================');
-
-//   res.status(201).json({
-//     success: true,
-//     message: 'Application submitted successfully',
-//     data: applicationWithPlan,
-//   });
-// });
 
 // Other controller functions remain similar but with catchAsyncError
 export const getApplications = catchAsyncError(async (req, res, next) => {
@@ -261,3 +186,7 @@ export const getApplicationStats = catchAsyncError(async (req, res, next) => {
     },
   });
 });
+
+
+
+
