@@ -110,24 +110,25 @@
             line-height: 24px;
         }
 
+        /* ✅ Reduced OTP box size */
         .otp {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin: 30px 0;
+            gap: 10px;
+            margin: 25px 0;
             flex-wrap: wrap;
         }
 
         .otp div {
-            font-size: 42px;
-            font-weight: 800;
+            font-size: 30px;
+            font-weight: 700;
             color: #FFFFFF;
-            padding: 15px 25px;
+            padding: 10px 18px;
             background: linear-gradient(135deg, #FF4081, #FF80AB);
-            border-radius: 12px;
-            min-width: 70px;
+            border-radius: 10px;
+            min-width: 50px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(216, 27, 96, 0.2);
+            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.15);
             animation: pulse 2s infinite;
             position: relative;
             overflow: hidden;
@@ -147,7 +148,7 @@
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.04); }
             100% { transform: scale(1); }
         }
 
@@ -158,7 +159,7 @@
         }
 
         #char {
-            margin-right: 20px;
+            margin-right: 10px;
         }
 
         #thakyou {
@@ -236,9 +237,9 @@
             }
 
             .otp div {
-                font-size: 32px;
-                padding: 12px 20px;
-                min-width: 60px;
+                font-size: 26px;
+                padding: 8px 14px;
+                min-width: 40px;
             }
             
             .content p {
@@ -253,18 +254,18 @@
 
         @media screen and (max-width: 400px) {
             .otp div {
-                font-size: 28px;
-                padding: 10px 16px;
-                min-width: 50px;
+                font-size: 24px;
+                padding: 7px 12px;
+                min-width: 35px;
             }
             
             #char {
-                margin-right: 10px;
+                margin-right: 6px;
             }
 
             .content h3 {
-                font-size: 28px;
-                line-height: 34px;
+                font-size: 26px;
+                line-height: 32px;
             }
         }
     </style>
