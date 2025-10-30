@@ -38,12 +38,7 @@ const Application = sequelize.define('Application', {
   
   // Penalty Information
   penaltyType: {
-    type: DataTypes.ENUM(
-      'home-simple',
-      'home-voluntary',
-      'maximize-hall',
-      'maximize-hall-returns'
-    ),
+    type: DataTypes.STRING,
     allowNull: false,
   },
   
