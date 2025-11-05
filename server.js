@@ -50,7 +50,7 @@ const startServer = async () => {
         await ToggleSection.sync({ force: false }); 
         await gayatri.sync({ force: false }); 
         await block.sync({ force: false })
-        await documentUpload.sync({ force: false });
+        await documentUpload.sync({ alter:true});
         await report.sync({ force: false }); 
         await Admin.sync({ force: false }); 
         await AdminApiLog.sync({ force: false }); 
