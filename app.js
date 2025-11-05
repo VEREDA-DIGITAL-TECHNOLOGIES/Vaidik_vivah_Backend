@@ -33,6 +33,8 @@ import adminControl from './routes/Admin/admin.user.contorl.route.js';
 import bannerRouter from './routes/Admin/banner.routes.js';
 import contactRouter from './routes/contactRoutes.js';
 import ApplicationRouter from "./routes/applicationRoutes.js"
+import documentUpload from './Models/document.upload.js';
+import connectDB from './Utils/db.js';
 dotenv.config();
 
 
@@ -100,13 +102,50 @@ app.use('/api/v1/application-plan', ApplicationRouter);
 app.use('/api/admin-dashboard', AdminUserRouter);
 
 
+const sequelize = connectDB();
+app.get("/test", async (req, res) => {
+  try {
+    console.log("🧩 Running /test for documentUpload table...");
 
+    const tableName = documentUpload.getTableName(); // typically "documentUploads"
 
-app.get("/test", async (req, res, next) => {
-  res.status(200).json({
-    success: true, message: "Api is working"
-  })
-})
+    // Get columns info
+    const [columns] = await sequelize.query(`
+      SELECT 
+        column_name AS "Field",
+        data_type AS "Type",
+        is_nullable AS "Null",
+        column_default AS "Default",
+        udt_name AS "UDTName"
+      FROM information_schema.columns
+      WHERE table_name = '${tableName}';
+    `);
+
+    // Now get ENUM values (specific to isVerified column)
+    const [enumValues] = await sequelize.query(`
+      SELECT e.enumlabel AS "enum_value"
+      FROM pg_type t 
+      JOIN pg_enum e ON t.oid = e.enumtypid  
+      WHERE t.typname = 'enum_${tableName}_isVerified';
+    `);
+
+    res.status(200).json({
+      success: true,
+      message: "API is working ✅ (PostgreSQL ENUM version)",
+      table: tableName,
+      schema: columns,
+      enumValues: enumValues.map(e => e.enum_value) // ['pending','verified','rejected','suspended']
+    });
+
+  } catch (error) {
+    console.error("❌ Error in /test route:", error);
+    res.status(500).json({
+      success: false,
+      message: "API reachable but ENUM/schema query failed ❌",
+      error: error.message
+    });
+  }
+});
 
 
 app.use(ErrorMiddleware);

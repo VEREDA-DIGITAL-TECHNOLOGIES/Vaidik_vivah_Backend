@@ -116,7 +116,6 @@ export const deleteUserAccount = catchAsyncError(async (req, res, next) => {
 
 // Suspend user account by marking documents as suspended
 // Suspend user account by marking documents as suspended
-
 export const suspendUserAccount = catchAsyncError(async (req, res, next) => {
   console.log("---- [START] suspendUserAccount ----");
 
@@ -124,7 +123,6 @@ export const suspendUserAccount = catchAsyncError(async (req, res, next) => {
   console.log("Incoming request data:", { userId });
 
   try {
-    // 🧩 Find the document
     const document = await documentUpload.findOne({ where: { userId } });
     console.log("Document lookup result:", document ? "Found" : "Not found");
 
@@ -133,45 +131,20 @@ export const suspendUserAccount = catchAsyncError(async (req, res, next) => {
       return next(new errorhandler("No document found for this user", 404));
     }
 
-    // 🧩 Attempt update
-    try {
-      await document.update({ isVerified: "suspended" });
-      console.log(`✅ Document for userId ${userId} updated to status: suspended`);
+    await document.update({ isVerified: "suspended" });
+    console.log(`Document for userId ${userId} updated to status: suspended`);
 
-      return res.status(200).json({
-        success: true,
-        message: "User account suspended successfully",
-        data: { isVerified: "suspended" },
-      });
-    } catch (updateErr) {
-      console.error("⚠️ Update failed, likely due to ENUM mismatch:", updateErr.message);
-
-      // 🧩 Check the actual ENUM definition from the DB
-      const [columnInfo] = await sequelize.query(
-        `SHOW COLUMNS FROM documentUploads LIKE 'isVerified';`,
-        { type: QueryTypes.SHOWCOLUMNS }
-      );
-
-      const columnType = columnInfo?.Type || "unknown";
-      console.log("🧾 Current ENUM definition:", columnType);
-
-      return res.status(500).json({
-        success: false,
-        message:
-          "Failed to update user account. The 'suspended' status might not exist in ENUM.",
-        currentEnumType: columnType,
-        error: updateErr.message,
-      });
-    }
-  } catch (error) {
-    console.error("❌ Error in suspendUserAccount:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      error: error.message,
+    res.status(200).json({
+      success: true,
+      message: "User account suspended successfully",
+      data: { isVerified: "suspended" },
     });
-  } finally {
+
+    console.log("Response sent successfully for userId:", userId);
     console.log("---- [END] suspendUserAccount ----");
+  } catch (error) {
+    console.error("Error in suspendUserAccount:", error);
+    next(error);
   }
 });
 
