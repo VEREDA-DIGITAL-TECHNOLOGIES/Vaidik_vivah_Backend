@@ -115,83 +115,125 @@ export const deleteUserAccount = catchAsyncError(async (req, res, next) => {
 
 
 // Suspend user account by marking documents as suspended
+// Suspend user account by marking documents as suspended
 export const suspendUserAccount = catchAsyncError(async (req, res, next) => {
-  const {userId} = req.body;
+  console.log("---- [START] suspendUserAccount ----");
 
-  const document = await documentUpload.findOne({ where: { userId } });
-  
-  if (!document) {
-    return next(new errorhandler("No document found for this user", 404));
-  }
+  const { userId } = req.body;
+  console.log("Incoming request data:", { userId });
 
-  await document.update({ isVerified: "suspended" });
-
-  res.status(200).json({
-    success: true,
-    message: "User account suspended successfully",
-    data: {
-      isVerified: "suspended"
-    }
-  });
-});
-export const updateDocumentStatus = async (req, res) => {
   try {
-    const { userId, status } = req.body;
+    const document = await documentUpload.findOne({ where: { userId } });
+    console.log("Document lookup result:", document ? "Found" : "Not found");
 
-   
-    const validStatuses = ['pending', 'verified', 'rejected', 'suspended'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid status value' });
+    if (!document) {
+      console.log("No document found for userId:", userId);
+      return next(new errorhandler("No document found for this user", 404));
     }
 
+    await document.update({ isVerified: "suspended" });
+    console.log(`Document for userId ${userId} updated to status: suspended`);
+
+    res.status(200).json({
+      success: true,
+      message: "User account suspended successfully",
+      data: { isVerified: "suspended" },
+    });
+
+    console.log("Response sent successfully for userId:", userId);
+    console.log("---- [END] suspendUserAccount ----");
+  } catch (error) {
+    console.error("Error in suspendUserAccount:", error);
+    next(error);
+  }
+});
+
+
+// Update document status and manage related user data
+export const updateDocumentStatus = async (req, res) => {
+  console.log("---- [START] updateDocumentStatus ----");
+
+  const { userId, status } = req.body;
+  console.log("Incoming request data:", { userId, status });
+
+  try {
+    const validStatuses = ["pending", "verified", "rejected", "suspended"];
+    if (!validStatuses.includes(status)) {
+      console.log("Invalid status value received:", status);
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status value" });
+    }
 
     const document = await documentUpload.findOne({ where: { userId } });
-    if (!document) {
-      return res.status(404).json({ success: false, message: 'Document not found for this user' });
-    }
+    console.log("Document lookup result:", document ? "Found" : "Not found");
 
+    if (!document) {
+      console.log("No document found for userId:", userId);
+      return res
+        .status(404)
+        .json({ success: false, message: "Document not found for this user" });
+    }
 
     document.isVerified = status;
     await document.save();
+    console.log(`Document for userId ${userId} updated to status: ${status}`);
 
-   
-    if (status === 'verified') {
+    // If document is verified, update user and recommendation records
+    if (status === "verified") {
+      console.log("Document verified. Fetching related User and Recommendation records...");
 
       const user = await User.findByPk(userId);
       const reco = await Recommendation.findOne({ where: { userId } });
 
+      console.log("User lookup:", user ? "Found" : "Not found");
+      console.log("Recommendation lookup:", reco ? "Found" : "Not found");
+
       if (!user || !reco) {
-        return res.status(404).json({ success: false, message: 'User or recommendation not found' });
+        console.log("User or Recommendation record missing for userId:", userId);
+        return res
+          .status(404)
+          .json({ success: false, message: "User or recommendation not found" });
       }
 
-     
-      const isWoman = reco.gender?.toLowerCase() === 'woman';
+      const isWoman = reco.gender?.toLowerCase() === "woman";
+      console.log("Gender check result:", reco.gender, "=> isWoman =", isWoman);
 
       if (isWoman) {
-        user.usertype = 'Gold';
-        reco.usertype = 'Gold';
+        console.log("Assigning Gold usertype for userId:", userId);
+        user.usertype = "Gold";
+        reco.usertype = "Gold";
         await user.save();
         await reco.save();
+      } else {
+        console.log("No usertype change required for userId:", userId);
       }
+
+      console.log("Successfully updated document, user, and recommendation records.");
 
       return res.status(200).json({
         success: true,
-        message: 'Verified. Document status and user type updated if applicable.',
+        message: "Verified. Document status and user type updated if applicable.",
         updatedDocument: document,
         updatedUser: user,
-        updatedReco: reco
+        updatedReco: reco,
       });
     }
 
-
-    return res.status(200).json({
+    console.log("Document status updated successfully (non-verified path).");
+    res.status(200).json({
       success: true,
-      message: 'Document status updated',
-      updatedDocument: document
+      message: "Document status updated",
+      updatedDocument: document,
     });
 
+    console.log("Response sent successfully for userId:", userId);
+    console.log("---- [END] updateDocumentStatus ----");
   } catch (err) {
-    console.error('Error updating document status:', err);
-    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    console.error("Error updating document status:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
+
