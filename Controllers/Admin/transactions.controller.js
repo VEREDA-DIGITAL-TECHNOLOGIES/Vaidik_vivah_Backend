@@ -5,88 +5,97 @@ import errorhandler from "../../Utils/errorhandler.js";
 import moment from "moment";
 import plan from "../../Models/plan.model.js";
 import personalDetails from "../../Models/personalDetails.model.js";
-
+import Recommendation from "../../Models/recommendation.model.js";
 export const getAllBillingInfo = catchAsyncError(async (req, res, next) => {
-    try {
-        const users = await User.findAll({
-            attributes: ["userId", "email"],
-            include: [
-                {
-                    model: personalDetails,
-                    as: "personalDetails",
-                    attributes: ["displayName"],
-                },
-            ],
-        });
+  try {
+      const users = await User.findAll({
+          attributes: ["userId", "email"],
+          include: [
+              {
+                  model: personalDetails,
+                  as: "personalDetails",
+                  attributes: ["displayName"],
+              },
+              {
+                  model: Recommendation,
+                  as: "recommendations",
+                  attributes: ["gender"],
+              },
+          ],
+      });
 
-        const billingData = await Promise.all(
-            users.map(async (user) => {
-                const latestSubscription = await Subscription.findOne({
-                    where: { userId: user.userId },
-                    order: [["createdAt", "DESC"]],
-                    include: [
-                        {
-                            model: plan,
-                            as: "plans",
-                            attributes: ["planName", "price", "durationInMonths"],
-                        },
-                    ],
-                });
+      const billingData = await Promise.all(
+          users.map(async (user) => {
+              const latestSubscription = await Subscription.findOne({
+                  where: { userId: user.userId },
+                  order: [["createdAt", "DESC"]],
+                  include: [
+                      {
+                          model: plan,
+                          as: "plans",
+                          attributes: ["planName", "price", "durationInMonths"],
+                      },
+                  ],
+              });
 
-                const displayName = user.personalDetails?.[0]?.displayName || "";
+              const displayName = user.personalDetails?.[0]?.displayName || "";
+              const gender = user.recommendations?.[0]?.gender || "Not Specified";
 
-                if (!latestSubscription) {
-                    return {
-                        userId: user.userId,
-                        name: displayName,
-                        email: user.email,
-                        currentPlan: "Standard",
-                        totalDays: 0,
-                        expirationDate: "N/A",
-                        planType: "N/A",
-                        remainingDays: 0,
-                        notifications: false,
-                        price: "Free",
-                    };
-                }
+              if (!latestSubscription) {
+                  return {
+                      userId: user.userId,
+                      name: displayName,
+                      gender,
+                      email: user.email,
+                      currentPlan: "Standard",
+                      totalDays: 0,
+                      expirationDate: "N/A",
+                      planType: "N/A",
+                      remainingDays: 0,
+                      notifications: false,
+                      price: "Free",
+                  };
+              }
 
-                const planData = latestSubscription.plans;
-                const today = moment().startOf("day");
-                const startDate = moment(latestSubscription.startDate).startOf("day");
-                const expirationDate = moment(latestSubscription.endDate).startOf("day");
+              const planData = latestSubscription.plans;
+              const today = moment().startOf("day");
+              const startDate = moment(latestSubscription.startDate).startOf("day");
+              const expirationDate = moment(latestSubscription.endDate).startOf("day");
 
-                const totalDays = expirationDate.diff(startDate, "days");
-                const remainingDays = expirationDate.diff(today, "days");
-                const isYearly = planData?.durationInMonths >= 12;
+              const totalDays = expirationDate.diff(startDate, "days");
+              const remainingDays = expirationDate.diff(today, "days");
+              const isYearly = planData?.durationInMonths >= 12;
 
-                return {
-                    userId: user.userId,
-                    name: displayName,
-                    email: user.email,
-                    currentPlan: planData?.planName?.split(" ")[0] || "Unknown",
-                    totalDays,
-                    expirationDate: expirationDate.format("ll"),
-                    planType: isYearly ? "Year" : "Month",
-                    remainingDays,
-                    notifications: remainingDays <= 6,
-                    price: `${planData?.price || 0}`,
-                };
-            })
-        );
+              return {
+                  userId: user.userId,
+                  name: displayName,
+                  gender,
+                  email: user.email,
+                  currentPlan: planData?.planName?.split(" ")[0] || "Unknown",
+                  totalDays,
+                  expirationDate: expirationDate.format("ll"),
+                  planType: isYearly ? "Year" : "Month",
+                  remainingDays,
+                  notifications: remainingDays <= 6,
+                  price: `${planData?.price || 0}`,
+              };
+          })
+      );
 
-        res.status(200).json({
-            success: true,
-            data: billingData,
-            message: "All users' billing information fetched successfully!",
-        });
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
-    }
+      res.status(200).json({
+          success: true,
+          data: billingData,
+          message: "All users' billing information fetched successfully!",
+      });
+  } catch (error) {
+      return next(new errorhandler(error.message, 500));
+  }
 });
 
 
+
 import { Op } from "sequelize";
-import { Parser } from "json2csv"; // For CSV export
+import { Parser } from "json2csv"; 
 
 
 
