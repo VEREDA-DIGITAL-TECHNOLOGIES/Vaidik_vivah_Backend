@@ -148,7 +148,7 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
   
       // 6️⃣ Send admin notification email
       await sendEmail({
-        email: "abhishek@vereda.co.in", // admin email
+        email: "info@vedvivah.com", // admin email
         subject: "🪔 New VaidikVivah Account Created",
         template: "accountCreate.ejs",
         data: {
