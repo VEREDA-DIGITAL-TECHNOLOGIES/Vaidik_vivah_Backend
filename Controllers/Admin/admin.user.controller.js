@@ -4,7 +4,7 @@ import errorhandler from '../../Utils/errorhandler.js';
 import { catchAsyncError } from '../../Middlewares/catchAsyncError.js';
 import connectDB from '../../Utils/db.js';
 import { Op } from 'sequelize';
-
+import sendEmail from '../../Utils/sendMail.js';
 import {
   User,
   Answer,
@@ -149,67 +149,61 @@ export const suspendUserAccount = catchAsyncError(async (req, res, next) => {
 });
 
 
-// Update document status and manage related user data
+
 export const updateDocumentStatus = async (req, res) => {
   console.log("---- [START] updateDocumentStatus ----");
 
   const { userId, status } = req.body;
-  console.log("Incoming request data:", { userId, status });
 
   try {
     const validStatuses = ["pending", "verified", "rejected", "suspended"];
     if (!validStatuses.includes(status)) {
-      console.log("Invalid status value received:", status);
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid status value" });
+      return res.status(400).json({ success: false, message: "Invalid status value" });
     }
 
     const document = await documentUpload.findOne({ where: { userId } });
-    console.log("Document lookup result:", document ? "Found" : "Not found");
-
     if (!document) {
-      console.log("No document found for userId:", userId);
-      return res
-        .status(404)
-        .json({ success: false, message: "Document not found for this user" });
+      return res.status(404).json({ success: false, message: "Document not found" });
     }
 
     document.isVerified = status;
     await document.save();
-    console.log(`Document for userId ${userId} updated to status: ${status}`);
 
-    // If document is verified, update user and recommendation records
     if (status === "verified") {
-      console.log("Document verified. Fetching related User and Recommendation records...");
-
       const user = await User.findByPk(userId);
       const reco = await Recommendation.findOne({ where: { userId } });
 
-      console.log("User lookup:", user ? "Found" : "Not found");
-      console.log("Recommendation lookup:", reco ? "Found" : "Not found");
-
       if (!user || !reco) {
-        console.log("User or Recommendation record missing for userId:", userId);
-        return res
-          .status(404)
-          .json({ success: false, message: "User or recommendation not found" });
+        return res.status(404).json({ success: false, message: "User or recommendation not found" });
       }
 
       const isWoman = reco.gender?.toLowerCase() === "woman";
-      console.log("Gender check result:", reco.gender, "=> isWoman =", isWoman);
 
       if (isWoman) {
-        console.log("Assigning Gold usertype for userId:", userId);
         user.usertype = "Gold";
         reco.usertype = "Gold";
         await user.save();
         await reco.save();
-      } else {
-        console.log("No usertype change required for userId:", userId);
-      }
 
-      console.log("Successfully updated document, user, and recommendation records.");
+        // ✉️ Send notification email when woman is upgraded to Gold
+        try {
+          await sendEmail({
+            email: "abhishek@vereda.co.in",
+            subject: `Gold Membership Update - ${user.fullname || "User"}`,
+            template: "goldUpgradeNotification.ejs",
+            data: {
+              name: user.fullname || "User",
+              email: user.email || "N/A",
+              userId: userId,
+              updatedAt: new Date().toLocaleString(),
+            },
+          });
+
+          console.log(`📧 Gold upgrade notification sent for userId: ${userId}`);
+        } catch (emailErr) {
+          console.error("❌ Failed to send notification email:", emailErr.message);
+        }
+      }
 
       return res.status(200).json({
         success: true,
@@ -220,20 +214,15 @@ export const updateDocumentStatus = async (req, res) => {
       });
     }
 
-    console.log("Document status updated successfully (non-verified path).");
     res.status(200).json({
       success: true,
       message: "Document status updated",
       updatedDocument: document,
     });
-
-    console.log("Response sent successfully for userId:", userId);
-    console.log("---- [END] updateDocumentStatus ----");
   } catch (err) {
     console.error("Error updating document status:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 

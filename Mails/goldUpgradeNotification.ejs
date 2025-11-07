@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gold Membership Notification</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f7f7f7;
+      padding: 30px;
+      color: #333;
+    }
+    .container {
+      background-color: #fff;
+      max-width: 600px;
+      margin: auto;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .header {
+      text-align: center;
+      background-color: #ffd700;
+      padding: 15px;
+      border-radius: 8px 8px 0 0;
+    }
+    .header h2 {
+      margin: 0;
+      color: #222;
+    }
+    .content {
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+    .info-box {
+      background-color: #faf2c5;
+      border-left: 5px solid #d4af37;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Gold Membership Upgrade</h2>
+    </div>
+
+    <div class="content">
+      <p>Hello Abhishek,</p>
+      <p>This is to inform you that the following <strong>woman user</strong> has been upgraded to <b>Gold</b> membership:</p>
+
+      <div class="info-box">
+        <p><strong>Name:</strong> <%= name %></p>
+        <p><strong>Email:</strong> <%= email %></p>
+        <p><strong>User ID:</strong> <%= userId %></p>
+        <p><strong>Updated At:</strong> <%= updatedAt %></p>
+      </div>
+
+      <p>Please review the details as needed.</p>
+      <p>— System Notification</p>
+    </div>
+
+    <div class="footer">
+      <p>© <%= new Date().getFullYear() %> Wedlock System</p>
+    </div>
+  </div>
+</body>
+</html>
