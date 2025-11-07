@@ -101,9 +101,9 @@ export const deleteDocument = catchAsyncError(async (req, res, next) => {
 
 export const verifyDocument = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
-  const { status } = req.body; // should be 'verified' or 'rejected'
+  const { status } = req.body; // should be 'verified' or 'rejected' 'pending', 'verified', 'rejected', 'suspended'
 
-  const validStatus = ['verified', 'rejected'];
+  const validStatus = ['pending', 'verified', 'rejected', 'suspended'];
   if (!validStatus.includes(status)) {
     return next(new errorhandler("Invalid verification status", 400));
   }
@@ -118,7 +118,7 @@ export const verifyDocument = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: `Document marked as ${status}`,
-    data: doc
+    dataa: doc
   });
 });
 
