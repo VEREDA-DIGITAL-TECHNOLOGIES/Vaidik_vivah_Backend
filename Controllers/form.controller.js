@@ -10,7 +10,7 @@ import { catchAsyncError } from "../Middlewares/catchAsyncError.js";
 import { uploadCloudinary } from "../Utils/cloudinary.js"
 import recommendation from "../Models/recommendation.model.js";
 import Gayatri from "../Models/gayatri.model.js";
-
+import sendEmail from "../Utils/sendMail.js";
 dotenv.config();
 
 export const personalDetailsRegister = catchAsyncError(async (req, res, next) => {
@@ -109,32 +109,72 @@ export const locationDetailsRegister = catchAsyncError(async (req, res, next) =>
 })
 
 export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
-
-    const userId = req.user.userId;
-    const { caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth } = req.body;
-
-    if (!caste || !community || !dateOfBirth || !timeOfBirth || !religion || !placeOfBirth) {
+    try {
+      const userId = req.user.userId;
+      const { caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth } = req.body;
+  
+      // 1️⃣ Validate input
+      if (!caste || !community || !dateOfBirth || !timeOfBirth || !religion || !placeOfBirth) {
         return res.status(400).json({ success: false, message: "All fields are required!" });
-    }
-
-    const otherDetailsExist = await otherDetails.findOne({ where: { userId } });
-
-    if (otherDetailsExist) {
+      }
+  
+      // 2️⃣ Prevent duplicate entries
+      const existing = await otherDetails.findOne({ where: { userId } });
+      if (existing) {
         return res.status(400).json({ success: false, message: "Other details already exist!" });
-    }
-
-    const otherDetailsData = await otherDetails.create({ caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth, userId });
-
-    await recommendation.update({ caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth }, { where: { userId } });
-
-
-    await User.update({ isOtherFormFilled: true }, { where: { userId } });
-    res.status(201).json({
+      }
+  
+      // 3️⃣ Create record
+      const otherDetailsData = await otherDetails.create({
+        caste,
+        community,
+        dateOfBirth,
+        timeOfBirth,
+        religion,
+        placeOfBirth,
+        userId,
+      });
+  
+      // 4️⃣ Update related tables
+      await recommendation.update(
+        { caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth },
+        { where: { userId } }
+      );
+  
+      await User.update({ isOtherFormFilled: true }, { where: { userId } });
+  
+      // 5️⃣ Fetch user info for email
+      const user = await User.findOne({ where: { userId } });
+  
+      // 6️⃣ Send admin notification email
+      await sendEmail({
+        email: "abhishek@vereda.co.in", // admin email
+        subject: "🪔 New VaidikVivah Account Created",
+        template: "accountCreate.ejs",
+        data: {
+          name: user?.fullName || `${user?.email || "New User"}`,
+          userId,
+          caste,
+          community,
+          dateOfBirth,
+          timeOfBirth,
+          religion,
+          placeOfBirth,
+        },
+      });
+  
+      // 7️⃣ Response
+      res.status(201).json({
         success: true,
         message: "Other details added successfully",
-        otherDetailsData
-    })
-})
+        otherDetailsData,
+      });
+  
+    } catch (error) {
+      return next(new errorhandler(error.message, 500));
+    }
+  });
+  
 
 export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
     const userId = req.user.userId;
