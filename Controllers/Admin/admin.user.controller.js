@@ -5,6 +5,7 @@ import { catchAsyncError } from '../../Middlewares/catchAsyncError.js';
 import connectDB from '../../Utils/db.js';
 import { Op } from 'sequelize';
 import sendEmail from '../../Utils/sendMail.js';
+
 import {
   User,
   Answer,
@@ -151,8 +152,6 @@ export const suspendUserAccount = catchAsyncError(async (req, res, next) => {
 
 
 export const updateDocumentStatus = async (req, res) => {
-  console.log("---- [START] updateDocumentStatus ----");
-
   const { userId, status } = req.body;
 
   try {
@@ -161,14 +160,17 @@ export const updateDocumentStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid status value" });
     }
 
+    // Fetch document
     const document = await documentUpload.findOne({ where: { userId } });
     if (!document) {
       return res.status(404).json({ success: false, message: "Document not found" });
     }
 
+    // Update document status
     document.isVerified = status;
     await document.save();
 
+    // Handle verification flow
     if (status === "verified") {
       const user = await User.findByPk(userId);
       const reco = await Recommendation.findOne({ where: { userId } });
@@ -177,52 +179,73 @@ export const updateDocumentStatus = async (req, res) => {
         return res.status(404).json({ success: false, message: "User or recommendation not found" });
       }
 
-      const isWoman = reco.gender?.toLowerCase() === "woman";
+      const rawGender = reco.gender || "";
+      const genderValue = rawGender.trim().toLowerCase();
+      const isWoman = genderValue === "woman";
 
+      // If woman → upgrade to Gold
       if (isWoman) {
         user.usertype = "Gold";
         reco.usertype = "Gold";
         await user.save();
         await reco.save();
 
-        // ✉️ Send notification email when woman is upgraded to Gold
+        // Send admin email for Gold upgrade
         try {
           await sendEmail({
             email: "abhishek@vereda.co.in",
-            subject: `Gold Membership Update - ${user.fullname || "User"}`,
-            template: "goldUpgradeNotification.ejs",
+            subject: `🌟 Gold Membership Upgrade - ${user.fullname || "User"}`,
+            template: "goldUpgradeAdminNotification.ejs",
             data: {
               name: user.fullname || "User",
               email: user.email || "N/A",
-              userId: userId,
+              userId: user.userId,
               updatedAt: new Date().toLocaleString(),
             },
           });
-
-          console.log(`📧 Gold upgrade notification sent for userId: ${userId}`);
-        } catch (emailErr) {
-          console.error("❌ Failed to send notification email:", emailErr.message);
+        } catch (err) {
+          // Silently ignore admin email failure
         }
+      }
+
+      // Send user notification email for approval
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: " Your Profile Has Been Successfully Verified",
+          template: "documentApprovedUser.ejs",
+          data: {
+            name: user.fullname || "Dear Member",
+            userId: user.userId,
+            usertype: user.usertype,
+            updatedAt: new Date().toLocaleString(),
+          },
+        });
+      } catch (err) {
+        // Ignore user email failure
       }
 
       return res.status(200).json({
         success: true,
-        message: "Verified. Document status and user type updated if applicable.",
+        message: "Verified successfully. Notification sent to user.",
         updatedDocument: document,
         updatedUser: user,
         updatedReco: reco,
       });
     }
 
-    res.status(200).json({
+    // Non-verified statuses
+    return res.status(200).json({
       success: true,
-      message: "Document status updated",
+      message: "Document status updated successfully.",
       updatedDocument: document,
     });
   } catch (err) {
-    console.error("Error updating document status:", err);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+
 
 
