@@ -118,7 +118,7 @@ export const verifyDocument = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: `Document marked as ${status}`,
-    dataa: doc
+    data: doc
   });
 });
 
