@@ -14,6 +14,6 @@ const adminControl = express.Router();
 adminControl.delete('/delete-account', isAdminAuthenticated, deleteUserAccount);
 adminControl.put('/suspend-account', isAdminAuthenticated, suspendUserAccount);
 adminControl.put('/update-document-status', isAdminAuthenticated, updateDocumentStatus);
-adminControl.get('/user-documents-details', isAdminAuthenticated, getUserDocumentStatus);
+adminControl.get('/user-documents-details', getUserDocumentStatus);
 
 export default adminControl;

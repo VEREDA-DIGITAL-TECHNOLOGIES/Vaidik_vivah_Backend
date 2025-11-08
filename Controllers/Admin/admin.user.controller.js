@@ -5,7 +5,7 @@ import { catchAsyncError } from '../../Middlewares/catchAsyncError.js';
 import connectDB from '../../Utils/db.js';
 import { Op } from 'sequelize';
 import sendEmail from '../../Utils/sendMail.js';
-import User from '../../Models/association.js';
+
 import {
   User,
   Answer,
