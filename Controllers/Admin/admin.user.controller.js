@@ -5,7 +5,7 @@ import { catchAsyncError } from '../../Middlewares/catchAsyncError.js';
 import connectDB from '../../Utils/db.js';
 import { Op } from 'sequelize';
 import sendEmail from '../../Utils/sendMail.js';
-
+import User from '../../Models/association.js';
 import {
   User,
   Answer,
@@ -193,7 +193,7 @@ export const updateDocumentStatus = async (req, res) => {
         // Send admin email for Gold upgrade
         try {
           await sendEmail({
-            email: "abhishek@vereda.co.in",
+            email: "info@vedvivah.com",
             subject: `🌟 Gold Membership Upgrade - ${user.fullname || "User"}`,
             template: "goldUpgradeAdminNotification.ejs",
             data: {
@@ -244,6 +244,56 @@ export const updateDocumentStatus = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+
+
+
+
+export const getUserDocumentStatus = catchAsyncError(async (req, res, next) => {
+  // Fetch all users including their document status
+  const users = await User.findAll({
+    attributes: ['userId', 'email'], // you can add more fields like name if available
+    include: [
+      {
+        model: documentUpload,
+        as: 'documents',
+        attributes: ['id', 'documentType', 'isVerified'],
+      },
+    ],
+    order: [['createdAt', 'DESC']],
+  });
+
+  if (!users || users.length === 0) {
+    return next(new errorhandler("No users found", 404));
+  }
+
+  // Transform data: flatten the document status for easier frontend display
+  const formatted = users.map(user => ({
+    userId: user.userId,
+    username: user.email,
+    documents: user.documents.map(doc => ({
+      documentType: doc.documentType,
+      status: doc.isVerified,
+    })),
+    overallStatus:
+      user.documents.length === 0
+        ? "no documents"
+        : user.documents.every(doc => doc.isVerified === "verified")
+        ? "verified"
+        : user.documents.some(doc => doc.isVerified === "rejected")
+        ? "rejected"
+        : user.documents.some(doc => doc.isVerified === "suspended")
+        ? "suspended"
+        : "pending",
+  }));
+
+  res.status(200).json({
+    success: true,
+    total: formatted.length,
+    data: formatted,
+  });
+});
 
 
 
