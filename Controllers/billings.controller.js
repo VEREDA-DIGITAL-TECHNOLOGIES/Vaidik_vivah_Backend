@@ -76,7 +76,7 @@ export const getBillingInfo = catchAsyncError(async (req, res, next) => {
       planType: isYearly ? "Year" : "Month",
       notifications: remainingDays <= 6, 
       remainingDays,
-      price: `$${currentPlan.price}`,
+      price: ` ₹${currentPlan.price}`,
     };
 
     return res.status(200).json({
