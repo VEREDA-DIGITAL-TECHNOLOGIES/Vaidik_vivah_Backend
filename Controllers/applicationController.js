@@ -17,7 +17,8 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
   const requiredFields = [
     'planName','nom','fatherName','loginId','address','penaltyType',
     'partnerName','partnerFatherName','partnerLoginId','partnerAddress',
-    'yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo','planId','userId'
+    'yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo',
+    'planId','userId'
   ];
   const missingFields = requiredFields.filter(f => !req.body[f]);
   if (missingFields.length)
@@ -25,26 +26,30 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
 
   // ✅ Validate mobile numbers
   const mobileFields = ['yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo'];
-  const invalidMobiles = mobileFields.filter(f => !/^\d{10}$/.test(req.body[f]||''));
+  const invalidMobiles = mobileFields.filter(f => !/^\d{10}$/.test(req.body[f] || ''));
   if (invalidMobiles.length)
     return next(new errorhandler(`Invalid mobile numbers: ${invalidMobiles.join(', ')}`,400));
 
-  // ✅ Validate required files
-  const requiredFiles = ['yourIdPost','parentsIdPost','partnerIdPost','partnerParentsIdPost'];
-  const missingFiles = requiredFiles.filter(f => !req.files?.[f]);
-  if (missingFiles.length)
-    return next(new errorhandler(`Missing required files: ${missingFiles.join(', ')}`,400));
-
   try {
-    // ✅ Upload buffers directly to Cloudinary (no temp file)
-    const uploadPromises = requiredFiles.map(async field => {
+    // ⚡ OPTIONAL FILES — upload only those that exist
+    const fileFields = ['yourIdPost','parentsIdPost','partnerIdPost','partnerParentsIdPost'];
+
+    const uploadPromises = fileFields.map(async field => {
+      if (!req.files?.[field]) return null; // skip missing file
+
       const file = req.files[field][0];
       const uploaded = await uploadBufferToCloudinary(file.buffer);
-      return { field, url: uploaded.secure_url, publicId: uploaded.public_id };
+
+      return { 
+        field, 
+        url: uploaded.secure_url, 
+        publicId: uploaded.public_id 
+      };
     });
 
-    const uploadResults = await Promise.all(uploadPromises);
+    const uploadResults = (await Promise.all(uploadPromises)).filter(Boolean);
 
+    // Build Cloudinary result object
     const cloudinaryUrls = {};
     uploadResults.forEach(r => {
       cloudinaryUrls[`${r.field}Url`] = r.url;
@@ -73,7 +78,10 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
       parentsMobNo: req.body.parentsMobNo,
       partnerParentsMobNo: req.body.partnerParentsMobNo,
       partnerParentsCertified,
-      ...cloudinaryUrls,
+
+      // 👇 OPTIONAL FILE URLs
+      ...cloudinaryUrls,    
+
       paymentAmount: parseFloat(req.body.applicationFee) || 1000.00,
       applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : new Date(),
     });
@@ -93,6 +101,7 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     return next(new errorhandler('File upload failed. Please try again.', 500));
   }
 });
+
 
 // Other controller functions remain similar but with catchAsyncError
 export const getApplications = catchAsyncError(async (req, res, next) => {
