@@ -23,6 +23,7 @@ import Notification from "../Models/notification.model.js";
 import Call from "../Models/call.model.js";
 import admin from 'firebase-admin';
 import { firebaseAdmin } from "./notification.controller.js"
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 
@@ -545,7 +546,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
       await firebaseAdmin.auth().updateUser(firebaseUser.uid, { password });
   
       // --- Hash Password ---
-      const bcrypt = require("bcryptjs");
+     
       const hashedPassword = await bcrypt.hash(password, 10);
   
       // --- Save to DB ---
@@ -581,7 +582,7 @@ export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => 
       await firebaseAdmin.auth().updateUser(firebaseUser.uid, { password });
   
       // --- Hash & Save DB Password ---
-      const bcrypt = require("bcryptjs");
+    
       const hashedPassword = await bcrypt.hash(password, 10);
   
       user.password = hashedPassword;
