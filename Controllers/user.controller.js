@@ -527,101 +527,72 @@ export const verifyOtpForMobile = catchAsyncError(async (req, res, next) => {
 //for web app reset password
 export const resetPassword = catchAsyncError(async (req, res, next) => {
     try {
-        const { password } = req.body;
-
-        const token = req.cookies.token;
-
-        if (!token) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-        const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
-
-        if (!verifiedUser) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-
-        if (!passwordRegex.test(password)) {
-            return next(
-                new errorhandler(
-                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
-                    400
-                )
-            );
-        }
-
-
-
-        const user = await User.findOne({ where: { email: verifiedUser.email } });
-        const firebaseUser = await admin.auth().getUserByEmail(user.email);
-        await admin.auth().updateUser(firebaseUser.uid, { password });
-
-
-
-        user.password = password;
-
-        const updatedUser = await user.save();
-
-        res.clearCookie("token");
-        sendToken(updatedUser, 200, res, "Password changed successfully!");
+      const { password } = req.body;
+  
+      const token = req.cookies.token;
+      if (!token) {
+        return next(new errorhandler("Please verify your email first!", 400));
+      }
+  
+      // decode token (email)
+      const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+  
+      const user = await User.findOne({ where: { email: verifiedUser.email } });
+      if (!user) return next(new errorhandler("User not found!", 400));
+  
+      // --- Update Firebase Auth ---
+      const firebaseUser = await admin.auth().getUserByEmail(user.email);
+      await admin.auth().updateUser(firebaseUser.uid, { password });
+  
+      // --- Hash Password ---
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // --- Save to DB ---
+      user.password = hashedPassword;
+      await user.save();
+  
+      // clear reset token
+      res.clearCookie("token");
+  
+      sendToken(user, 200, res, "Password changed successfully!");
     } catch (error) {
-        return next(new errorhandler(error.message, 500));
+      return next(new errorhandler(error.message, 500));
     }
-
-})
+  });
+  
 
 //for app reset password
 export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
-        const { password, token } = req.body;
-
-        if (!token) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-        const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
-
-        if (!verifiedUser) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-
-        }
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-
-        if (!passwordRegex.test(password)) {
-            return next(
-                new errorhandler(
-                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
-                    400
-                )
-            );
-        }
-        const user = await User.findOne({ where: { email: verifiedUser.email } });
-
-
-        // Update password in Firebase Authentication
-        const firebaseUser = await admin.auth().getUserByEmail(user.email);
-        await admin.auth().updateUser(firebaseUser.uid, { password });
-
-        // Update password in your backend database
-        await user.save();
-
-
-
-
-        user.password = password;
-
-        const updatedUser = await user.save();
-
-        sendToken(updatedUser, 200, res, "Password changed successfully!");
+      const { password, token } = req.body;
+  
+      if (!token) {
+        return next(new errorhandler("Please verify your email first!", 400));
+      }
+  
+      const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+  
+      const user = await User.findOne({ where: { email: verifiedUser.email } });
+      if (!user) return next(new errorhandler("User not found!", 400));
+  
+      // --- Update Firebase Auth ---
+      const firebaseUser = await admin.auth().getUserByEmail(user.email);
+      await admin.auth().updateUser(firebaseUser.uid, { password });
+  
+      // --- Hash & Save DB Password ---
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      user.password = hashedPassword;
+      await user.save();
+  
+      sendToken(user, 200, res, "Password changed successfully!");
     } catch (error) {
-        return next(new errorhandler(error.message, 500));
+      return next(new errorhandler(error.message, 500));
     }
-
-})
+  });
+  
 
 export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => {
     try {
