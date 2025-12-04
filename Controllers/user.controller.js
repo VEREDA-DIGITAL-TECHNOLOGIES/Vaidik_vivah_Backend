@@ -541,8 +541,8 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
       if (!user) return next(new errorhandler("User not found!", 400));
   
       // --- Update Firebase Auth ---
-      const firebaseUser = await admin.auth().getUserByEmail(user.email);
-      await admin.auth().updateUser(firebaseUser.uid, { password });
+      const firebaseUser = await firebaseAdmin.auth().getUserByEmail(user.email);
+      await firebaseAdmin.auth().updateUser(firebaseUser.uid, { password });
   
       // --- Hash Password ---
       const bcrypt = require("bcryptjs");
