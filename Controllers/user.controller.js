@@ -327,7 +327,8 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
       return next(new errorhandler("You are not registered!", 400));
     }
 
-    const isPasswordMatched = await user.validPassword(password);
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+
 
     if (!isPasswordMatched) {
       return next(new errorhandler("Invalid email or password!", 400));
