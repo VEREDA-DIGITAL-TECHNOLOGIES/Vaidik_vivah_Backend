@@ -525,53 +525,111 @@ export const verifyOtpForMobile = catchAsyncError(async (req, res, next) => {
 })
 
 //for web app reset password
+// for web app reset password
 export const resetPassword = catchAsyncError(async (req, res, next) => {
     try {
-        const { password } = req.body;
-
-        const token = req.cookies.token;
-
-        if (!token) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-        const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
-
-        if (!verifiedUser) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-
-        if (!passwordRegex.test(password)) {
-            return next(
-                new errorhandler(
-                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
-                    400
-                )
-            );
-        }
-
-
-
-        const user = await User.findOne({ where: { email: verifiedUser.email } });
-        const firebaseUser = await admin.auth().getUserByEmail(user.email);
-        await admin.auth().updateUser(firebaseUser.uid, { password });
-
-
-
-        user.password = password;
-
-        const updatedUser = await user.save();
-
-        res.clearCookie("token");
-        sendToken(updatedUser, 200, res, "Password changed successfully!");
+      console.log("🔹 Reset Password Request Received");
+  
+      const { password } = req.body;
+      const token = req.cookies.token;
+  
+      // Check token
+      if (!token) {
+        console.log("❌ No token found in cookies");
+        return next(new errorhandler("Please Verify your email first!", 400));
+      }
+  
+      console.log("🔹 Token found. Verifying...");
+      const verifiedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+  
+      if (!verifiedUser) {
+        console.log("❌ Token invalid");
+        return next(new errorhandler("Please Verify your email first!", 400));
+      }
+  
+      console.log("✅ Token verified for email:", verifiedUser.email);
+  
+      // Validate password format
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  
+      if (!passwordRegex.test(password)) {
+        console.log("❌ Weak password entered");
+        return next(
+          new errorhandler(
+            "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+            400
+          )
+        );
+      }
+  
+      console.log("🔹 Password format valid");
+  
+      // Fetch SQL user
+      const user = await User.findOne({
+        where: { email: verifiedUser.email },
+      });
+  
+      if (!user) {
+        console.log("❌ SQL user not found:", verifiedUser.email);
+        return next(new errorhandler("User not found!", 404));
+      }
+  
+      console.log("✅ SQL user found:", user.email);
+  
+      // ================
+      // CHECK FIREBASE USER
+      // ================
+      console.log("🔹 Checking Firebase user:", user.email);
+  
+      let firebaseUser;
+  
+      try {
+        firebaseUser = await admin.auth().getUserByEmail(user.email);
+        console.log("✅ Firebase user exists:", firebaseUser.uid);
+      } catch (err) {
+        console.log("⚠️ Firebase user NOT found, creating new user...");
+  
+        firebaseUser = await admin.auth().createUser({
+          email: user.email,
+          password: String(password),
+        });
+  
+        console.log("✅ Firebase user created:", firebaseUser.uid);
+      }
+  
+      // ================
+      // UPDATE FIREBASE PASSWORD
+      // ================
+      console.log("🔹 Updating Firebase password...");
+  
+      await admin.auth().updateUser(firebaseUser.uid, {
+        password: String(password),
+      });
+  
+      console.log("✅ Firebase password updated");
+  
+      // ================
+      // UPDATE SQL PASSWORD
+      // ================
+      console.log("🔹 Updating SQL DB password...");
+  
+      user.password = password; // should hash in model hook
+      const updatedUser = await user.save();
+  
+      console.log("✅ SQL DB password updated");
+  
+      // clear cookie and respond
+      console.log("🎉 Password Reset Successful");
+      res.clearCookie("token");
+      sendToken(updatedUser, 200, res, "Password changed successfully!");
     } catch (error) {
-        return next(new errorhandler(error.message, 500));
+      console.log("❌ Error in resetPassword:", error.message);
+      return next(new errorhandler(error.message, 500));
     }
-
-})
+  });
+  
+  
 
 //for app reset password
 export const resetPasswordForMobile = catchAsyncError(async (req, res, next) => {

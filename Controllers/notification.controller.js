@@ -15,7 +15,8 @@ const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
 
 export const firebaseAdmin = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-});
+    projectId: serviceAccount.project_id, // 🔥 REQUIRED for Firebase Auth
+  });
 
 export const sendNotification = catchAsyncError(async (req, res, next) => {
     try {
