@@ -500,10 +500,8 @@ export const UpdatephotoUploadForWeb = catchAsyncError(async (req, res, next) =>
         oldImages = [req.body.oldImages];
       }
     }
-
     // Get new files
     const newFiles = req.files ? (Array.isArray(req.files) ? req.files : [req.files]) : [];
-
     // Combine old images and new files
     let allImages = [...oldImages];
 
