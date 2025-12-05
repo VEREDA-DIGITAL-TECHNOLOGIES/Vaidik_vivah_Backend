@@ -485,6 +485,86 @@ export const UpdatephotoUpload = catchAsyncError(async (req, res, next) => {
   
 })
 
+export const UpdatephotoUploadForWeb = catchAsyncError(async (req, res, next) => {
+  try { 
+    const userId = req.user.userId;
+
+    // Get old images from form data (could be single or multiple)
+    let oldImages = [];
+    if (req.body.oldImages) {
+      // Handle if oldImages is sent as array or single value
+      if (Array.isArray(req.body.oldImages)) {
+        oldImages = req.body.oldImages;
+      } else {
+        // If single value, convert to array
+        oldImages = [req.body.oldImages];
+      }
+    }
+
+    // Get new files
+    const newFiles = req.files ? (Array.isArray(req.files) ? req.files : [req.files]) : [];
+
+    // Combine old images and new files
+    let allImages = [...oldImages];
+
+    // Process new files if any
+    if (newFiles.length > 0) {
+      // Upload new images to Cloudinary
+      const newImagePaths = newFiles.map((file) => file.path);
+      const uploadedImages = await uploadCloudinary(newImagePaths);
+      
+      // Extract URLs
+      let newImageUrls = [];
+      if (Array.isArray(uploadedImages)) {
+        newImageUrls = uploadedImages.map(img => img.url);
+      } else {
+        newImageUrls = [uploadedImages.url];
+      }
+      
+      // Add new images to the array
+      allImages = [...allImages, ...newImageUrls];
+    }
+
+    // Validate we have at least one image
+    if (allImages.length === 0) {
+      return next(new errorhandler("Please upload at least one image!", 400));
+    }
+
+    // Validate max 3 images
+    if (allImages.length > 3) {
+      return next(new errorhandler("Maximum 3 images allowed!", 400));
+    }
+
+    // Update image in database
+    await imageUpload.update(
+      { image: allImages }, 
+      { where: { userId } }
+    );
+
+    // Update recommendation
+    await recommendation.update(
+      { image: allImages }, 
+      { where: { userId } }
+    );
+
+    // Update user status
+    await User.update(
+      { isImageFormFilled: true }, 
+      { where: { userId } }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Images updated successfully",
+      images: allImages
+    });
+
+  } catch(error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+
 // export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 //   try {
 //     const { userId } = req.user; // destructure userId from req.user
