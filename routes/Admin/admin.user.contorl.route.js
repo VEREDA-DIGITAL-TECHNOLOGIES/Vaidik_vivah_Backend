@@ -3,7 +3,8 @@ import {
   suspendUserAccount,
   deleteUserAccount,
   updateDocumentStatus,
-  getUserDocumentStatus
+  getUserDocumentStatus,
+  verifyUserByAdmin,getAllUsersVerificationStatus
 } from '../../Controllers/Admin/admin.user.controller.js';
 
 import { isAdminAuthenticated } from '../../Middlewares/admin/isAdminAuthenticated.js';
@@ -15,5 +16,11 @@ adminControl.delete('/delete-account', isAdminAuthenticated, deleteUserAccount);
 adminControl.put('/suspend-account', isAdminAuthenticated, suspendUserAccount);
 adminControl.put('/update-document-status', isAdminAuthenticated, updateDocumentStatus);
 adminControl.get('/user-documents-details', getUserDocumentStatus);
+adminControl.put('/verify-user', isAdminAuthenticated, verifyUserByAdmin);
+adminControl.get(
+  "/users-verification-status",
+  isAdminAuthenticated,
+  getAllUsersVerificationStatus
+);
 
 export default adminControl;

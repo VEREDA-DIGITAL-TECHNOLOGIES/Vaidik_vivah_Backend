@@ -299,3 +299,223 @@ export const getUserDocumentStatus = catchAsyncError(async (req, res, next) => {
 
 
 
+
+export const verifyUserByAdmin = catchAsyncError(async (req, res, next) => {
+  const allowedFields = ["userId", "isVerifiedByAdmin", "remarks"];
+
+  /* ------------------------------------------------
+     1. Reject unexpected fields (security)
+  --------------------------------------------------*/
+  Object.keys(req.body).forEach((key) => {
+    if (!allowedFields.includes(key)) {
+      delete req.body[key];
+    }
+  });
+
+  let { userId, isVerifiedByAdmin, remarks } = req.body;
+
+  /* ------------------------------------------------
+     2. Validate userId
+  --------------------------------------------------*/
+  if (!userId || typeof userId !== "string") {
+    return next(new errorhandler("userId must be a valid UUID", 400));
+  }
+
+  if (!isUUID(userId)) {
+    return next(new errorhandler("Invalid userId format", 400));
+  }
+
+  /* ------------------------------------------------
+     3. Validate boolean strictly
+  --------------------------------------------------*/
+  if (typeof isVerifiedByAdmin !== "boolean") {
+    return next(
+      new errorhandler(
+        "isVerifiedByAdmin must be boolean (true or false)",
+        400
+      )
+    );
+  }
+
+  /* ------------------------------------------------
+     4. Validate remarks type & content
+  --------------------------------------------------*/
+  if (remarks !== undefined) {
+    if (typeof remarks !== "string") {
+      return next(
+        new errorhandler("remarks must be a string", 400)
+      );
+    }
+
+    remarks = remarks.trim();
+
+    // Only spaces / emojis
+    if (remarks.length === 0) {
+      remarks = null;
+    }
+
+    // Abuse protection
+    if (remarks && remarks.length > 1000) {
+      return next(
+        new errorhandler("remarks cannot exceed 1000 characters", 400)
+      );
+    }
+  }
+
+  /* ------------------------------------------------
+     5. Fetch user (lock row for safety)
+  --------------------------------------------------*/
+  const user = await User.findOne({
+    where: { userId },
+    lock: true,
+  });
+
+  if (!user) {
+    return next(new errorhandler("User not found", 404));
+  }
+
+  /* ------------------------------------------------
+     6. Optional business rule hooks
+  --------------------------------------------------*/
+  if (user.userStatus === false) {
+    return next(
+      new errorhandler(
+        "Suspended users cannot be verified or unverified",
+        403
+      )
+    );
+  }
+
+  /* ------------------------------------------------
+     7. No-op detection
+  --------------------------------------------------*/
+  if (user.isVerifiedByAdmin === isVerifiedByAdmin) {
+    return res.status(200).json({
+      success: true,
+      message: "No status change detected",
+      data: {
+        userId: user.userId,
+        isVerifiedByAdmin: user.isVerifiedByAdmin,
+        remarks: user.remarks,
+      },
+    });
+  }
+
+  /* ------------------------------------------------
+     8. Transition rules
+  --------------------------------------------------*/
+  // VERIFIED → UNVERIFIED
+  if (user.isVerifiedByAdmin === true && isVerifiedByAdmin === false) {
+    if (!remarks) {
+      return next(
+        new errorhandler(
+          "Remarks are mandatory when unverifying a user",
+          400
+        )
+      );
+    }
+  }
+
+  // UNVERIFIED → VERIFIED
+  if (user.isVerifiedByAdmin === false && isVerifiedByAdmin === true) {
+    // remarks optional, but do NOT erase existing unless explicitly given
+    if (remarks === undefined) {
+      remarks = user.remarks;
+    }
+  }
+
+  /* ------------------------------------------------
+     9. Apply atomic update
+  --------------------------------------------------*/
+  user.isVerifiedByAdmin = isVerifiedByAdmin;
+
+  if (isVerifiedByAdmin === true) {
+    user.remarks = remarks ?? user.remarks ?? null;
+  } else {
+    user.remarks = remarks;
+  }
+
+  await user.save();
+
+  /* ------------------------------------------------
+     10. Final response
+  --------------------------------------------------*/
+  res.status(200).json({
+    success: true,
+    message: isVerifiedByAdmin
+      ? "User verified by admin"
+      : "User unverified by admin",
+    data: {
+      userId: user.userId,
+      isVerifiedByAdmin: user.isVerifiedByAdmin,
+      remarks: user.remarks,
+    },
+  });
+});
+
+
+
+
+
+
+export const getAllUsersVerificationStatus = catchAsyncError(
+  async (req, res, next) => {
+
+    /* ------------------------------------------------
+       1. Pagination (optional)
+    --------------------------------------------------*/
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const offset = (page - 1) * limit;
+
+    /* ------------------------------------------------
+       2. Fetch users
+    --------------------------------------------------*/
+    const { rows: users, count } = await User.findAndCountAll({
+      attributes: [
+        "userId",
+        "email",
+        "isVerifiedByAdmin",
+        "remarks",
+        "createdAt",
+        "updatedAt",
+      ],
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
+
+    /* ------------------------------------------------
+       3. Safe empty response
+    --------------------------------------------------*/
+    if (!users || users.length === 0) {
+      return res.status(200).json({
+        success: true,
+        total: 0,
+        page,
+        limit,
+        data: [],
+      });
+    }
+
+    /* ------------------------------------------------
+       4. Normalize output
+    --------------------------------------------------*/
+    const data = users.map(user => ({
+      userId: user.userId,
+      email: user.email,
+      isVerifiedByAdmin: user.isVerifiedByAdmin,
+      remarks: user.remarks || null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
+
+    res.status(200).json({
+      success: true,
+      total: count,
+      page,
+      limit,
+      data,
+    });
+  }
+);

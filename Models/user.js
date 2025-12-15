@@ -110,6 +110,17 @@ const User = sequelize.define('User', {
         defaultValue: 'user',
     },
 
+    isVerifiedByAdmin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,        // optional
+        defaultValue: false,
+    },
+    
+    remarks: {
+        type: DataTypes.TEXT,
+        allowNull: true,        // optional
+    },
+
 
 }, {
     timestamps: true,
