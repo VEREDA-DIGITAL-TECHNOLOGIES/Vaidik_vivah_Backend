@@ -32,8 +32,8 @@ profileRouter.get('/discoverProfiles',isAuthenticated,discoverProfiles)
 profileRouter.get('/getProfilePercentage',isAuthenticated,getProfilePercentage)
 
 // Get contact number
-router.get("/contact/:userId", getContactNumber);
+profileRouter.get("/contact/:userId", getContactNumber);
 
 // Update contact number
-router.put("/contact/:userId", updateContactNumber);
+profileRouter.put("/contact/:userId", updateContactNumber);
 export default profileRouter
