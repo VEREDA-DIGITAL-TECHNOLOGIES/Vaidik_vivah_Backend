@@ -2,6 +2,7 @@ import express from "express";
 import { isAuthenticated} from '../Middlewares/auth.js';
 import {myDetails, updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload,adminProfileImage,matrimonialProfiles,getuserImage,allProfiles,getProfilePercentage,discoverProfiles, UpdatephotoUploadForWeb} from '../Controllers/profile.controller.js'
 import { upload } from "../Middlewares/multer.js";
+import { getContactNumber, updateContactNumber } from "../Controllers/personalDetailsController.js";
 
 
 
@@ -30,5 +31,9 @@ profileRouter.get('/allProfiles',isAuthenticated,allProfiles)
 profileRouter.get('/discoverProfiles',isAuthenticated,discoverProfiles)
 profileRouter.get('/getProfilePercentage',isAuthenticated,getProfilePercentage)
 
+// Get contact number
+router.get("/contact/:userId", getContactNumber);
 
+// Update contact number
+router.put("/contact/:userId", updateContactNumber);
 export default profileRouter
