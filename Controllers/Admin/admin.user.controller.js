@@ -299,152 +299,57 @@ export const getUserDocumentStatus = catchAsyncError(async (req, res, next) => {
 
 
 
-
 export const verifyUserByAdmin = catchAsyncError(async (req, res, next) => {
-  const allowedFields = ["userId", "isVerifiedByAdmin", "remarks"];
+  const { userId, isVerifiedByAdmin, remarks } = req.body;
 
-  /* ------------------------------------------------
-     1. Reject unexpected fields (security)
-  --------------------------------------------------*/
-  Object.keys(req.body).forEach((key) => {
-    if (!allowedFields.includes(key)) {
-      delete req.body[key];
-    }
-  });
-
-  let { userId, isVerifiedByAdmin, remarks } = req.body;
-
-  /* ------------------------------------------------
-     2. Validate userId
-  --------------------------------------------------*/
-  if (!userId || typeof userId !== "string") {
-    return next(new errorhandler("userId must be a valid UUID", 400));
-  }
-
-  if (!isUUID(userId)) {
-    return next(new errorhandler("Invalid userId format", 400));
-  }
-
-  /* ------------------------------------------------
-     3. Validate boolean strictly
-  --------------------------------------------------*/
-  if (typeof isVerifiedByAdmin !== "boolean") {
+  /* ----------------------------------
+     1. Basic validation
+  ---------------------------------- */
+  if (!userId || typeof isVerifiedByAdmin !== "boolean") {
     return next(
-      new errorhandler(
-        "isVerifiedByAdmin must be boolean (true or false)",
-        400
-      )
+      new errorhandler("userId and isVerifiedByAdmin are required", 400)
     );
   }
 
-  /* ------------------------------------------------
-     4. Validate remarks type & content
-  --------------------------------------------------*/
-  if (remarks !== undefined) {
-    if (typeof remarks !== "string") {
-      return next(
-        new errorhandler("remarks must be a string", 400)
-      );
-    }
-
-    remarks = remarks.trim();
-
-    // Only spaces / emojis
-    if (remarks.length === 0) {
-      remarks = null;
-    }
-
-    // Abuse protection
-    if (remarks && remarks.length > 1000) {
-      return next(
-        new errorhandler("remarks cannot exceed 1000 characters", 400)
-      );
-    }
-  }
-
-  /* ------------------------------------------------
-     5. Fetch user (lock row for safety)
-  --------------------------------------------------*/
-  const user = await User.findOne({
-    where: { userId },
-    lock: true,
-  });
+  /* ----------------------------------
+     2. Find user
+  ---------------------------------- */
+  const user = await User.findOne({ where: { userId } });
 
   if (!user) {
     return next(new errorhandler("User not found", 404));
   }
 
-  /* ------------------------------------------------
-     6. Optional business rule hooks
-  --------------------------------------------------*/
-  if (user.userStatus === false) {
-    return next(
-      new errorhandler(
-        "Suspended users cannot be verified or unverified",
-        403
-      )
-    );
-  }
-
-  /* ------------------------------------------------
-     7. No-op detection
-  --------------------------------------------------*/
-  if (user.isVerifiedByAdmin === isVerifiedByAdmin) {
-    return res.status(200).json({
-      success: true,
-      message: "No status change detected",
-      data: {
-        userId: user.userId,
-        isVerifiedByAdmin: user.isVerifiedByAdmin,
-        remarks: user.remarks,
-      },
-    });
-  }
-
-  /* ------------------------------------------------
-     8. Transition rules
-  --------------------------------------------------*/
-  // VERIFIED → UNVERIFIED
-  if (user.isVerifiedByAdmin === true && isVerifiedByAdmin === false) {
-    if (!remarks) {
-      return next(
-        new errorhandler(
-          "Remarks are mandatory when unverifying a user",
-          400
-        )
-      );
-    }
-  }
-
-  // UNVERIFIED → VERIFIED
-  if (user.isVerifiedByAdmin === false && isVerifiedByAdmin === true) {
-    // remarks optional, but do NOT erase existing unless explicitly given
-    if (remarks === undefined) {
-      remarks = user.remarks;
-    }
-  }
-
-  /* ------------------------------------------------
-     9. Apply atomic update
-  --------------------------------------------------*/
+  /* ----------------------------------
+     3. Update verification status
+  ---------------------------------- */
   user.isVerifiedByAdmin = isVerifiedByAdmin;
 
-  if (isVerifiedByAdmin === true) {
-    user.remarks = remarks ?? user.remarks ?? null;
-  } else {
-    user.remarks = remarks;
+  /* ----------------------------------
+     4. Remarks logic (NORMAL behavior)
+     - Optional
+     - Only update if provided
+  ---------------------------------- */
+  if (remarks !== undefined) {
+    if (typeof remarks !== "string") {
+      return next(new errorhandler("remarks must be a string", 400));
+    }
+
+    const trimmed = remarks.trim();
+    user.remarks = trimmed.length > 0 ? trimmed : null;
   }
+  // ❗ If remarks is NOT sent → do NOTHING (keep old remarks)
 
   await user.save();
 
-  /* ------------------------------------------------
-     10. Final response
-  --------------------------------------------------*/
+  /* ----------------------------------
+     5. Response
+  ---------------------------------- */
   res.status(200).json({
     success: true,
     message: isVerifiedByAdmin
-      ? "User verified by admin"
-      : "User unverified by admin",
+      ? "User verified successfully"
+      : "User unverified successfully",
     data: {
       userId: user.userId,
       isVerifiedByAdmin: user.isVerifiedByAdmin,
@@ -452,6 +357,7 @@ export const verifyUserByAdmin = catchAsyncError(async (req, res, next) => {
     },
   });
 });
+
 
 
 
