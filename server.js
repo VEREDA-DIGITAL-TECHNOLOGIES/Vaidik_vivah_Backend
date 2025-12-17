@@ -15,8 +15,7 @@ import Admin from './Models/Admin/Admin.modal.js';
 import AdminApiLog from './Models/Admin/AdminApiLog.model.js';
 import Banner from './Models/Admin/app.banner.js';
 import Contact from './Models/Contact.js';
-import { Sequelize } from 'sequelize';
-import { testUnreadMessageNotification } from './Utils/testUnreadNotification.js';
+
 dotenv.config();
 
 
