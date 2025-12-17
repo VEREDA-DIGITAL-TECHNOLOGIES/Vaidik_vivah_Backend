@@ -309,3 +309,183 @@ export const enableUserByAdmin = catchAsyncError(async (req, res, next) => {
     },
   });
 });
+
+
+
+
+
+export const getAllDisabledUsersWithDetails = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      where: {
+        isDisabledByAdmin: true // ✅ ONLY DISABLED USERS
+      },
+      attributes: [
+        "userId",
+        "public_user_id",
+        "email",
+        "usertype",
+        "userStatus",
+        "role",
+        "isVerified",
+        "isVerifiedByAdmin",
+
+        // 🔴 Disable info
+        "isDisabledByAdmin",
+        "reasonForDisabledByAdmin",
+
+        "createdAt",
+        "updatedAt"
+      ],
+      include: [
+        { model: personalDetails, as: "personalDetails" },
+        { model: qualificationDetails, as: "qualificationDetails" },
+        { model: locationDetails, as: "locationDetails" },
+        { model: otherDetails, as: "otherDetails" },
+        { model: imageUpload, as: "imageUpload" },
+        { model: documentUpload, as: "documents" },
+        {
+          model: Subscription,
+          as: "subscriptions",
+          include: [{ model: Plan, as: "plans" }]
+        },
+        {
+          model: FavProfile,
+          as: "FavoritingProfiles",
+          include: [{ model: User, as: "FavoritedUser" }]
+        },
+        {
+          model: Connection,
+          as: "SentConnections",
+          include: [{ model: User, as: "Receiver" }]
+        },
+        { model: Recommendation, as: "recommendations" }
+      ]
+    });
+
+    const usersWithExtraInfo = await Promise.all(
+      users.map(async (user) => {
+        const userJSON = user.toJSON();
+
+        /* ---------- Subscription Days Left ---------- */
+        const subs = userJSON.subscriptions || [];
+        const activeSub = subs
+          .filter(sub => sub.status === "Active" && sub.endDate)
+          .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
+
+        const subscriptionDaysLeft = activeSub
+          ? Math.max(
+              Math.ceil(
+                (new Date(activeSub.endDate) - new Date()) /
+                  (1000 * 60 * 60 * 24)
+              ),
+              0
+            )
+          : 0;
+
+        /* ---------- Profile Completion ---------- */
+        const personalData = userJSON.personalDetails?.[0] || {};
+        const qualificationDetailsData = userJSON.qualificationDetails?.[0] || {};
+        const locationDetailsData = userJSON.locationDetails?.[0] || {};
+        const otherDetailsData = userJSON.otherDetails?.[0] || {};
+
+        const basic_lifestyle = await Answer.findOne({
+          where: { userId: userJSON.userId, questionId: 8 }
+        });
+
+        const gender = await Answer.findOne({
+          where: { userId: userJSON.userId }
+        });
+
+        const age = await Answer.findOne({
+          where: { userId: userJSON.userId, questionId: 4 }
+        });
+
+        const postedby = await Answer.findOne({
+          where: { userId: userJSON.userId, questionId: 3 }
+        });
+
+        const data = {
+          basic_and_lifestye: {
+            firstName: personalData.firstName,
+            lastName: personalData.lastName,
+            displayName: personalData.displayName,
+            gender: gender?.answer,
+            age: age?.answer,
+            about: personalData.aboutYourSelf,
+            religion: otherDetailsData.religion,
+            maritalStatus: personalData.maritalStatus,
+            numberOfChildren: personalData.numberOfChildren,
+            postedBy: postedby?.answer
+          },
+          family_details: {
+            fatherOccupation: otherDetailsData.fatherOccupation,
+            motherOccupation: otherDetailsData.motherOccupation,
+            numberOfSiblings: otherDetailsData.numberOfSiblings,
+            livingWithFamily: otherDetailsData.livingWithFamily
+          },
+          personal_background: {
+            height: otherDetailsData.height,
+            weight: otherDetailsData.weight,
+            bodyType: otherDetailsData.bodyType,
+            language: otherDetailsData.language,
+            smokingHabbit: otherDetailsData.smokingHabbit,
+            drinkingHabbit: otherDetailsData.drinkingHabbit,
+            diet: otherDetailsData.diet,
+            complexion: otherDetailsData.complexion
+          },
+          religious_background: {
+            religion: otherDetailsData.religion,
+            community: otherDetailsData.community,
+            subCommunity: otherDetailsData.subCommunity,
+            gothra: otherDetailsData.gothra,
+            timeOfBirth: otherDetailsData.timeOfBirth,
+            dateOfBirth: otherDetailsData.dateOfBirth,
+            placeOfBirth: otherDetailsData.placeOfBirth,
+            motherTongue: otherDetailsData.motherTongue
+          },
+          location_background: {
+            currentLocation: locationDetailsData.currentLocation,
+            cityOfResidence: locationDetailsData.cityOfResidence || "",
+            nationality: locationDetailsData.nationality,
+            citizenShip: locationDetailsData.citizenShip,
+            residencyVisaStatus: locationDetailsData.residencyVisaStatus
+          },
+          education_and_financial: {
+            qualification: qualificationDetailsData.qualification,
+            education: qualificationDetailsData.occupation,
+            workingStatus: qualificationDetailsData.currentWorkingStatus,
+            income: qualificationDetailsData.income
+          },
+          interest_and_hobbies: basic_lifestyle?.answer || null
+        };
+
+        const profileCompletionPercentage = calculateCompletion(data);
+
+        return {
+          ...userJSON,
+          subscriptionDaysLeft,
+          profileCompletionPercentage
+        };
+      })
+    );
+
+    const blockedUsers = await Block.findAll();
+    const reportedUsers = await Report.findAll();
+
+    return res.status(200).json({
+      success: true,
+      count: usersWithExtraInfo.length,
+      data: usersWithExtraInfo,
+      blockedUsers,
+      reportedUsers
+    });
+  } catch (error) {
+    console.error("Error fetching disabled users:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message
+    });
+  }
+};

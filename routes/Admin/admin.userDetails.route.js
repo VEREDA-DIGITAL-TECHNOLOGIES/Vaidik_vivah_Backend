@@ -4,6 +4,7 @@ import {
   getUserStatus,
   disableUserByAdmin,
   enableUserByAdmin,
+  getAllDisabledUsersWithDetails, 
 } from "../../Controllers/Admin/getAllUsersWithDetails.js";
 
 import { isAdminAuthenticated } from "../../Middlewares/admin/isAdminAuthenticated.js";
@@ -45,5 +46,12 @@ AdminUserRouter.put(
   isAdminAuthenticated,
   enableUserByAdmin
 );
+
+
+AdminUserRouter.get(
+    "/disabled-users",
+    isAdminAuthenticated,
+    getAllDisabledUsersWithDetails
+  );
 
 export default AdminUserRouter;
