@@ -1,27 +1,23 @@
 import admin from "firebase-admin";
-import path from "path";
-import { fileURLToPath } from "url";
+import serviceAccount from "../config/serviceAccountKey.json" with { type: "json" };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-import serviceAccount from "../config/serviceAccountKey.json" assert { type: "json" };
-
-// 🔥 Init Firebase ONLY ONCE
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL:
-      "https://ved-vivah-7ae12-default-rtdb.asia-southeast1.firebasedatabase.app",
-  });
+// 🔑 Lazy DB getter (CRITICAL FIX)
+function getDb() {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL:
+        "https://ved-vivah-7ae12-default-rtdb.asia-southeast1.firebasedatabase.app",
+    });
+  }
+  return admin.database();
 }
-
-const db = admin.database();
 
 export async function testUnreadMessageNotification() {
   try {
     console.log("🚀 Background unread-message job started");
 
+    const db = getDb(); // ✅ SAFE
     const ONE_HOUR = 60 * 60 * 1000;
     const now = Date.now();
 
