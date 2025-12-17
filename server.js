@@ -1,7 +1,25 @@
 import dotenv from 'dotenv';
-import {app} from './app.js';
+import { app } from './app.js';
 import connectDB from './Utils/db.js';
-import { User, Answer , personalDetails, otherDetails, locationDetails, imageUpload, qualificationDetails,FavProfile,happyStories,Connection,dropDownType,dropdown,ToggleSection, Plan,gayatri, Application } from './Models/association.js';
+import {
+  User,
+  Answer,
+  personalDetails,
+  otherDetails,
+  locationDetails,
+  imageUpload,
+  qualificationDetails,
+  FavProfile,
+  happyStories,
+  Connection,
+  dropDownType,
+  dropdown,
+  ToggleSection,
+  Plan,
+  gayatri,
+  Application,
+} from './Models/association.js';
+
 import Recommendation from './Models/recommendation.model.js';
 import subscription from './Models/subscription.model.js';
 import call from './Models/call.model.js';
@@ -18,61 +36,100 @@ import Contact from './Models/Contact.js';
 
 dotenv.config();
 
-
 const PORT = process.env.PORT || 3000;
 
+/* ---------------- PUBLIC USER ID BACKFILL ---------------- */
 
+const backfillPublicUserIds = async () => {
+  const users = await User.findAll({
+    where: { public_user_id: null },
+  });
+
+  if (!users.length) {
+    console.log('✅ No users need public_user_id backfill');
+    return;
+  }
+
+  console.log(`🔄 Backfilling public_user_id for ${users.length} users`);
+
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  for (const user of users) {
+    let unique = false;
+
+    while (!unique) {
+      let id = '';
+      const len = 7 + Math.floor(Math.random() * 2); // 7–8 chars
+
+      for (let i = 0; i < len; i++) {
+        id += chars[Math.floor(Math.random() * chars.length)];
+      }
+
+      const exists = await User.findOne({
+        where: { public_user_id: id },
+      });
+
+      if (!exists) {
+        user.public_user_id = id;
+        await user.save({ hooks: false }); // 🚨 prevents password re-hash
+        unique = true;
+      }
+    }
+  }
+
+  console.log('✅ public_user_id backfill completed');
+};
+
+/* ---------------- SERVER START ---------------- */
 
 const startServer = async () => {
-    try {
-    await  connectDB();
-        const server = createServer(app);
-        intializeSocket(server);
-                
-        await Plan.sync({force: false});
-        await User.sync({ force: false });
-        await Answer.sync({ force: false });
-        await personalDetails.sync({ force: false });
-        await otherDetails.sync({ force: false });
-        await locationDetails.sync({ force: false }); 
-        await imageUpload.sync({ force: false });
-        await qualificationDetails.sync({ force: false });
-        await Recommendation.sync({ force: false });
-        await FavProfile.sync({ force: false });
-        await happyStories.sync({ force: false });
-        await Connection.sync({ force: false });
-        await subscription.sync({ force: false });
-        await dropDownType.sync({ force: false });
-        await dropdown.sync({ force: false });
-        await subscription.sync({ force: false });
-        await call.sync({ force: false });
-        await Notification.sync({ force: false });
-        await ToggleSection.sync({ force: false }); 
-        await gayatri.sync({ force: false }); 
-        await block.sync({ force: false })
-        await documentUpload.sync({ force:false});
-        await report.sync({ force: false }); 
-        await Admin.sync({ force: false }); 
-        await AdminApiLog.sync({ force: false }); 
-        await Banner.sync({force:false});
-        await Contact.sync({force:false});
-        await Application.sync({alter:true});
+  try {
+    await connectDB();
 
-        console.log('Tables synchronized');
+    const server = createServer(app);
+    intializeSocket(server);
 
+    // --------- SYNC MODELS (NO DATA LOSS) ---------
+    await Plan.sync({ force: false });
+    await User.sync({ force: false });
 
+    // 🔥 IMPORTANT: BACKFILL AFTER USER SYNC
+    await backfillPublicUserIds();
 
-        server.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
-        
+    await Answer.sync({ force: false });
+    await personalDetails.sync({ force: false });
+    await otherDetails.sync({ force: false });
+    await locationDetails.sync({ force: false });
+    await imageUpload.sync({ force: false });
+    await qualificationDetails.sync({ force: false });
+    await Recommendation.sync({ force: false });
+    await FavProfile.sync({ force: false });
+    await happyStories.sync({ force: false });
+    await Connection.sync({ force: false });
+    await subscription.sync({ force: false });
+    await dropDownType.sync({ force: false });
+    await dropdown.sync({ force: false });
+    await call.sync({ force: false });
+    await Notification.sync({ force: false });
+    await ToggleSection.sync({ force: false });
+    await gayatri.sync({ force: false });
+    await block.sync({ force: false });
+    await documentUpload.sync({ force: false });
+    await report.sync({ force: false });
+    await Admin.sync({ force: false });
+    await AdminApiLog.sync({ force: false });
+    await Banner.sync({ force: false });
+    await Contact.sync({ force: false });
+    await Application.sync({ alter: true });
 
+    console.log('✅ Tables synchronized');
 
-    } catch (error) {
-        console.error('Error synchronizing tables or starting server:', error);
-    }
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Server startup error:', error);
+  }
 };
 
 startServer();
-
- 
