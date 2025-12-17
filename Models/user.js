@@ -154,6 +154,16 @@ const User = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    isDisabledByAdmin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
+      reasonForDisabledByAdmin: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+       
+      },
   },
   {
     timestamps: true,

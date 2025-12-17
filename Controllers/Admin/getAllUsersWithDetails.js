@@ -235,3 +235,69 @@ export const getUserStatus = async (req, res) => {
     });
   }
 };
+
+
+import { catchAsyncError } from "../../Middlewares/catchAsyncError.js";
+
+export const disableUserByAdmin = catchAsyncError(async (req, res, next) => {
+  const { public_user_id } = req.params;
+  const { reason } = req.body; // optional
+
+  const user = await User.findOne({ where: { public_user_id } });
+
+  if (!user) {
+    return next(new errorhandler("User not found", 404));
+  }
+
+  if (user.isDisabledByAdmin) {
+    return next(new errorhandler("User is already disabled", 400));
+  }
+
+  user.isDisabledByAdmin = true;
+  user.reasonForDisabledByAdmin = reason || null;
+
+  // ❗ prevent password rehash
+  await user.save({ hooks: false });
+
+  return res.status(200).json({
+    success: true,
+    message: "User disabled successfully",
+    data: {
+      public_user_id: user.public_user_id,
+      isDisabledByAdmin: true,
+      reasonForDisabledByAdmin: user.reasonForDisabledByAdmin,
+    },
+  });
+});
+
+/* =====================================================
+   ENABLE USER (ADMIN)
+   ===================================================== */
+export const enableUserByAdmin = catchAsyncError(async (req, res, next) => {
+  const { public_user_id } = req.params;
+
+  const user = await User.findOne({ where: { public_user_id } });
+
+  if (!user) {
+    return next(new errorhandler("User not found", 404));
+  }
+
+  if (!user.isDisabledByAdmin) {
+    return next(new errorhandler("User is already active", 400));
+  }
+
+  user.isDisabledByAdmin = false;
+  user.reasonForDisabledByAdmin = null;
+
+  // ❗ prevent password rehash
+  await user.save({ hooks: false });
+
+  return res.status(200).json({
+    success: true,
+    message: "User enabled successfully",
+    data: {
+      public_user_id: user.public_user_id,
+      isDisabledByAdmin: false,
+    },
+  });
+});

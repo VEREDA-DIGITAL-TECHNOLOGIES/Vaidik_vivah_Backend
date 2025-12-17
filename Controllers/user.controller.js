@@ -313,40 +313,60 @@ export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
 
 
 export const loginUser = catchAsyncError(async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return next(new errorhandler("Please enter email and password!", 400));
-    }
-
-    const user = await User.findOne({ where: { email } });
-
-    if (!user) {
-      return next(new errorhandler("You are not registered!", 400));
-    }
-
-    const isPasswordMatched = await user.validPassword(password);
-
-    if (!isPasswordMatched) {
-      return next(new errorhandler("Invalid email or password!", 400));
-    }
-
-
-    const details = await personalDetails.findOne({
-      where: { userId: user.userId },
-      attributes: ['displayName'],
-    });
-
+    try {
+      const { email, password } = req.body;
   
-    user.setDataValue('userName', details?.displayName || null);
-
- 
-    sendToken(user, 200, res, "Login successful!");
-  } catch (error) {
-    return next(new errorhandler(error.message, 500));
-  }
-});
+      if (!email || !password) {
+        return next(new errorhandler("Please enter email and password!", 400));
+      }
+  
+      // 🔍 Find user
+      const user = await User.findOne({ where: { email } });
+  
+      if (!user) {
+        return next(new errorhandler("You are not registered!", 400));
+      }
+  
+      // 🚫 BLOCK LOGIN IF DISABLED BY ADMIN
+      if (user.isDisabledByAdmin) {
+        return next(
+          new errorhandler(
+            user.reasonForDisabledByAdmin ||
+              "Your account has been disabled by admin.",
+            403
+          )
+        );
+      }
+  
+      // 🔐 Check password
+      const isPasswordMatched = await user.validPassword(password);
+  
+      if (!isPasswordMatched) {
+        return next(new errorhandler("Invalid email or password!", 400));
+      }
+  
+      // 👤 Fetch display name
+      const details = await personalDetails.findOne({
+        where: { userId: user.userId },
+        attributes: ["displayName"],
+      });
+  
+      // Attach extra fields to response (NO DB WRITE)
+      user.setDataValue("userName", details?.displayName || null);
+      user.setDataValue("public_user_id", user.public_user_id);
+      user.setDataValue("isDisabledByAdmin", user.isDisabledByAdmin);
+      user.setDataValue(
+        "reasonForDisabledByAdmin",
+        user.reasonForDisabledByAdmin
+      );
+  
+      // ✅ Send token + user data
+      sendToken(user, 200, res, "Login successful!");
+    } catch (error) {
+      return next(new errorhandler(error.message, 500));
+    }
+  });
+  
 
 
 export const logoutUser = catchAsyncError(async (req, res, next) => {
