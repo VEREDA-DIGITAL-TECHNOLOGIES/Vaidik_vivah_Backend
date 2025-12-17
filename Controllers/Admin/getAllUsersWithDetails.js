@@ -30,13 +30,18 @@ export const getAllUsersWithDetails = async (req, res) => {
     const users = await User.findAll({
       attributes: [
         "userId",
-        "public_user_id", // ✅ ADDED
+        "public_user_id", // ✅ SAFE PUBLIC ID
         "email",
         "usertype",
         "userStatus",
         "role",
         "isVerified",
         "isVerifiedByAdmin",
+
+        // ✅ ADDED (DISABLE SUPPORT)
+        "isDisabledByAdmin",
+        "reasonForDisabledByAdmin",
+
         "createdAt",
         "updatedAt"
       ],
@@ -95,12 +100,15 @@ export const getAllUsersWithDetails = async (req, res) => {
         const basic_lifestyle = await Answer.findOne({
           where: { userId: userJSON.userId, questionId: 8 }
         });
+
         const gender = await Answer.findOne({
           where: { userId: userJSON.userId }
         });
+
         const age = await Answer.findOne({
           where: { userId: userJSON.userId, questionId: 4 }
         });
+
         const postedby = await Answer.findOne({
           where: { userId: userJSON.userId, questionId: 3 }
         });
@@ -163,7 +171,7 @@ export const getAllUsersWithDetails = async (req, res) => {
         const profileCompletionPercentage = calculateCompletion(data);
 
         return {
-          ...userJSON, // ✅ includes public_user_id
+          ...userJSON, // ✅ includes public_user_id, isDisabledByAdmin, reasonForDisabledByAdmin
           subscriptionDaysLeft,
           profileCompletionPercentage
         };
