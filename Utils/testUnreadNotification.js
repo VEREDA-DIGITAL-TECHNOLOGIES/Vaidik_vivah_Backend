@@ -1,17 +1,34 @@
 import admin from "firebase-admin";
 import serviceAccount from "../config/serviceAccountKey.json" with { type: "json" };
 
-// 🔑 Lazy DB getter (CRITICAL FIX)
 function getDb() {
-  if (!admin.apps.length) {
-    admin.initializeApp({
+  let app;
+
+  if (admin.apps.length === 0) {
+    app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL:
         "https://ved-vivah-7ae12-default-rtdb.asia-southeast1.firebasedatabase.app",
     });
+  } else {
+    app = admin.apps[0];
+
+    // 🔥 CRITICAL FIX: ensure databaseURL exists
+    if (!app.options.databaseURL) {
+      app = admin.initializeApp(
+        {
+          credential: admin.credential.cert(serviceAccount),
+          databaseURL:
+            "https://ved-vivah-7ae12-default-rtdb.asia-southeast1.firebasedatabase.app",
+        },
+        "database-app"
+      );
+    }
   }
-  return admin.database();
+
+  return app.database();
 }
+
 
 export async function testUnreadMessageNotification() {
   try {
