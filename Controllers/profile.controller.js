@@ -25,6 +25,7 @@ import Block from "../Models/block.model.js";
 
 
 
+
 import {getSocketInstance} from '../config/socketConfig.js'
 import Notification from "../Models/notification.model.js";
 dotenv.config();
@@ -139,6 +140,46 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
   }
 });
 
+
+export const checkUserSuspensionStatus = catchAsyncError(
+  async (req, res, next) => {
+    const userId = req.user.userId;
+
+    if (!userId) {
+      return next(new errorhandler("User not authenticated", 401));
+    }
+
+    const user = await User.findOne({
+      where: { userId },
+      attributes: [
+        "userId",
+        "isDisabledByAdmin",
+        "reasonForDisabledByAdmin",
+      ],
+    });
+
+    if (!user) {
+      return next(new errorhandler("User not found", 404));
+    }
+
+    // 🚫 Suspended
+    if (user.isDisabledByAdmin) {
+      return res.status(200).json({
+        success: true,
+        isDisabled: true,
+        reason:
+          user.reasonForDisabledByAdmin ||
+          "Your account has been suspended by admin.",
+      });
+    }
+
+    // ✅ Active
+    return res.status(200).json({
+      success: true,
+      isDisabled: false,
+    });
+  }
+);
 
 export const getuserImage = catchAsyncError(async (req, res, next) => {
   try {

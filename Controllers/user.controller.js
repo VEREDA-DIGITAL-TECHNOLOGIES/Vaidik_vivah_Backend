@@ -217,102 +217,111 @@ export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
 
 export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
     try {
-        const { password, answer, token } = req.body;
-
-        if (!token) {
-            return next(new errorhandler("Please Verify your email first!", 400));
+      const { password, answer, token } = req.body;
+  
+      if (!token) {
+        return next(new errorhandler("Please Verify your email first!", 400));
+      }
+  
+      // 🔐 Verify activation token
+      const decodedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+      const { email } = decodedUser;
+  
+      // 🔑 Password validation
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  
+      if (!passwordRegex.test(password)) {
+        return next(
+          new errorhandler(
+            "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+            400
+          )
+        );
+      }
+  
+      // 👤 Create user (password hashed in model hook)
+      const existingUser = await User.create({
+        email,
+        password,
+        isVerified: true,
+        otp: null,
+      });
+  
+      // 📝 Store onboarding answers
+      if (Array.isArray(answer)) {
+        for (const ans of answer) {
+          const { questionId, answerValue } = ans;
+  
+          await Answer.create({
+            userId: existingUser.userId,
+            questionId,
+            answer: answerValue,
+          });
         }
-
-        const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
-        const { email } = user;
-
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-
-        if (!passwordRegex.test(password)) {
-            return next(
-                new errorhandler(
-                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
-                    400
-                )
-            );
-        }
-
-
-        const existingUser = await User.create({
-            email,
-            password,
-            isVerified: true,
-            otp: null
+      }
+  
+      // 🧠 Extract gender ONCE (IMPORTANT)
+      const gender =
+        answer?.find(a => a.questionId === 1)?.answerValue || "";
+  
+      // 📊 Recommendation data
+      const recommendationData = {
+        userId: existingUser.userId,
+        usertype: existingUser.usertype,
+        email: existingUser.email,
+        gender,
+        lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
+        age: answer.find(a => a.questionId === 4)?.answerValue,
+        lookingPartnerAge: answer.find(a => a.questionId === 5)?.answerValue,
+        horoscopeMatch: answer.find(a => a.questionId === 6)?.answerValue,
+        castReligionMatterOrNot: answer.find(a => a.questionId === 7)?.answerValue,
+        interest_and_hobbies:
+          answer.find(a => a.questionId === 8)?.answerValue?.split(", ") || [],
+      };
+  
+      // 🔘 Enable all profile sections
+      const toggleSections = [
+        "location_details",
+        "education_and_financial_details",
+        "family_details",
+        "religious_details",
+        "personal_details",
+      ];
+  
+      const toggleData = toggleSections.map(section => ({
+        userId: existingUser.userId,
+        section,
+        status: true,
+      }));
+  
+      await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
+  
+      // 📌 Create / update recommendation
+      const existingRecommendation = await recommendation.findOne({
+        where: { userId: existingUser.userId },
+      });
+  
+      if (existingRecommendation) {
+        await recommendation.update(recommendationData, {
+          where: { userId: existingUser.userId },
         });
-
-        // Store answers in the database
-        if (Array.isArray(answer)) {
-            for (const ans of answer) {
-                const { questionId, answerValue } = ans;
-
-
-                await Answer.create({
-                    userId: existingUser.userId,
-                    questionId,
-                    answer: answerValue
-                });
-            }
-        }
-
-        const recommendationData = {
-            userId: existingUser.userId,
-            usertype: existingUser.usertype,
-            email: existingUser.email,
-            gender: answer.find(a => a.questionId === 1)?.answerValue,
-            lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
-            age: answer.find(a => a.questionId === 4)?.answerValue,
-            lookingPartnerAge: answer.find(a => a.questionId === 5)?.answerValue,
-            horoscopeMatch: answer.find(a => a.questionId === 6)?.answerValue,
-            castReligionMatterOrNot: answer.find(a => a.questionId === 7)?.answerValue,
-            interest_and_hobbies: answer.find(a => a.questionId === 8)?.answerValue?.split(', ') || []
-
-        };
-        
-
-
-        const toggleSections = [
-            "location_details",
-            "education_and_financial_details",
-            "family_details",
-            "religious_details",
-            "personal_details",
-        ];
-
-        const toggleData = toggleSections.map(section => ({
-            userId: existingUser.userId,
-            section,
-            status: true
-        }));
-
-
-        await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
-
-
-
-        const existingRecommendation = await recommendation.findOne({ where: { userId: existingUser.userId } });
-
-        if (existingRecommendation) {
-            await recommendation.update(recommendationData, { where: { userId: existingUser.userId } });
-        } else {
-            await recommendation.create(recommendationData);
-        }
-
-        sendToken(existingUser, 200, res, "Password set successfully!");
-
+      } else {
+        await recommendation.create(recommendationData);
+      }
+  
+      // ⭐ ATTACH GENDER TO RESPONSE USER (NO DB WRITE)
+      existingUser.setDataValue("gender", gender);
+  
+      // 🔐 LOGIN + TOKEN RESPONSE
+      sendToken(existingUser, 200, res, "Password set successfully!");
     } catch (error) {
-        return next(new errorhandler(error.message, 500));
+      return next(new errorhandler(error.message, 500));
     }
-});
+  });
+  
 
-
-
-export const loginUser = catchAsyncError(async (req, res, next) => {
+  export const loginUser = catchAsyncError(async (req, res, next) => {
     try {
       const { email, password } = req.body;
   
@@ -329,13 +338,14 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
   
       // 🚫 BLOCK LOGIN IF DISABLED BY ADMIN
       if (user.isDisabledByAdmin) {
-        return next(
-          new errorhandler(
+        return res.status(403).json({
+          success: false,
+          code: "ACCOUNT_DISABLED_BY_ADMIN",
+          message: "Your account has been disabled by admin",
+          reason:
             user.reasonForDisabledByAdmin ||
-              "Your account has been disabled by admin.",
-            403
-          )
-        );
+            "No reason provided by administrator",
+        });
       }
   
       // 🔐 Check password
@@ -351,7 +361,15 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
         attributes: ["displayName"],
       });
   
-      // Attach extra fields to response (NO DB WRITE)
+      // 🧠 Fetch gender
+      const rec = await recommendation.findOne({
+        where: { userId: user.userId },
+        attributes: ["gender"],
+      });
+  
+      const gender = rec?.gender || "";
+  
+      // 📎 Attach extra fields to response (NO DB WRITE)
       user.setDataValue("userName", details?.displayName || null);
       user.setDataValue("public_user_id", user.public_user_id);
       user.setDataValue("isDisabledByAdmin", user.isDisabledByAdmin);
@@ -359,13 +377,16 @@ export const loginUser = catchAsyncError(async (req, res, next) => {
         "reasonForDisabledByAdmin",
         user.reasonForDisabledByAdmin
       );
+      user.setDataValue("gender", gender);
   
-      // ✅ Send token + user data
+      // ✅ Send token + enriched user
       sendToken(user, 200, res, "Login successful!");
     } catch (error) {
       return next(new errorhandler(error.message, 500));
     }
   });
+  
+  
   
 
 
@@ -381,6 +402,12 @@ export const logoutUser = catchAsyncError(async (req, res, next) => {
         return next(new errorhandler(error.message, 500));
     }
 })
+
+
+
+                              
+
+
 
 export const updateAccessToken = catchAsyncError(async (req, res, next) => {
     try {
