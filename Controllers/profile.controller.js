@@ -690,7 +690,6 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 
 
     let profiles = response.data.filter((profile) =>
-      profile.public_user_id &&
       profile.gender &&
       profile.age &&
       profile.firstName &&
@@ -1368,7 +1367,7 @@ export const allProfiles = catchAsyncError(async (req, res, next) => {
     const data = recommendedUsers.map((user) => {
       let matchScore = 0;
       return {
-        publicUserId: user.public_user_id,
+        
         userId: user.userId,
         uid: user.uid,
         fcmToken: user.fcmToken,
