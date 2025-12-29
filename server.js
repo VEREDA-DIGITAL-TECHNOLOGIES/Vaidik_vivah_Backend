@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import { app } from './app.js';
+
+
 import connectDB from './Utils/db.js';
 import {
   User,
@@ -86,6 +88,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
+
     const server = createServer(app);
     intializeSocket(server);
 
@@ -133,3 +136,4 @@ const startServer = async () => {
 };
 
 startServer();
+

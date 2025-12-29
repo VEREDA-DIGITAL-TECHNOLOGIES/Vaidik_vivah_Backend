@@ -35,7 +35,7 @@ import contactRouter from './routes/contactRoutes.js';
 import ApplicationRouter from "./routes/applicationRoutes.js"
 import documentUpload from './Models/document.upload.js';
 import connectDB from './Utils/db.js';
-import { testUnreadMessageNotification } from './Utils/testUnreadNotification.js';
+import { startUnreadNotificationService } from './Utils/batchUnreadNotifications.js';
 dotenv.config();
 
 
