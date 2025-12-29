@@ -1,5 +1,7 @@
 import admin from "firebase-admin";
 import dotenv from "dotenv";
+import sendEmail from "../Utils/sendEmail.js";
+import { getSenderAndReceiver } from "../Utils/userLookup.js";
 
 dotenv.config();
 
@@ -37,11 +39,11 @@ try {
 }
 
 // ------------------- ADD TO QUEUE -------------------
-async function addToQueue(receiverId, senderId, messageRef) {
-  if (!db || !receiverId || !senderId) return;
+async function addToQueue(receiverUid, senderUid, messageRef) {
+  if (!db || !receiverUid || !senderUid) return;
 
   try {
-    await db.ref(`notificationQueue/${receiverId}/${senderId}`).set({
+    await db.ref(`notificationQueue/${receiverUid}/${senderUid}`).set({
       addedAt: Date.now(),
     });
 
@@ -49,39 +51,68 @@ async function addToQueue(receiverId, senderId, messageRef) {
       await messageRef.update({ notified: true });
     }
 
-    console.log(`🔹 Added to queue: receiver=${receiverId}, sender=${senderId}`);
+    console.log(
+      `🔹 Added to queue: receiver=${receiverUid}, sender=${senderUid}`
+    );
   } catch (err) {
     console.error("❌ Error adding to queue:", err);
   }
 }
 
-// ------------------- SEND NOTIFICATIONS -------------------
-async function sendNotifications(receiverId, senderIds) {
-  if (!db) return;
+// ------------------- SEND NOTIFICATIONS (PUSH + EMAIL) -------------------
+async function sendNotifications(receiverUid, senderUids) {
+  if (!db || !senderUids.length) return;
 
   try {
-    const tokenSnap = await db.ref(`users/${receiverId}/fcmToken`).once("value");
-    const fcmToken = tokenSnap.val();
+    // 🔹 Use first sender for display
+    const primarySenderUid = senderUids[0];
 
-    if (!fcmToken) {
-      console.warn(`⚠️ No FCM token for user ${receiverId}`);
-      return;
+    const { sender, receiver } =
+      await getSenderAndReceiver(primarySenderUid, receiverUid);
+
+    // ---------------- PUSH NOTIFICATION ----------------
+    if (receiver.fcmToken) {
+      await admin.messaging().send({
+        token: receiver.fcmToken,
+        notification: {
+          title: "New Message on VedVivah",
+          body: `${sender.public_user_id} sent you a message`,
+        },
+        data: {
+          senderUid: sender.uid,
+          receiverUid: receiver.uid,
+          senderPublicId: sender.public_user_id,
+        },
+      });
+
+      console.log(`🔔 Push sent to ${receiver.public_user_id}`);
+    } else {
+      console.warn(`⚠️ No FCM token for ${receiver.public_user_id}`);
     }
 
-    const message = {
-      token: fcmToken,
-      notification: {
-        title: "New Message",
-        body: `You have ${senderIds.length} new message(s) from ${senderIds.join(", ")}`,
+    // ---------------- EMAIL NOTIFICATION ----------------
+    await sendEmail({
+      email: receiver.email,
+      subject: "💌 You received a new message on VedVivah",
+      template: "newMessage.ejs",
+      data: {
+        senderName: sender.name || "VedVivah Member",
+        senderId: sender.public_user_id,
+        receiverName: receiver.name || "",
+        profilePic:
+          sender.profileImage ||
+          "https://admin.vedvivah.com/assets/default-user.png",
       },
-    };
+    });
 
-    await admin.messaging().send(message);
+    // ---------------- CLEAR QUEUE ----------------
+    await db.ref(`notificationQueue/${receiverUid}`).remove();
 
-    await db.ref(`notificationQueue/${receiverId}`).remove();
-    console.log(`🔔 Sent ${senderIds.length} notification(s) to ${receiverId}`);
+    console.log(
+      `✅ Push + Email sent to ${receiver.public_user_id}`
+    );
   } catch (err) {
-    console.error(`❌ Error sending notification to ${receiverId}:`, err);
+    console.error("❌ sendNotifications error:", err.message);
   }
 }
 
@@ -94,10 +125,11 @@ async function processBatchQueue() {
     const queue = queueSnap.val();
     if (!queue) return;
 
-    for (const receiverId of Object.keys(queue)) {
-      const senderIds = Object.keys(queue[receiverId] || {});
-      if (!senderIds.length) continue;
-      await sendNotifications(receiverId, senderIds);
+    for (const receiverUid of Object.keys(queue)) {
+      const senderUids = Object.keys(queue[receiverUid] || {});
+      if (!senderUids.length) continue;
+
+      await sendNotifications(receiverUid, senderUids);
     }
   } catch (err) {
     console.error("❌ Batch processing error:", err);
@@ -110,42 +142,51 @@ export async function startUnreadNotificationService() {
 
   console.log("🔹 Starting unread notification listener...");
 
-  // Process existing messages first
+  // ---- Process existing messages ----
   const messagesSnap = await db.ref("messages").once("value");
   const messages = messagesSnap.val();
 
   if (messages) {
-    for (const senderId of Object.keys(messages)) {
-      const receiverObj = messages[senderId];
-      for (const receiverId of Object.keys(receiverObj)) {
-        const msgObj = receiverObj[receiverId];
+    for (const senderUid of Object.keys(messages)) {
+      const receivers = messages[senderUid];
+      for (const receiverUid of Object.keys(receivers)) {
+        const msgObj = receivers[receiverUid];
         for (const messageId of Object.keys(msgObj)) {
           const msg = msgObj[messageId];
           if (!msg.seen && !msg.notified) {
-            await addToQueue(receiverId, senderId, db.ref(`messages/${senderId}/${receiverId}/${messageId}`));
+            await addToQueue(
+              receiverUid,
+              senderUid,
+              db.ref(`messages/${senderUid}/${receiverUid}/${messageId}`)
+            );
           }
         }
       }
     }
   }
 
-  // Real-time listener for new messages
+  // ---- Real-time listener ----
   db.ref("messages").on("child_added", async (senderSnap) => {
-    const senderId = senderSnap.key;
+    const senderUid = senderSnap.key;
+
     senderSnap.forEach((receiverSnap) => {
-      const receiverId = receiverSnap.key;
+      const receiverUid = receiverSnap.key;
+
       receiverSnap.forEach(async (messageSnap) => {
         const msg = messageSnap.val();
         if (!msg || msg.seen || msg.notified) return;
-        await addToQueue(receiverId, senderId, messageSnap.ref);
+
+        await addToQueue(receiverUid, senderUid, messageSnap.ref);
       });
     });
   });
 
-  // Fallback batch processing every minute
+  // ---- Fallback batch ----
   setInterval(processBatchQueue, 60 * 1000);
 
-  console.log("✅ Firebase unread notification service started (real-time + batch fallback)");
+  console.log(
+    "✅ Firebase unread notification service started (real-time + batch)"
+  );
 }
 
 // ------------------- START SERVICE -------------------
