@@ -702,14 +702,14 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       });
     }
 
-    // Fetch public_user_id from DB
+    
     const matchedUserIds = profiles.map(p => p.userId);
     const users = await User.findAll({
       where: { userId: matchedUserIds },
       attributes: ['userId', 'public_user_id']
     });
 
-    // Map public_user_id to profiles
+  
     const userMap = {};
     users.forEach(u => {
       userMap[u.userId] = u.public_user_id;
