@@ -986,6 +986,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
 
     const profileData = [{
+      publicUserId: user.public_user_id,
       fcmToken: user.fcmToken,
       uid: user.uid,
       profileImage: imageUploadData?.image || "",
