@@ -75,6 +75,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       profileImage: imageUploadData?.image || "No Image",
       toggleStatus: toggleStatuses,
       basic_and_lifestyle: {
+        publicUserId: user.public_user_id,
         firstName: personalData?.firstName,
         lastName: personalData?.lastName,
         displayName: personalData?.displayName,
