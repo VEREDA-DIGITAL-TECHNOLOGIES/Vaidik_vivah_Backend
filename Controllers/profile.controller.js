@@ -657,6 +657,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
     const { userId } = req.user;
 
+    // Get blocked users
     const blockRelations = await Block.findAll({
       where: {
         [Op.or]: [
@@ -666,30 +667,17 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       }
     });
 
-
     const blockedUserIds = blockRelations.map(block => (
       block.blockerUserId === userId ? block.blockedUserId : block.blockerUserId
     ));
 
-
-    // const response = await axios.get("http://0.0.0.0:8001/api/get_matches", {
-    //   params: {
-    //     userId,
-    //     ...req.query
-    //   }
-    // });
-
-    
-
+    // Fetch matches from external API
     const response = await axios.get("https://recommend.vedvivah.com/api/get_matches", {
-      params: {
-        userId,
-        ...req.query
-      }
+      params: { userId, ...req.query }
     });
 
-
-    let profiles = response.data.filter((profile) =>
+    // Filter out incomplete profiles
+    let profiles = response.data.filter(profile =>
       profile.gender &&
       profile.age &&
       profile.firstName &&
@@ -703,9 +691,8 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       profile.profileImages.length > 0
     );
 
-
+    // Remove blocked users
     profiles = profiles.filter(profile => !blockedUserIds.includes(profile.userId));
-
 
     if (!profiles || profiles.length === 0) {
       return res.status(404).json({
@@ -714,6 +701,24 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
         message: "No matches found",
       });
     }
+
+    // Fetch public_user_id from DB
+    const matchedUserIds = profiles.map(p => p.userId);
+    const users = await User.findAll({
+      where: { userId: matchedUserIds },
+      attributes: ['userId', 'public_user_id']
+    });
+
+    // Map public_user_id to profiles
+    const userMap = {};
+    users.forEach(u => {
+      userMap[u.userId] = u.public_user_id;
+    });
+
+    profiles = profiles.map(profile => ({
+      ...profile,
+      public_user_id: userMap[profile.userId] || null
+    }));
 
     return res.status(200).json({
       success: true,
