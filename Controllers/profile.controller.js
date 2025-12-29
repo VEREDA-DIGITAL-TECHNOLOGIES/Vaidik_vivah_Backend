@@ -690,6 +690,7 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 
 
     let profiles = response.data.filter((profile) =>
+      profile.public_user_id &&
       profile.gender &&
       profile.age &&
       profile.firstName &&
