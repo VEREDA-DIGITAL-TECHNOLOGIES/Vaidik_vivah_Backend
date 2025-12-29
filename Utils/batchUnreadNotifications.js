@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
 import dotenv from "dotenv";
-import sendEmail from "../Utils/sendEmail.js";
+import sendEmail from './sendMail.js'
 import { getSenderAndReceiver } from "../Utils/userLookup.js";
 
 dotenv.config();
