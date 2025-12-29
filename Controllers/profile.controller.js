@@ -75,6 +75,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       profileImage: imageUploadData?.image || "No Image",
       toggleStatus: toggleStatuses,
       basic_and_lifestyle: {
+        publicUserId: user.public_user_id,
         firstName: personalData?.firstName,
         lastName: personalData?.lastName,
         displayName: personalData?.displayName,
@@ -1366,6 +1367,7 @@ export const allProfiles = catchAsyncError(async (req, res, next) => {
     const data = recommendedUsers.map((user) => {
       let matchScore = 0;
       return {
+        
         userId: user.userId,
         uid: user.uid,
         fcmToken: user.fcmToken,
