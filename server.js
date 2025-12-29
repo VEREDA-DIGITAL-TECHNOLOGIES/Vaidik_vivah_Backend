@@ -99,7 +99,7 @@ const startServer = async () => {
     await Answer.sync({ force: false });
     await personalDetails.sync({ force: false });
     await otherDetails.sync({ force: false });
-    await locationDetails.sync({ force: false });
+    await locationDetails.sync({ alter : true });
     await imageUpload.sync({ force: false });
     await qualificationDetails.sync({ force: false });
     await Recommendation.sync({ force: false });

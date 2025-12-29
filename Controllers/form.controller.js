@@ -84,29 +84,55 @@ export const qualificationDetailsRegister = catchAsyncError(async (req, res, nex
 
 export const locationDetailsRegister = catchAsyncError(async (req, res, next) => {
     const userId = req.user.userId;
-    const { country, state } = req.body;
 
-    if ( !country || !state) {
-        return  res.status(400).json({ success: false, message: "All fields are required!" });
+    const { country, state, fullAddress } = req.body;
+
+    // Required field validation
+    if (!country || !state) {
+        return res.status(400).json({
+            success: false,
+            message: "Country and state are required!",
+        });
     }
 
-    const locationDetailsExist = await locationDetails.findOne({ where: { userId } });
+    // Check if location already exists
+    const locationDetailsExist = await locationDetails.findOne({
+        where: { userId },
+    });
 
     if (locationDetailsExist) {
-        return res.status(400).json({ success: false, message: "Location details already exist!" });
+        return res.status(400).json({
+            success: false,
+            message: "Location details already exist!",
+        });
     }
 
-    const locationDetailsData = await locationDetails.create({  country, state, userId });
+    // Create location details
+    const locationDetailsData = await locationDetails.create({
+        userId,
+        country,
+        state,
+        fullAddress: fullAddress || null, // ✅ optional field
+    });
 
-    await recommendation.update({  country, state }, { where: { userId } });
+    // Update recommendation table
+    await recommendation.update(
+        { country, state },
+        { where: { userId } }
+    );
 
-    await User.update({ isLocationFormFilled: true }, { where: { userId } });
-    res.status(201).json({
+    // Mark location form completed
+    await User.update(
+        { isLocationFormFilled: true },
+        { where: { userId } }
+    );
+
+    return res.status(201).json({
         success: true,
         message: "Location details added successfully",
-        locationDetailsData
-    })
-})
+        locationDetailsData,
+    });
+});
 
 export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
     try {

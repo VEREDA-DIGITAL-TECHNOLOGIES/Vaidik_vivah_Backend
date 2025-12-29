@@ -114,6 +114,9 @@ export const getAllUsersWithDetails = async (req, res) => {
         });
 
         const data = {
+
+          age: age?.answer || null,                  // ✅ ADDED
+          fullAddress: locationDetailsData.fullAddress || null,
           basic_and_lifestye: {
             firstName: personalData.firstName,
             lastName: personalData.lastName,
@@ -171,7 +174,9 @@ export const getAllUsersWithDetails = async (req, res) => {
         const profileCompletionPercentage = calculateCompletion(data);
 
         return {
-          ...userJSON, // ✅ includes public_user_id, isDisabledByAdmin, reasonForDisabledByAdmin
+          ...userJSON,
+          age: age?.answer || null,
+  fullAddress: locationDetailsData?.fullAddress || null, // ✅ includes public_user_id, isDisabledByAdmin, reasonForDisabledByAdmin
           subscriptionDaysLeft,
           profileCompletionPercentage
         };
@@ -464,6 +469,8 @@ export const getAllDisabledUsersWithDetails = async (req, res) => {
 
         return {
           ...userJSON,
+          age: age?.answer || null,
+  fullAddress: locationDetailsData?.fullAddress || null,
           subscriptionDaysLeft,
           profileCompletionPercentage
         };
