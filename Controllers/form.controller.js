@@ -13,6 +13,20 @@ import Gayatri from "../Models/gayatri.model.js";
 import sendEmail from "../Utils/sendMail.js";
 dotenv.config();
 
+
+const calculateAgeFromDOB = (dob) => {
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return null;
+  
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+  
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 export const personalDetailsRegister = catchAsyncError(async (req, res, next) => {
     try {
         const userId = req.user.userId;
@@ -139,18 +153,57 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
       const userId = req.user.userId;
       const { caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth } = req.body;
   
-      // 1️⃣ Validate input
       if (!caste || !community || !dateOfBirth || !timeOfBirth || !religion || !placeOfBirth) {
         return res.status(400).json({ success: false, message: "All fields are required!" });
       }
   
-      // 2️⃣ Prevent duplicate entries
+      // 🔹 Check existing other details
       const existing = await otherDetails.findOne({ where: { userId } });
       if (existing) {
         return res.status(400).json({ success: false, message: "Other details already exist!" });
       }
   
-      // 3️⃣ Create record
+      // 🔹 Validate DOB
+      const calculatedAge = calculateAgeFromDOB(dateOfBirth);
+      if (calculatedAge === null) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid date of birth format.",
+        });
+      }
+  
+      if (new Date(dateOfBirth) > new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: "Date of birth cannot be in the future.",
+        });
+      }
+  
+      // 🔹 Fetch recommendation data
+      const recommendData = await recommendation.findOne({ where: { userId } });
+  
+      if (recommendData?.age) {
+        const enteredAge = parseInt(recommendData.age, 10);
+  
+        if (isNaN(enteredAge)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid age stored in profile. Please update your age first.",
+          });
+        }
+  
+        // ✅ Allow ±1 year (birthday edge case)
+        const ageDiff = Math.abs(enteredAge - calculatedAge);
+  
+        if (ageDiff > 1) {
+          return res.status(400).json({
+            success: false,
+            message: `You have entered your age as ${enteredAge}. Based on this, please enter the correct year or DOB.`,
+          });
+        }
+      }
+  
+      // 🔹 Create other details
       const otherDetailsData = await otherDetails.create({
         caste,
         community,
@@ -161,7 +214,6 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
         userId,
       });
   
-      // 4️⃣ Update related tables
       await recommendation.update(
         { caste, community, dateOfBirth, timeOfBirth, religion, placeOfBirth },
         { where: { userId } }
@@ -169,16 +221,14 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
   
       await User.update({ isOtherFormFilled: true }, { where: { userId } });
   
-      // 5️⃣ Fetch user info for email
       const user = await User.findOne({ where: { userId } });
   
-      // 6️⃣ Send admin notification email
       await sendEmail({
-        email: "info@vedvivah.com", // admin email
+        email: "info@vedvivah.com",
         subject: "🪔 New VaidikVivah Account Created",
         template: "accountCreate.ejs",
         data: {
-          name: user?.fullName || `${user?.email || "New User"}`,
+          name: user?.fullName || user?.email || "New User",
           userId,
           caste,
           community,
@@ -189,8 +239,7 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
         },
       });
   
-      // 7️⃣ Response
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "Other details added successfully",
         otherDetailsData,
@@ -200,6 +249,8 @@ export const otherDetailsRegister = catchAsyncError(async (req, res, next) => {
       return next(new errorhandler(error.message, 500));
     }
   });
+  
+  
   
 
 export const imageUploadRegister = catchAsyncError(async (req, res, next) => {
