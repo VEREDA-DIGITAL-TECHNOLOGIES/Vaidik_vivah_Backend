@@ -2,118 +2,136 @@ import { Application, Plan } from '../Models/association.js';
 import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
 
+
+
 export const createApplication = catchAsyncError(async (req, res, next) => {
-  console.log('📦 Received body:', req.body);
+  console.log("📦 Received body:", req.body);
 
-  // ✅ Validate required fields
+  // ✅ Required fields
   const requiredFields = [
-    'planName', 'nom', 'fatherName', 'loginId', 'address', 'penaltyType',
-    'partnerName', 'partnerFatherName', 'partnerLoginId', 'partnerAddress',
-    'yourMobNo', 'partnerMobNo', 'parentsMobNo', 'partnerParentsMobNo',
-    'planId', 'userId'
+    "planId",
+    "userId",
+    "planName",
+    "nom",
+    "fatherName",
+    "loginId",
+    "address",
+    "penaltyType",
+    "partnerName",
+    "partnerFatherName",
+    "partnerLoginId",
+    "partnerAddress",
+    "yourMobNo",
+    "partnerMobNo",
+    "parentsMobNo",
+    "partnerParentsMobNo",
+    "yourIdNumber",
+    "parentsIdNumber",
+    "partnerIdNumber",
+    "partnerParentsIdNumber",
   ];
-  
-  const missingFields = requiredFields.filter(f => !req.body[f]);
-  if (missingFields.length)
-    return next(new errorhandler(`Missing required fields: ${missingFields.join(', ')}`, 400));
 
-  // ✅ Validate mobile numbers
-  const mobileFields = ['yourMobNo', 'partnerMobNo', 'parentsMobNo', 'partnerParentsMobNo'];
-  const invalidMobiles = mobileFields.filter(f => !/^\d{10}$/.test(req.body[f] || ''));
-  if (invalidMobiles.length)
-    return next(new errorhandler(`Invalid mobile numbers: ${invalidMobiles.join(', ')}`, 400));
+  const missingFields = requiredFields.filter(
+    (field) => !req.body[field]
+  );
 
-  // ✅ Validate ID numbers (new fields)
-  const idNumberFields = ['yourIdNumber', 'parentsIdNumber', 'partnerIdNumber', 'partnerParentsIdNumber'];
-  const missingIdNumbers = idNumberFields.filter(f => !req.body[f] || req.body[f].trim() === '');
-  if (missingIdNumbers.length)
-    return next(new errorhandler(`Missing ID numbers: ${missingIdNumbers.join(', ')}`, 400));
-
-  const shortIdNumbers = idNumberFields.filter(f => req.body[f] && req.body[f].length < 3);
-  if (shortIdNumbers.length)
-    return next(new errorhandler(`ID numbers must be at least 3 characters: ${shortIdNumbers.join(', ')}`, 400));
-
-  try {
-    // Parse boolean values
-    const parentsCertified = req.body.parentsCertified === 'true';
-    const partnerParentsCertified = req.body.partnerParentsCertified === 'true';
-
-    // Create application with all data
-    const application = await Application.create({
-      // Basic information
-      planId: req.body.planId,
-      userId: req.body.userId,
-      planName: req.body.planName || "Diamond",
-      
-      // Personal information
-      nom: req.body.nom,
-      fatherName: req.body.fatherName,
-      loginId: req.body.loginId,
-      address: req.body.address,
-      penaltyType: req.body.penaltyType,
-      
-      // Partner information
-      partnerName: req.body.partnerName,
-      partnerFatherName: req.body.partnerFatherName,
-      partnerLoginId: req.body.partnerLoginId,
-      partnerAddress: req.body.partnerAddress,
-      
-      // Contact information
-      yourMobNo: req.body.yourMobNo,
-      partnerMobNo: req.body.partnerMobNo,
-      parentsMobNo: req.body.parentsMobNo,
-      partnerParentsMobNo: req.body.partnerParentsMobNo,
-      
-      // Certification
-      parentsCertified,
-      partnerParentsCertified,
-      
-      // ID Numbers (new text fields)
-      yourIdNumber: req.body.yourIdNumber,
-      parentsIdNumber: req.body.parentsIdNumber,
-      partnerIdNumber: req.body.partnerIdNumber,
-      partnerParentsIdNumber: req.body.partnerParentsIdNumber,
-      
-      // Payment and metadata
-      paymentAmount: parseFloat(req.body.applicationFee) || 1000.00,
-      applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : new Date(),
-      
-      // Set default status
-      status: 'pending',
-      paymentStatus: 'pending',
-    });
-
-    console.log('🚀 ===== VIVAH SANSAKAR APPLICATION SUBMITTED =====');
-    console.log('   🆔 Application ID:', application.id);
-    console.log('   👤 Applicant:', application.nom);
-    console.log('   👥 Partner:', application.partnerName);
-    console.log('   📱 Mobile:', application.yourMobNo);
-    console.log('   💰 Fee:', application.paymentAmount);
-    console.log('===================================================');
-
-    res.status(201).json({
-      success: true,
-      message: 'Application submitted successfully',
-      data: application,
-    });
-
-  } catch (error) {
-    console.error('❌ Application creation error:', error);
-    
-    // Handle database validation errors
-    if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
-      const messages = error.errors.map(err => err.message);
-      return next(new errorhandler(`Validation failed: ${messages.join(', ')}`, 400));
-    }
-    
-    // Handle foreign key constraint errors
-    if (error.name === 'SequelizeForeignKeyConstraintError') {
-      return next(new errorhandler('Invalid plan or user reference', 400));
-    }
-    
-    return next(new errorhandler('Application creation failed. Please try again.', 500));
+  if (missingFields.length) {
+    return next(
+      new errorhandler(
+        `Missing required fields: ${missingFields.join(", ")}`,
+        400
+      )
+    );
   }
+
+  // ✅ Mobile validation
+  const mobileFields = [
+    "yourMobNo",
+    "partnerMobNo",
+    "parentsMobNo",
+    "partnerParentsMobNo",
+  ];
+
+  const invalidMobiles = mobileFields.filter(
+    (field) => !/^\d{10}$/.test(req.body[field])
+  );
+
+  if (invalidMobiles.length) {
+    return next(
+      new errorhandler(
+        `Invalid mobile numbers: ${invalidMobiles.join(", ")}`,
+        400
+      )
+    );
+  }
+
+  // ✅ ID number validation
+  const idFields = [
+    "yourIdNumber",
+    "parentsIdNumber",
+    "partnerIdNumber",
+    "partnerParentsIdNumber",
+  ];
+
+  const shortIds = idFields.filter(
+    (field) => req.body[field].length < 3
+  );
+
+  if (shortIds.length) {
+    return next(
+      new errorhandler(
+        `ID numbers must be at least 3 characters: ${shortIds.join(", ")}`,
+        400
+      )
+    );
+  }
+
+  // ✅ Create application
+  const application = await Application.create({
+    planId: req.body.planId,
+    userId: req.body.userId,
+    planName: req.body.planName,
+
+    nom: req.body.nom,
+    fatherName: req.body.fatherName,
+    loginId: req.body.loginId,
+    address: req.body.address,
+    penaltyType: req.body.penaltyType,
+
+    partnerName: req.body.partnerName,
+    partnerFatherName: req.body.partnerFatherName,
+    partnerLoginId: req.body.partnerLoginId,
+    partnerAddress: req.body.partnerAddress,
+
+    yourMobNo: req.body.yourMobNo,
+    partnerMobNo: req.body.partnerMobNo,
+    parentsMobNo: req.body.parentsMobNo,
+    partnerParentsMobNo: req.body.partnerParentsMobNo,
+
+    parentsCertified: req.body.parentsCertified,
+    partnerParentsCertified: req.body.partnerParentsCertified,
+
+    yourIdNumber: req.body.yourIdNumber,
+    parentsIdNumber: req.body.parentsIdNumber,
+    partnerIdNumber: req.body.partnerIdNumber,
+    partnerParentsIdNumber: req.body.partnerParentsIdNumber,
+
+    paymentAmount: Number(req.body.applicationFee ?? 1000),
+    applicationDate: new Date(req.body.applicationDate ?? Date.now()),
+
+    status: "pending",
+    paymentStatus: "pending",
+  });
+
+  console.log("✅ APPLICATION CREATED:", application.id);
+
+  res.status(201).json({
+    success: true,
+    message: "Application submitted successfully",
+    data: application,
+  });
 });
+
 
 // Other controller functions remain similar but with catchAsyncError
 export const getApplications = catchAsyncError(async (req, res, next) => {
