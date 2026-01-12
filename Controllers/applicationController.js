@@ -111,10 +111,10 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     parentsCertified: req.body.parentsCertified,
     partnerParentsCertified: req.body.partnerParentsCertified,
 
-    yourIdNumber: req.body.yourIdNumber,
-    parentsIdNumber: req.body.parentsIdNumber,
-    partnerIdNumber: req.body.partnerIdNumber,
-    partnerParentsIdNumber: req.body.partnerParentsIdNumber,
+    yourIdPostUrl: req.body.yourIdNumber,
+    parentsIdPostUrl: req.body.parentsIdNumber,
+    partnerIdPostUrl: req.body.partnerIdNumber,
+    partnerParentsIdPostUrl: req.body.partnerParentsIdNumber,
 
     paymentAmount: Number(req.body.applicationFee ?? 1000),
     applicationDate: new Date(req.body.applicationDate ?? Date.now()),
