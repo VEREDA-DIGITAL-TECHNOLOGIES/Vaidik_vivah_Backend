@@ -47,10 +47,10 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
   }
 
   const admin = await Admin.findOne({ where: { email } });
-  if (!admin) return next(new errorhandler("Invalid credentials", 401));
+  if (!admin) return next(new errorhandler("User does not exist", 401));
 
   const isPasswordValid = await admin.validPassword(password);
-  if (!isPasswordValid) return next(new errorhandler("Invalid credentials", 401));
+  if (!isPasswordValid) return next(new errorhandler("Your password is incorrect", 401));
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   await redis.set(`otp:${email}`, otp, { EX: 300 }); // expires in 5 mins

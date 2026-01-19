@@ -39,8 +39,7 @@ import { startUnreadNotificationService } from './Utils/batchUnreadNotifications
 dotenv.config();
 
 
-app.use('/api/v1/application-plan', ApplicationRouter);
-app.use("/api/v1/payment-process", webhookRouter);
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.static("./public"));
 
@@ -62,10 +61,12 @@ app.use(cors({
     "http://localhost:5173",
     "http://localhost:3001"
   ],
-  credentials: true
+  credentials: true,
+   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-
+app.options("*", cors());
 
 app.use((req, res, next) => {
   console.log(`➡️ [${req.method}] ${req.originalUrl}`);
@@ -101,6 +102,8 @@ app.use("/api/admin/contact",contactRouter)
 app.use('/api/v1/application-plan', ApplicationRouter);
 
 app.use('/api/admin-dashboard', AdminUserRouter);
+app.use('/api/v1/application-plan', ApplicationRouter);
+app.use("/api/v1/payment-process", webhookRouter);
 
 
 const sequelize = connectDB();

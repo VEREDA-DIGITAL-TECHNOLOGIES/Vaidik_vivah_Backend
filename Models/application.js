@@ -9,6 +9,11 @@ const Application = sequelize.define('Application', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  planId: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        allowNull: true,
+    },
   userId: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,

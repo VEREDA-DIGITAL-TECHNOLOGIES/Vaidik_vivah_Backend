@@ -1,105 +1,135 @@
 import { Application, Plan } from '../Models/association.js';
-import { v2 as cloudinary } from "cloudinary";
-import { uploadCloudinary } from '../Utils/cloudinary.js';
 import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
-import fs from "fs";
-import path from "path";
 
-import { uploadBufferToCloudinary } from '../Utils/cloudinary.js';
 
 
 export const createApplication = catchAsyncError(async (req, res, next) => {
-  console.log('📦 Received files:', req.files);
-  console.log('📦 Received body:', req.body);
+  console.log("📦 Received body:", req.body);
 
-  // ✅ Validate required fields
+  // ✅ Required fields
   const requiredFields = [
-    'planName','nom','fatherName','loginId','address','penaltyType',
-    'partnerName','partnerFatherName','partnerLoginId','partnerAddress',
-    'yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo',
-    'planId','userId'
+    "planId",
+    "userId",
+    "planName",
+    "nom",
+    "fatherName",
+    "loginId",
+    "address",
+    "penaltyType",
+    "partnerName",
+    "partnerFatherName",
+    "partnerLoginId",
+    "partnerAddress",
+    "yourMobNo",
+    "partnerMobNo",
+    "parentsMobNo",
+    "partnerParentsMobNo",
+    "yourIdNumber",
+    "parentsIdNumber",
+    "partnerIdNumber",
+    "partnerParentsIdNumber",
   ];
-  const missingFields = requiredFields.filter(f => !req.body[f]);
-  if (missingFields.length)
-    return next(new errorhandler(`Missing required fields: ${missingFields.join(', ')}`,400));
 
-  // ✅ Validate mobile numbers
-  const mobileFields = ['yourMobNo','partnerMobNo','parentsMobNo','partnerParentsMobNo'];
-  const invalidMobiles = mobileFields.filter(f => !/^\d{10}$/.test(req.body[f] || ''));
-  if (invalidMobiles.length)
-    return next(new errorhandler(`Invalid mobile numbers: ${invalidMobiles.join(', ')}`,400));
+  const missingFields = requiredFields.filter(
+    (field) => !req.body[field]
+  );
 
-  try {
-    // ⚡ OPTIONAL FILES — upload only those that exist
-    const fileFields = ['yourIdPost','parentsIdPost','partnerIdPost','partnerParentsIdPost'];
-
-    const uploadPromises = fileFields.map(async field => {
-      if (!req.files?.[field]) return null; // skip missing file
-
-      const file = req.files[field][0];
-      const uploaded = await uploadBufferToCloudinary(file.buffer);
-
-      return { 
-        field, 
-        url: uploaded.secure_url, 
-        publicId: uploaded.public_id 
-      };
-    });
-
-    const uploadResults = (await Promise.all(uploadPromises)).filter(Boolean);
-
-    // Build Cloudinary result object
-    const cloudinaryUrls = {};
-    uploadResults.forEach(r => {
-      cloudinaryUrls[`${r.field}Url`] = r.url;
-      cloudinaryUrls[`${r.field}PublicId`] = r.publicId;
-    });
-
-    const parentsCertified = req.body.parentsCertified === 'true';
-    const partnerParentsCertified = req.body.partnerParentsCertified === 'true';
-
-    const application = await Application.create({
-      planId: req.body.planId,
-      userId: req.body.userId,
-      planName: req.body.planName || "Diamond",
-      nom: req.body.nom,
-      fatherName: req.body.fatherName,
-      loginId: req.body.loginId,
-      address: req.body.address,
-      penaltyType: req.body.penaltyType,
-      partnerName: req.body.partnerName,
-      partnerFatherName: req.body.partnerFatherName,
-      partnerLoginId: req.body.partnerLoginId,
-      partnerAddress: req.body.partnerAddress,
-      yourMobNo: req.body.yourMobNo,
-      partnerMobNo: req.body.partnerMobNo,
-      parentsCertified,
-      parentsMobNo: req.body.parentsMobNo,
-      partnerParentsMobNo: req.body.partnerParentsMobNo,
-      partnerParentsCertified,
-
-      // 👇 OPTIONAL FILE URLs
-      ...cloudinaryUrls,    
-
-      paymentAmount: parseFloat(req.body.applicationFee) || 1000.00,
-      applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : new Date(),
-    });
-
-    console.log('🚀 ===== VIVAH SANSAKAR APPLICATION SUBMITTED =====');
-    console.log('   🆔 Application ID:', application.id);
-    console.log('===================================================');
-
-    res.status(201).json({
-      success: true,
-      message: 'Application submitted successfully',
-      data: application,
-    });
-
-  } catch (uploadError) {
-    console.error('❌ File upload error:', uploadError);
-    return next(new errorhandler('File upload failed. Please try again.', 500));
+  if (missingFields.length) {
+    return next(
+      new errorhandler(
+        `Missing required fields: ${missingFields.join(", ")}`,
+        400
+      )
+    );
   }
+
+  // ✅ Mobile validation
+  const mobileFields = [
+    "yourMobNo",
+    "partnerMobNo",
+    "parentsMobNo",
+    "partnerParentsMobNo",
+  ];
+
+  const invalidMobiles = mobileFields.filter(
+    (field) => !/^\d{10}$/.test(req.body[field])
+  );
+
+  if (invalidMobiles.length) {
+    return next(
+      new errorhandler(
+        `Invalid mobile numbers: ${invalidMobiles.join(", ")}`,
+        400
+      )
+    );
+  }
+
+  // ✅ ID number validation
+  const idFields = [
+    "yourIdNumber",
+    "parentsIdNumber",
+    "partnerIdNumber",
+    "partnerParentsIdNumber",
+  ];
+
+  const shortIds = idFields.filter(
+    (field) => req.body[field].length < 3
+  );
+
+  if (shortIds.length) {
+    return next(
+      new errorhandler(
+        `ID numbers must be at least 3 characters: ${shortIds.join(", ")}`,
+        400
+      )
+    );
+  }
+
+  // ✅ Create application
+  const application = await Application.create({
+    planId: req.body.planId,
+    userId: req.body.userId,
+    planName: req.body.planName,
+
+    nom: req.body.nom,
+    fatherName: req.body.fatherName,
+    loginId: req.body.loginId,
+    address: req.body.address,
+    penaltyType: req.body.penaltyType,
+
+    partnerName: req.body.partnerName,
+    partnerFatherName: req.body.partnerFatherName,
+    partnerLoginId: req.body.partnerLoginId,
+    partnerAddress: req.body.partnerAddress,
+
+    yourMobNo: req.body.yourMobNo,
+    partnerMobNo: req.body.partnerMobNo,
+    parentsMobNo: req.body.parentsMobNo,
+    partnerParentsMobNo: req.body.partnerParentsMobNo,
+
+    parentsCertified: req.body.parentsCertified,
+    partnerParentsCertified: req.body.partnerParentsCertified,
+
+    yourIdPostUrl: req.body.yourIdNumber,
+    parentsIdPostUrl: req.body.parentsIdNumber,
+    partnerIdPostUrl: req.body.partnerIdNumber,
+    partnerParentsIdPostUrl: req.body.partnerParentsIdNumber,
+
+    paymentAmount: Number(req.body.applicationFee ?? 1000),
+    applicationDate: new Date(req.body.applicationDate ?? Date.now()),
+
+    status: "pending",
+    paymentStatus: "pending",
+  });
+
+  console.log("✅ APPLICATION CREATED:", application.id);
+
+  res.status(201).json({
+    success: true,
+    message: "Application submitted successfully",
+    data: application,
+  });
 });
 
 
@@ -195,7 +225,3 @@ export const getApplicationStats = catchAsyncError(async (req, res, next) => {
     },
   });
 });
-
-
-
-
