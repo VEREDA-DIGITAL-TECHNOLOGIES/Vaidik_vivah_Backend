@@ -1,4 +1,4 @@
-import user from './../Models/user.js'
+import User from './../Models/user.js'
 
 export async function getSenderAndReceiver(senderUid, receiverUid) {
   const [sender, receiver] = await Promise.all([
