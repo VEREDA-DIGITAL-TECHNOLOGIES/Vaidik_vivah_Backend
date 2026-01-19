@@ -108,7 +108,7 @@ app.get("/test", async (req, res) => {
   return res.status(200).json({
     success: true,
     status: "OK",
-    service: "VEDVIVAH BACKEND",
+    service: "VEDVIVAH BACKEND RUNNING",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
   });
