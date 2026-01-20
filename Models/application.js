@@ -1,160 +1,140 @@
-import { DataTypes } from 'sequelize';
-import connectDB from '../Utils/db.js'
+import { DataTypes } from "sequelize";
+import connectDB from "../Utils/db.js";
 
-const sequelize = connectDB()
+const sequelize = connectDB();
 
-const Application = sequelize.define('Application', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-  planId: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        allowNull: true,
+const Application = sequelize.define(
+  "Application",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
-  userId: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        allowNull: true,
+
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
-  planName: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  // Personal Information
-  nom: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  fatherName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  loginId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  address: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  
-  // Penalty Information
-  penaltyType: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  
-  // Partner Information
-  partnerName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  partnerFatherName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  partnerLoginId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  partnerAddress: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  yourMobNo: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    validate: {
-      len: [10, 10],
-      isNumeric: true,
+
+    planId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
-  },
-  partnerMobNo: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    validate: {
-      len: [10, 10],
-      isNumeric: true,
+
+    // Personal Information
+    nom: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-  },
-  
-  // Cloudinary URLs (for uploaded files)
-  yourIdPostUrl: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  yourIdPostPublicId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  parentsIdPostUrl: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  parentsIdPostPublicId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  partnerIdPostUrl: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  partnerIdPostPublicId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  partnerParentsIdPostUrl: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  partnerParentsIdPostPublicId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  
-  // Certification
-  parentsCertified: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-  partnerParentsCertified: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-  
-  // Contact Numbers
-  parentsMobNo: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    validate: {
-      len: [10, 10],
-      isNumeric: true,
+
+    fatherName: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-  },
-  partnerParentsMobNo: {
-    type: DataTypes.STRING(10),
-    allowNull: false,
-    validate: {
-      len: [10, 10],
-      isNumeric: true,
+
+    // Address
+    villageCityTown: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-  },
-  
-  // Application Status
-  status: {
-    type: DataTypes.ENUM(
-      'pending',
-      'under_review',
-      'approved',
-      'rejected',
-      'completed'
-    ),
-    defaultValue: 'pending',
-  },
-  
+
+    district: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    state: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    country: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    pincode: {
+      type: DataTypes.STRING(6),
+      allowNull: false,
+      validate: {
+        len: [6, 6],
+        isNumeric: true,
+      },
+    },
+
+    // Penalty Type
+    penaltyType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    // Partner Information
+    partnerName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    partnerFatherName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    yourMobNo: {
+      type: DataTypes.STRING(10),
+      allowNull: false,
+      validate: {
+        len: [10, 10],
+        isNumeric: true,
+      },
+    },
+
+    // Marriage Venue Address
+    venueName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    venueVillageCityTown: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    venueDistrict: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    venueState: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    venueCountry: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    venuePincode: {
+      type: DataTypes.STRING(6),
+      allowNull: false,
+      validate: {
+        len: [6, 6],
+        isNumeric: true,
+      },
+    },
+
+    // Status
+    status: {
+      type: DataTypes.ENUM(
+        "pending",
+        "under_review",
+        "approved",
+        "rejected",
+        "completed"
+      ),
+      defaultValue: "pending",
+    },
   // Payment Information
   paymentStatus: {
     type: DataTypes.ENUM('pending', 'paid', 'failed', 'refunded'),
@@ -162,7 +142,7 @@ const Application = sequelize.define('Application', {
   },
   paymentAmount: {
     type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 1000.00,
+    defaultValue: 0.00,
   },
   paymentReference: {
     type: DataTypes.STRING,
@@ -176,7 +156,7 @@ const Application = sequelize.define('Application', {
   },
   applicationFee: {
     type: DataTypes.DECIMAL(10, 2),
-    defaultValue: 1000.00,
+    defaultValue: 0.00,
   },
 }, {
   tableName: 'applications',

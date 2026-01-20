@@ -2,39 +2,41 @@ import { Application, Plan } from '../Models/association.js';
 import { catchAsyncError } from '../Middlewares/catchAsyncError.js';
 import errorhandler from '../Utils/errorhandler.js';
 
-
-
+/**
+ * CREATE APPLICATION
+ */
 export const createApplication = catchAsyncError(async (req, res, next) => {
   console.log("📦 Received body:", req.body);
 
-  // ✅ Required fields
   const requiredFields = [
-    "planId",
     "userId",
-    "planName",
+    "planId",
+
     "nom",
     "fatherName",
-    "loginId",
-    "address",
+
+    "villageCityTown",
+    "district",
+    "state",
+    "country",
+    "pincode",
+
     "penaltyType",
+
     "partnerName",
     "partnerFatherName",
-    "partnerLoginId",
-    "partnerAddress",
+
     "yourMobNo",
-    "partnerMobNo",
-    "parentsMobNo",
-    "partnerParentsMobNo",
-    "yourIdNumber",
-    "parentsIdNumber",
-    "partnerIdNumber",
-    "partnerParentsIdNumber",
+
+    "venueName",
+    "venueVillageCityTown",
+    "venueDistrict",
+    "venueState",
+    "venueCountry",
+    "venuePincode",
   ];
 
-  const missingFields = requiredFields.filter(
-    (field) => !req.body[field]
-  );
-
+  const missingFields = requiredFields.filter(field => !req.body[field]);
   if (missingFields.length) {
     return next(
       new errorhandler(
@@ -44,86 +46,47 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  // ✅ Mobile validation
-  const mobileFields = [
-    "yourMobNo",
-    "partnerMobNo",
-    "parentsMobNo",
-    "partnerParentsMobNo",
-  ];
-
-  const invalidMobiles = mobileFields.filter(
-    (field) => !/^\d{10}$/.test(req.body[field])
-  );
-
-  if (invalidMobiles.length) {
-    return next(
-      new errorhandler(
-        `Invalid mobile numbers: ${invalidMobiles.join(", ")}`,
-        400
-      )
-    );
+  // Mobile validation
+  if (!/^\d{10}$/.test(req.body.yourMobNo)) {
+    return next(new errorhandler("Invalid mobile number", 400));
   }
 
-  // ✅ ID number validation
-  const idFields = [
-    "yourIdNumber",
-    "parentsIdNumber",
-    "partnerIdNumber",
-    "partnerParentsIdNumber",
-  ];
-
-  const shortIds = idFields.filter(
-    (field) => req.body[field].length < 3
-  );
-
-  if (shortIds.length) {
-    return next(
-      new errorhandler(
-        `ID numbers must be at least 3 characters: ${shortIds.join(", ")}`,
-        400
-      )
-    );
+  // Pincode validation
+  if (!/^\d{6}$/.test(req.body.pincode) || !/^\d{6}$/.test(req.body.venuePincode)) {
+    return next(new errorhandler("Invalid pincode", 400));
   }
 
-  // ✅ Create application
   const application = await Application.create({
-    planId: req.body.planId,
     userId: req.body.userId,
-    planName: req.body.planName,
+    planId: req.body.planId,
 
     nom: req.body.nom,
     fatherName: req.body.fatherName,
-    loginId: req.body.loginId,
-    address: req.body.address,
+
+    villageCityTown: req.body.villageCityTown,
+    district: req.body.district,
+    state: req.body.state,
+    country: req.body.country,
+    pincode: req.body.pincode,
+
     penaltyType: req.body.penaltyType,
 
     partnerName: req.body.partnerName,
     partnerFatherName: req.body.partnerFatherName,
-    partnerLoginId: req.body.partnerLoginId,
-    partnerAddress: req.body.partnerAddress,
 
     yourMobNo: req.body.yourMobNo,
-    partnerMobNo: req.body.partnerMobNo,
-    parentsMobNo: req.body.parentsMobNo,
-    partnerParentsMobNo: req.body.partnerParentsMobNo,
 
-    parentsCertified: req.body.parentsCertified,
-    partnerParentsCertified: req.body.partnerParentsCertified,
-
-    yourIdPostUrl: req.body.yourIdNumber,
-    parentsIdPostUrl: req.body.parentsIdNumber,
-    partnerIdPostUrl: req.body.partnerIdNumber,
-    partnerParentsIdPostUrl: req.body.partnerParentsIdNumber,
+    venueName: req.body.venueName,
+    venueVillageCityTown: req.body.venueVillageCityTown,
+    venueDistrict: req.body.venueDistrict,
+    venueState: req.body.venueState,
+    venueCountry: req.body.venueCountry,
+    venuePincode: req.body.venuePincode,
 
     paymentAmount: Number(req.body.applicationFee ?? 1000),
+    applicationFee:Number(req.body.applicationFee ?? 1000),
     applicationDate: new Date(req.body.applicationDate ?? Date.now()),
-
-    status: "pending",
-    paymentStatus: "pending",
   });
-
-  console.log("✅ APPLICATION CREATED:", application.id);
 
   res.status(201).json({
     success: true,
@@ -132,43 +95,43 @@ export const createApplication = catchAsyncError(async (req, res, next) => {
   });
 });
 
-
-// Other controller functions remain similar but with catchAsyncError
-export const getApplications = catchAsyncError(async (req, res, next) => {
+/**
+ * GET ALL APPLICATIONS (PAGINATED)
+ */
+export const getApplications = catchAsyncError(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
-  const offset = (page - 1) * limit;
 
-  const whereClause = status ? { status } : {};
+  const where = status ? { status } : {};
 
-  const { count, rows: applications } = await Application.findAndCountAll({
-    where: whereClause,
-    include: [{ model: Plan, as: 'plans' }],
-    order: [['createdAt', 'DESC']],
+  const { count, rows } = await Application.findAndCountAll({
+    where,
+    include: [{ model: Plan, as: "plan" }],
+    order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
-    offset: parseInt(offset),
+    offset: (page - 1) * limit,
   });
 
   res.status(200).json({
     success: true,
-    data: applications,
+    data: rows,
     pagination: {
-      currentPage: parseInt(page),
+      currentPage: Number(page),
       totalPages: Math.ceil(count / limit),
       totalItems: count,
-      itemsPerPage: parseInt(limit),
     },
   });
 });
 
+/**
+ * GET APPLICATION BY ID
+ */
 export const getApplicationById = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-
-  const application = await Application.findByPk(id, {
-    include: [{ model: Plan, as: 'plan' }],
+  const application = await Application.findByPk(req.params.id, {
+    include: [{ model: Plan, as: "plan" }],
   });
 
   if (!application) {
-    return next(new errorhandler('Application not found', 404));
+    return next(new errorhandler("Application not found", 404));
   }
 
   res.status(200).json({
@@ -177,42 +140,49 @@ export const getApplicationById = catchAsyncError(async (req, res, next) => {
   });
 });
 
+/**
+ * UPDATE APPLICATION STATUS
+ */
 export const updateApplicationStatus = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  const { status, notes } = req.body;
+  const { status, paymentStatus } = req.body;
 
-  const validStatuses = ['pending', 'under_review', 'approved', 'rejected', 'completed'];
-  if (!validStatuses.includes(status)) {
-    return next(new errorhandler('Invalid status', 400));
+  const validStatuses = ["pending", "under_review", "approved", "rejected", "completed"];
+  if (status && !validStatuses.includes(status)) {
+    return next(new errorhandler("Invalid application status", 400));
   }
 
-  const application = await Application.findByPk(id);
+  const application = await Application.findByPk(req.params.id);
   if (!application) {
-    return next(new errorhandler('Application not found', 404));
+    return next(new errorhandler("Application not found", 404));
   }
 
-  await application.update({ status, notes });
+  await application.update({
+    status: status ?? application.status,
+    paymentStatus: paymentStatus ?? application.paymentStatus,
+  });
 
   res.status(200).json({
     success: true,
-    message: 'Application status updated successfully',
+    message: "Application updated successfully",
     data: application,
   });
 });
 
-export const getApplicationStats = catchAsyncError(async (req, res, next) => {
-  const totalApplications = await Application.count();
-  const pendingApplications = await Application.count({ where: { status: 'pending' } });
-  const approvedApplications = await Application.count({ where: { status: 'approved' } });
-  const totalRevenue = await Application.sum('paymentAmount', { where: { paymentStatus: 'paid' } });
-
-  const statsByPlan = await Application.findAll({
-    attributes: ['planId'],
-    include: [{ model: Plan, as: 'plan', attributes: ['name'] }],
-    group: ['planId', 'Plan.id', 'Plan.name'],
-    raw: true,
-    nest: true,
-  });
+/**
+ * APPLICATION STATS
+ */
+export const getApplicationStats = catchAsyncError(async (req, res) => {
+  const [
+    totalApplications,
+    pendingApplications,
+    approvedApplications,
+    totalRevenue,
+  ] = await Promise.all([
+    Application.count(),
+    Application.count({ where: { status: "pending" } }),
+    Application.count({ where: { status: "approved" } }),
+    Application.sum("paymentAmount", { where: { paymentStatus: "paid" } }),
+  ]);
 
   res.status(200).json({
     success: true,
@@ -221,7 +191,6 @@ export const getApplicationStats = catchAsyncError(async (req, res, next) => {
       pendingApplications,
       approvedApplications,
       totalRevenue: totalRevenue || 0,
-      statsByPlan,
     },
   });
 });
