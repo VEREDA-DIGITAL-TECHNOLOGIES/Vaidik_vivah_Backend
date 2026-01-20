@@ -105,7 +105,7 @@ export const getApplications = catchAsyncError(async (req, res) => {
 
   const { count, rows } = await Application.findAndCountAll({
     where,
-    include: [{ model: Plan, as: "plan" }],
+    include: [{ model: Plan, as: "plans" }],
     order: [["createdAt", "DESC"]],
     limit: parseInt(limit),
     offset: (page - 1) * limit,
@@ -127,7 +127,7 @@ export const getApplications = catchAsyncError(async (req, res) => {
  */
 export const getApplicationById = catchAsyncError(async (req, res, next) => {
   const application = await Application.findByPk(req.params.id, {
-    include: [{ model: Plan, as: "plan" }],
+    include: [{ model: Plan, as: "plans" }],
   });
 
   if (!application) {
