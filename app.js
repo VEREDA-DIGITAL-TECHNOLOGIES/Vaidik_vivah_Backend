@@ -35,7 +35,7 @@ import contactRouter from './routes/contactRoutes.js';
 import ApplicationRouter from "./routes/applicationRoutes.js"
 import documentUpload from './Models/document.upload.js';
 import connectDB from './Utils/db.js';
-import { startUnreadNotificationService } from './Utils/batchUnreadNotifications.js';
+
 dotenv.config();
 
 
@@ -118,19 +118,7 @@ app.get("/test", async (req, res) => {
 });
 
 
-app.get("/test-notification", async (req, res) => {
-  // 🔥 Trigger in background (DO NOT await)
-  testUnreadMessageNotification();
 
-  // ✅ Immediate health response
-  return res.status(200).json({
-    success: true,
-    status: "OK",
-    service: "VEDVIVAH BACKEND",
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-  });
-});
 
 
 app.use(ErrorMiddleware);
