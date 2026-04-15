@@ -123,15 +123,15 @@ const startServer = async () => {
     await AdminApiLog.sync({ force: false });
     await Banner.sync({ force: false });
     await Contact.sync({ force: false });
-    await Application.sync({ alter: false });
+    await Application.sync({forece:false });
 
-    console.log('✅ Tables synchronized');
+    console.log(' Tables synchronized');
 
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(` Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Server startup error:', error);
+    console.error(' Server startup error:', error);
   }
 };
 
