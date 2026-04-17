@@ -38,7 +38,7 @@ const User = sequelize.define(
       allowNull: true,
     },
 
-    /* ✅ PUBLIC SAFE ID */
+
     public_user_id: {
       type: DataTypes.STRING(8),
       allowNull: true,
@@ -266,7 +266,7 @@ const backfillPublicUserIds = async () => {
 
 const syncDB = async () => {
   try {
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: false });
     console.log('Database synced successfully');
 
     await backfillPublicUserIds();

@@ -46,8 +46,8 @@ export const deleteUserAccount = catchAsyncError(async (req, res, next) => {
       FavProfile.destroy({
         where: {
           [Op.or]: [
-            { favoritingUserId: userId },
-            { favoritedUserId: userId }
+            { userId: userId },          // ✅ REQUIRED
+            { favoritedUserId: userId }  // ✅ REQUIRED
           ]
         },
         transaction

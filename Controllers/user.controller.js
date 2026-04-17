@@ -23,178 +23,307 @@ import Notification from "../Models/notification.model.js";
 import Call from "../Models/call.model.js";
 import admin from 'firebase-admin';
 import { firebaseAdmin } from "./notification.controller.js"
+import sendWhatsApp from "../Utils/sendWhatsappOtp.js";
+import UserWhatsApp from "../Models/userWhatsapp.model.js";
 
 dotenv.config();
 
 // Register user
 export const registrationUser = catchAsyncError(async (req, res, next) => {
-    try {
-        const { email } = req.body;
+  try {
+    const { email, whatsapp } = req.body;
 
-        if (!email) {
-            return next(new errorhandler("Email is required!", 400));
-        }
+    /* ================= VALIDATION ================= */
 
-        const isEmailExist = await User.findOne({ where: { email } });
-
-        if (isEmailExist) {
-            return next(new errorhandler("You are already registered!", 400));
-        }
-
-        const activationToken = createActivationToken(email);
-        const activationCode = activationToken.activationCode;
-
-        const data = {
-            activationCode,
-            email
-        };
-
-
-
-        try {
-            await sendEmail({ email, subject: "Activate Your Account", template: "activation-mail.ejs", data });
-
-            res.status(200).json({
-                success: true, message: `Please check your email: ${email} to activate your account!`,
-                activationToken: activationToken.token,
-            });
-        } catch (error) {
-            return next(new errorhandler(error.message, 500));
-        }
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        field: "email",
+        message: "Please enter your email address.",
+      });
     }
-});
 
-export const createActivationToken = (email) => {
-    const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
+    /* ================= EMAIL CHECK ================= */
 
-    const token = jwt.sign({ email, activationCode }, process.env.ACTIVATION_SECRET, {
-        expiresIn: "5m",
+    const isEmailExist = await User.findOne({ where: { email } });
+
+    if (isEmailExist) {
+      return res.status(400).json({
+        success: false,
+        field: "email",
+        message: "This email is already registered. Please log in instead.",
+      });
+    }
+
+    /* ================= WHATSAPP CHECK ================= */
+
+    let normalizedWhatsapp = null;
+
+    if (whatsapp) {
+      normalizedWhatsapp = whatsapp.replace(/\D/g, "").slice(-10);
+
+      if (normalizedWhatsapp.length !== 10) {
+        return res.status(400).json({
+          success: false,
+          field: "whatsapp",
+          message: "Please enter a valid 10-digit WhatsApp number.",
+        });
+      }
+
+      const exists = await UserWhatsApp.findOne({
+        where: { whatsappNumber: normalizedWhatsapp },
+      });
+
+      if (exists) {
+        return res.status(400).json({
+          success: false,
+          field: "whatsapp",
+          message: "This WhatsApp number is already linked to another account.",
+        });
+      }
+    }
+
+    /* ================= TOKEN ================= */
+
+    const activationToken = createRegistrationActivationToken({
+      email,
+      whatsapp: normalizedWhatsapp,
     });
 
-    return { activationCode, token };
+    const activationCode = activationToken.activationCode;
+
+    const data = {
+      activationCode,
+      email,
+    };
+
+    /* ================= SEND OTP ================= */
+
+    const tasks = [];
+
+    // Email (mandatory)
+    tasks.push(
+      sendEmail({
+        email,
+        subject: "Activate Your Account",
+        template: "activation-mail.ejs",
+        data,
+      })
+    );
+
+    // WhatsApp (optional)
+    if (normalizedWhatsapp) {
+      tasks.push(
+        sendWhatsApp({
+          phone: normalizedWhatsapp,
+          otp: activationCode,
+          metadata: { type: "registration" },
+        }).catch((err) => {
+          console.error("WhatsApp failed:", err.message);
+        })
+      );
+    }
+
+    await Promise.all(tasks);
+
+    /* ================= SUCCESS ================= */
+
+    return res.status(200).json({
+      success: true,
+      message: normalizedWhatsapp
+        ? "OTP sent to your email and WhatsApp number."
+        : "OTP sent to your email.",
+      activationToken: activationToken.token,
+    });
+
+  } catch (error) {
+    console.error("Registration Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+});
+
+export const createRegistrationActivationToken = ({ email, whatsapp }) => {
+  const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+  const token = jwt.sign(
+    {
+      email,
+      whatsapp: whatsapp || null,
+      activationCode,
+      type: "registration" // optional but good for future
+    },
+    process.env.ACTIVATION_SECRET,
+    { expiresIn: "5m" }
+  );
+
+  return { activationCode, token };
 };
- 
+export const createActivationToken = (data) => {
+  const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+  const token = jwt.sign(
+    { ...data, activationCode },
+    process.env.ACTIVATION_SECRET,
+    { expiresIn: "5m" }
+  );
+
+  return { activationCode, token };
+};
 //for web app activate user
 export const activateUser = catchAsyncError(async (req, res, next) => {
-    try {
-        const { activationToken, activationCode } = req.body;
+  try {
+    const { activationToken, activationCode } = req.body;
 
-        const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
+    const newUser = jwt.verify(
+      activationToken,
+      process.env.ACTIVATION_SECRET
+    );
 
-        if (newUser.activationCode !== activationCode) {
-            return next(new errorhandler("Invalid activation code!", 400));
-        }
-
-        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
-
-        res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
-
-        return res.status(200).json({ success: true, message: "Otp verified successfully!" });
-
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
+    // 🔒 verify OTP
+    if (newUser.activationCode !== activationCode) {
+      return next(new errorhandler("Invalid activation code!", 400));
     }
+
+    // ✅ PRESERVE whatsapp + optional type
+    const token = jwt.sign(
+      {
+        email: newUser.email,
+        whatsapp: newUser.whatsapp || null,
+        type: newUser.type || "registration", // optional safety
+      },
+      process.env.ACTIVATION_SECRET,
+      { expiresIn: "5min" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Otp verified successfully!",
+    });
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
 });
 
 //for web app set password
 export const setPassword = catchAsyncError(async (req, res, next) => {
-    try {
-        const { password, answer } = req.body;
+  try {
+    const { password, answer } = req.body;
 
-
-        if (!password) {
-            return next(new errorhandler("Password is required!", 400));
-        }
-        if (!answer) {
-            return next(new errorhandler("Answer is required!", 400));
-        }
-
-        const token = req.cookies.token;
-
-        if (!token) {
-            return next(new errorhandler("Please Verify your email first!", 400));
-        }
-
-        const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
-
-        const { email } = user;
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-
-        if (!passwordRegex.test(password)) {
-            return next(
-                new errorhandler(
-                    "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
-                    400
-                )
-            );
-        }
-
-        const existingUser = await User.create({
-            email,
-            password,
-            isVerified: true,
-            otp: null
-        });
-
-
-        if (Array.isArray(answer)) {
-            for (const ans of answer) {
-                const { questionId, answerValue } = ans;
-
-
-                await Answer.create({
-                    userId: existingUser.userId,
-                    questionId,
-                    answer: answerValue
-                });
-
-
-            }
-        }
-        const recommendationData = {
-            userId: existingUser.userId,
-            usertype: existingUser.usertype,
-            email: existingUser.email,
-            gender: answer[0]?.answerValue,
-            lookingFor: answer[1]?.answerValue,
-            // weddingGoals: "dk",
-            age: answer[3]?.answerValue,
-            lookingPartnerAge: answer[4]?.answerValue,
-            // livingInAustralia: "dk",
-            horoscopeMatch: answer[5]?.answerValue,
-            castReligionMatterOrNot: answer[6]?.answerValue,
-            interest_and_hobbies: answer[7]?.answerValue
-        };
-
-        const toggleSections = [
-            "location_details",
-            "education_and_financial_details",
-            "family_details",
-            "religious_details",
-            "personal_details",
-        ];
-
-        const toggleData = toggleSections.map(section => ({
-            userId: existingUser.userId,
-            section,
-            status: true
-        }));
-
-
-        await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
-
-
-        await recommendation.create(recommendationData);
-
-        res.clearCookie("token");
-        sendToken(existingUser, 200, res, "Password set successfully!");
-
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
+    if (!password) {
+      return next(new errorhandler("Password is required!", 400));
     }
+    if (!answer) {
+      return next(new errorhandler("Answer is required!", 400));
+    }
+
+    const token = req.cookies.token;
+
+    if (!token) {
+      return next(new errorhandler("Please Verify your email first!", 400));
+    }
+
+    const user = jwt.verify(token, process.env.ACTIVATION_SECRET);
+
+    // ✅ include whatsapp
+    const { email, whatsapp } = user;
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
+      return next(
+        new errorhandler(
+          "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+          400
+        )
+      );
+    }
+
+    const existingUser = await User.create({
+      email,
+      password,
+      isVerified: true,
+      otp: null,
+    });
+
+    // ✅ SAVE WHATSAPP (ONLY if exists)
+    if (whatsapp) {
+      const normalized = whatsapp.replace(/\D/g, "").slice(-10);
+
+      const exists = await UserWhatsApp.findOne({
+        where: { whatsappNumber: normalized },
+      });
+
+      if (!exists) {
+        await UserWhatsApp.create({
+          userId: existingUser.userId,
+          whatsappNumber: normalized,
+        });
+      }
+    }
+
+    // ================= EXISTING CODE =================
+
+    if (Array.isArray(answer)) {
+      for (const ans of answer) {
+        const { questionId, answerValue } = ans;
+
+        await Answer.create({
+          userId: existingUser.userId,
+          questionId,
+          answer: answerValue,
+        });
+      }
+    }
+
+    const recommendationData = {
+      userId: existingUser.userId,
+      usertype: existingUser.usertype,
+      email: existingUser.email,
+      gender: answer[0]?.answerValue,
+      lookingFor: answer[1]?.answerValue,
+      age: answer[3]?.answerValue,
+      lookingPartnerAge: answer[4]?.answerValue,
+      horoscopeMatch: answer[5]?.answerValue,
+      castReligionMatterOrNot: answer[6]?.answerValue,
+      interest_and_hobbies: answer[7]?.answerValue,
+    };
+
+    const toggleSections = [
+      "location_details",
+      "education_and_financial_details",
+      "family_details",
+      "religious_details",
+      "personal_details",
+    ];
+
+    const toggleData = toggleSections.map((section) => ({
+      userId: existingUser.userId,
+      section,
+      status: true,
+    }));
+
+    await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
+
+    await recommendation.create(recommendationData);
+
+    res.clearCookie("token");
+    sendToken(existingUser, 200, res, "Password set successfully!");
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
 });
 
 //for mobile app activation
@@ -1035,3 +1164,168 @@ export const getUserTypeAndGender = catchAsyncError(async (req, res, next) => {
   });
   
   
+
+
+
+
+
+export const sendWhatsAppOtp = catchAsyncError(async (req, res, next) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return next(new errorhandler("Phone number is required", 400));
+    }
+
+    // normalize (store only 10 digit)
+    const normalized = phone.replace(/\D/g, "").slice(-10);
+
+    /* ================= USER CHECK ================= */
+
+    const record = await UserWhatsApp.findOne({
+      where: { whatsappNumber: normalized },
+    });
+
+    if (!record) {
+      return res.status(404).json({
+        success: false,
+        code: "WHATSAPP_NOT_REGISTERED",
+        message: "We couldn't find this number registered with any account",
+      });
+    }
+
+    /* ================= OTP ================= */
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // store OTP in Redis (5 min)
+    await redis.set(`wa:otp:${normalized}`, otp, "EX", 300);
+
+    await sendWhatsApp({
+      phone: normalized,
+      otp,
+      metadata: { type: "login" },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully to WhatsApp",
+    });
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
+
+
+
+
+
+
+
+
+
+ 
+
+  export const verifyWhatsAppOtp = catchAsyncError(async (req, res, next) => {
+    try {
+      const { phone, otp } = req.body;
+  
+      /* ================= VALIDATION ================= */
+      if (!phone || !otp) {
+        return res.status(400).json({
+          success: false,
+          message: "Please enter both phone number and OTP.",
+        });
+      }
+  
+      const normalized = phone.replace(/\D/g, "").slice(-10);
+  
+      /* ================= FIND USER ================= */
+      const record = await UserWhatsApp.findOne({
+        where: { whatsappNumber: normalized },
+      });
+  
+      if (!record) {
+        return res.status(404).json({
+          success: false,
+          message: "We couldn't find this number linked to any account.",
+        });
+      }
+  
+      /* ================= VERIFY OTP ================= */
+      const storedOtp = await redis.get(`wa:otp:${normalized}`);
+  
+      if (!storedOtp) {
+        return res.status(400).json({
+          success: false,
+          message: "OTP expired. Please request a new one.",
+        });
+      }
+  
+      if (String(storedOtp) !== String(otp)) {
+        return res.status(400).json({
+          success: false,
+          message: "Incorrect OTP. Please try again.",
+        });
+      }
+  
+      await redis.del(`wa:otp:${normalized}`);
+  
+      /* ================= FETCH USER ================= */
+      const user = await User.findOne({
+        where: { userId: record.userId },
+      });
+  
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found. Please contact support.",
+        });
+      }
+  
+      /* ================= BLOCK CHECK ================= */
+      if (user.isDisabledByAdmin) {
+        return res.status(403).json({
+          success: false,
+          code: "ACCOUNT_DISABLED_BY_ADMIN",
+          message: "Your account has been disabled by admin.",
+        });
+      }
+  
+      /* ================= FIREBASE ================= */
+      let firebaseUser;
+  
+      try {
+        firebaseUser = await admin.auth().getUserByEmail(user.email);
+      } catch {
+        firebaseUser = await admin.auth().createUser({
+          email: user.email,
+        });
+      }
+  
+      const firebaseToken = await admin.auth().createCustomToken(firebaseUser.uid);
+  
+      /* ================= ENRICH USER ================= */
+      const details = await personalDetails.findOne({
+        where: { userId: user.userId },
+        attributes: ["displayName"],
+      });
+  
+      const rec = await recommendation.findOne({
+        where: { userId: user.userId },
+        attributes: ["gender"],
+      });
+  
+      user.setDataValue("userName", details?.displayName || null);
+      user.setDataValue("public_user_id", user.public_user_id);
+      user.setDataValue("gender", rec?.gender || "");
+      user.setDataValue("firebaseToken", firebaseToken);
+  
+      /* ================= FINAL RESPONSE ================= */
+      sendToken(user, 200, res, "WhatsApp login successful!");
+  
+    } catch (error) {
+      return next(new errorhandler(error.message, 500));
+    }
+  });

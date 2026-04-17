@@ -22,7 +22,7 @@ import sequelize from '../Utils/db.js';
 import { QueryTypes } from 'sequelize';
 import Connection from "../Models/connection.model.js";
 import Block from "../Models/block.model.js";
-
+import UserWhatsApp from "../Models/userWhatsapp.model.js";
 
 
 
@@ -58,7 +58,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       "location_details",
       "education_and_financial_details"
     ];
-
+    const whatsappData = await UserWhatsApp.findOne({ where: { userId }, attributes: ["whatsappNumber", "isVerified"], });
 
     const toggleStatuses = sectionNames.reduce((acc, section) => {
       acc[section] = false;
@@ -75,7 +75,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
       profileImage: imageUploadData?.image || "No Image",
       toggleStatus: toggleStatuses,
       basic_and_lifestyle: {
-        publicUserId: user.public_user_id,
+        publicUserId: user?.public_user_id,
         firstName: personalData?.firstName,
         lastName: personalData?.lastName,
         displayName: personalData?.displayName,
@@ -87,6 +87,7 @@ export const myDetails = catchAsyncError(async (req, res, next) => {
         numberOfChildren: personalData?.numberOfChildren,
         postedBy: postedby?.answer || "Not specified",
       },
+     whatsapp: { number: whatsappData?.whatsappNumber || null, isVerified: whatsappData?.isVerified || false, },
       family_details: {
         fatherOccupation: otherDetailsData?.fatherOccupation,
         motherOccupation: otherDetailsData?.motherOccupation,
@@ -673,6 +674,8 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
 
     // Fetch matches from external API
     const response = await axios.get("https://recommend.vedvivah.com/api/get_matches", {
+
+    // const response = await axios.get("http://127.0.0.1:8000/api/get_matches", {
       params: { userId, ...req.query }
     });
 
@@ -1531,4 +1534,74 @@ export const getProfilePercentage = catchAsyncError(async (req, res, next) => {
 })
 
 
+
+
+
+
+
+
+export const addOrUpdateWhatsApp = catchAsyncError(async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { whatsappNumber } = req.body;
+
+    if (!whatsappNumber) {
+      return next(new errorhandler("WhatsApp number is required", 400));
+    }
+
+    // 🔢 normalize (10 digit)
+    const normalized = whatsappNumber.replace(/\D/g, "").slice(-10);
+
+    if (normalized.length !== 10) {
+      return next(new errorhandler("Enter valid 10 digit number", 400));
+    }
+
+    /* ================= CHECK UNIQUE ================= */
+
+    const existingNumber = await UserWhatsApp.findOne({
+      where: { whatsappNumber: normalized },
+    });
+
+    if (existingNumber && existingNumber.userId !== userId) {
+      return res.status(400).json({
+        success: false,
+        message: "This WhatsApp number is already linked to another account",
+      });
+    }
+
+    /* ================= CREATE OR UPDATE ================= */
+
+    const existingUserWhatsApp = await UserWhatsApp.findOne({
+      where: { userId },
+    });
+
+    if (!existingUserWhatsApp) {
+      // ➕ CREATE
+      await UserWhatsApp.create({
+        userId,
+        whatsappNumber: normalized,
+        isVerified: false, // optional: reset verification
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "WhatsApp number added successfully",
+      });
+    }
+
+    // 🔄 UPDATE
+    await existingUserWhatsApp.update({
+      whatsappNumber: normalized,
+      isVerified: false, // reset verification on change
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "WhatsApp number updated successfully",
+    });
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
 

@@ -19,7 +19,7 @@ import {
   ToggleSection,
   Plan,
   gayatri,
-  Application,
+  Application,UserWhatsApp
 } from './Models/association.js';
 
 import Recommendation from './Models/recommendation.model.js';
@@ -94,7 +94,7 @@ const startServer = async () => {
 
     // --------- SYNC MODELS (NO DATA LOSS) ---------
     await Plan.sync({ force: false });
-    await User.sync({ force: false });
+    await User.sync({ alter:false});
 
     // 🔥 IMPORTANT: BACKFILL AFTER USER SYNC
     await backfillPublicUserIds();
@@ -124,7 +124,7 @@ const startServer = async () => {
     await Banner.sync({ force: false });
     await Contact.sync({ force: false });
     await Application.sync({forece:false });
-
+    await UserWhatsApp.sync({force:false});
     console.log(' Tables synchronized');
 
     server.listen(PORT, () => {

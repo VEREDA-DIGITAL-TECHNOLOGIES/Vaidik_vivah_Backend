@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated} from '../Middlewares/auth.js';
-import {myDetails,checkUserSuspensionStatus ,updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload,adminProfileImage,matrimonialProfiles,getuserImage,allProfiles,getProfilePercentage,discoverProfiles, UpdatephotoUploadForWeb} from '../Controllers/profile.controller.js'
+import {myDetails,checkUserSuspensionStatus ,addOrUpdateWhatsApp,updatePersonalDetails,updateFamilyDetails,updatePersonalBackground,updateReligiousBackground,updateLocationDetails,updateEducationAndFinancialDetails,MatchedProfiles,UserDetails,filterFieldCount,updateInterstAndHobbies,UpdatephotoUpload,adminProfileImage,matrimonialProfiles,getuserImage,allProfiles,getProfilePercentage,discoverProfiles, UpdatephotoUploadForWeb} from '../Controllers/profile.controller.js'
 import { upload } from "../Middlewares/multer.js";
 import { getContactNumber, updateContactNumber } from "../Controllers/personalDetailsController.js";
 
@@ -42,5 +42,9 @@ profileRouter.get(
     isAuthenticated,
     checkUserSuspensionStatus
   );
-  
+  profileRouter.post(
+    "/whatsapp",
+    isAuthenticated,
+    addOrUpdateWhatsApp
+  );
 export default profileRouter

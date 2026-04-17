@@ -19,6 +19,7 @@ import documentUpload from './document.upload.js';
 import Recommendation from './recommendation.model.js';
 import Call from './call.model.js';
 import Application from './application.js';
+import UserWhatsApp from './userWhatsapp.model.js';
 
 // Answers
 User.hasMany(Answer, { foreignKey: 'userId', as: 'answers' });
@@ -104,6 +105,19 @@ Recommendation.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Application.belongsTo(Plan, { foreignKey: 'planId', as: 'plans' });
 Plan.hasMany(Application, { foreignKey: 'planId', as: 'applications' });
 
+
+
+User.hasOne(UserWhatsApp, {
+  foreignKey: "userId",
+  as: "whatsapp",
+  onDelete: "CASCADE",
+});
+
+UserWhatsApp.belongsTo(User, {
+  foreignKey: "userId",
+  as: "user",
+});
+
 // Final Export
 export {
   User,
@@ -126,5 +140,5 @@ export {
   gayatri,
   Recommendation,
   Call,
-  Application
+  Application,UserWhatsApp
 };
