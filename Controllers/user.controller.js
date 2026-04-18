@@ -328,126 +328,177 @@ export const setPassword = catchAsyncError(async (req, res, next) => {
 
 //for mobile app activation
 export const activateUserForMobile = catchAsyncError(async (req, res, next) => {
-    try {
-        const { activationToken, activationCode } = req.body;
-        const newUser = jwt.verify(activationToken, process.env.ACTIVATION_SECRET);
+  try {
+    const { activationToken, activationCode } = req.body;
 
-        if (newUser.activationCode !== activationCode) {
-            return next(new errorhandler("Invalid activation code!", 400));
-        }
-        const token = jwt.sign({ email: newUser.email }, process.env.ACTIVATION_SECRET, { expiresIn: "5min" });
+    /* ================= VERIFY TOKEN ================= */
 
-        return res.status(200).json({ success: true, message: "Otp verified successfully!", token });
+    const newUser = jwt.verify(
+      activationToken,
+      process.env.ACTIVATION_SECRET
+    );
 
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
+    /* ================= OTP VALIDATION ================= */
+
+    if (String(newUser.activationCode) !== String(activationCode)) {
+      return next(new errorhandler("Invalid activation code!", 400));
     }
+
+    /* ================= CREATE NEW TOKEN ================= */
+    // ✅ IMPORTANT: carry whatsapp forward
+
+    const token = jwt.sign(
+      {
+        email: newUser.email,
+        whatsapp: newUser.whatsapp || null, // 🔥 KEY FIX
+      },
+      process.env.ACTIVATION_SECRET,
+      { expiresIn: "5m" }
+    );
+
+    /* ================= RESPONSE ================= */
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully!",
+      token,
+    });
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
 });
 
 export const setPasswordForMobile = catchAsyncError(async (req, res, next) => {
-    try {
-      const { password, answer, token } = req.body;
-  
-      if (!token) {
-        return next(new errorhandler("Please Verify your email first!", 400));
-      }
-  
-      // 🔐 Verify activation token
-      const decodedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
-      const { email } = decodedUser;
-  
-      // 🔑 Password validation
-      const passwordRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-  
-      if (!passwordRegex.test(password)) {
-        return next(
-          new errorhandler(
-            "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
-            400
-          )
-        );
-      }
-  
-      // 👤 Create user (password hashed in model hook)
-      const existingUser = await User.create({
-        email,
-        password,
-        isVerified: true,
-        otp: null,
+  try {
+    const { password, answer, token } = req.body;
+
+    /* ================= VALIDATION ================= */
+
+    if (!token) {
+      return next(new errorhandler("Please verify your email first!", 400));
+    }
+
+    if (!password) {
+      return next(new errorhandler("Password is required!", 400));
+    }
+
+    /* ================= VERIFY TOKEN ================= */
+
+    const decodedUser = jwt.verify(token, process.env.ACTIVATION_SECRET);
+    const { email, whatsapp } = decodedUser; // 🔥 IMPORTANT
+
+    /* ================= PASSWORD CHECK ================= */
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
+      return next(
+        new errorhandler(
+          "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+          400
+        )
+      );
+    }
+
+    /* ================= CREATE USER ================= */
+
+    const existingUser = await User.create({
+      email,
+      password,
+      isVerified: true,
+      otp: null,
+    });
+
+    /* ================= SAVE WHATSAPP (KEY FIX) ================= */
+
+    if (whatsapp) {
+      const normalized = whatsapp.replace(/\D/g, "").slice(-10);
+
+      await UserWhatsApp.create({
+        userId: existingUser.userId,
+        whatsappNumber: normalized,
       });
-  
-      // 📝 Store onboarding answers
-      if (Array.isArray(answer)) {
-        for (const ans of answer) {
-          const { questionId, answerValue } = ans;
-  
-          await Answer.create({
-            userId: existingUser.userId,
-            questionId,
-            answer: answerValue,
-          });
-        }
+    }
+
+    /* ================= STORE ANSWERS ================= */
+
+    if (Array.isArray(answer)) {
+      for (const ans of answer) {
+        const { questionId, answerValue } = ans;
+
+        await Answer.create({
+          userId: existingUser.userId,
+          questionId,
+          answer: answerValue,
+        });
       }
-  
-      // 🧠 Extract gender ONCE (IMPORTANT)
-      const gender =
-        answer?.find(a => a.questionId === 1)?.answerValue || "";
-  
-      // 📊 Recommendation data
-      const recommendationData = {
-        userId: existingUser.userId,
-        usertype: existingUser.usertype,
-        email: existingUser.email,
-        gender,
-        lookingFor: answer.find(a => a.questionId === 2)?.answerValue,
-        age: answer.find(a => a.questionId === 4)?.answerValue,
-        lookingPartnerAge: answer.find(a => a.questionId === 5)?.answerValue,
-        horoscopeMatch: answer.find(a => a.questionId === 6)?.answerValue,
-        castReligionMatterOrNot: answer.find(a => a.questionId === 7)?.answerValue,
-        interest_and_hobbies:
-          answer.find(a => a.questionId === 8)?.answerValue?.split(", ") || [],
-      };
-  
-      // 🔘 Enable all profile sections
-      const toggleSections = [
-        "location_details",
-        "education_and_financial_details",
-        "family_details",
-        "religious_details",
-        "personal_details",
-      ];
-  
-      const toggleData = toggleSections.map(section => ({
-        userId: existingUser.userId,
-        section,
-        status: true,
-      }));
-  
-      await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
-  
-      // 📌 Create / update recommendation
-      const existingRecommendation = await recommendation.findOne({
+    }
+
+    /* ================= DERIVED DATA ================= */
+
+    const gender =
+      answer?.find(a => a.questionId === 1)?.answerValue || "";
+
+    const recommendationData = {
+      userId: existingUser.userId,
+      usertype: existingUser.usertype,
+      email: existingUser.email,
+      gender,
+      lookingFor: answer?.find(a => a.questionId === 2)?.answerValue,
+      age: answer?.find(a => a.questionId === 4)?.answerValue,
+      lookingPartnerAge: answer?.find(a => a.questionId === 5)?.answerValue,
+      horoscopeMatch: answer?.find(a => a.questionId === 6)?.answerValue,
+      castReligionMatterOrNot: answer?.find(a => a.questionId === 7)?.answerValue,
+      interest_and_hobbies:
+        answer?.find(a => a.questionId === 8)?.answerValue?.split(", ") || [],
+    };
+
+    /* ================= TOGGLE SECTIONS ================= */
+
+    const toggleSections = [
+      "location_details",
+      "education_and_financial_details",
+      "family_details",
+      "religious_details",
+      "personal_details",
+    ];
+
+    const toggleData = toggleSections.map(section => ({
+      userId: existingUser.userId,
+      section,
+      status: true,
+    }));
+
+    await ToggleSection.bulkCreate(toggleData, { ignoreDuplicates: true });
+
+    /* ================= RECOMMENDATION ================= */
+
+    const existingRecommendation = await recommendation.findOne({
+      where: { userId: existingUser.userId },
+    });
+
+    if (existingRecommendation) {
+      await recommendation.update(recommendationData, {
         where: { userId: existingUser.userId },
       });
-  
-      if (existingRecommendation) {
-        await recommendation.update(recommendationData, {
-          where: { userId: existingUser.userId },
-        });
-      } else {
-        await recommendation.create(recommendationData);
-      }
-  
-      // ⭐ ATTACH GENDER TO RESPONSE USER (NO DB WRITE)
-      existingUser.setDataValue("gender", gender);
-  
-      // 🔐 LOGIN + TOKEN RESPONSE
-      sendToken(existingUser, 200, res, "Password set successfully!");
-    } catch (error) {
-      return next(new errorhandler(error.message, 500));
+    } else {
+      await recommendation.create(recommendationData);
     }
-  });
+
+    /* ================= RESPONSE ENRICH ================= */
+
+    existingUser.setDataValue("gender", gender);
+
+    /* ================= FINAL LOGIN ================= */
+
+    sendToken(existingUser, 200, res, "Password set successfully!");
+
+  } catch (error) {
+    return next(new errorhandler(error.message, 500));
+  }
+});
   
 
   export const loginUser = catchAsyncError(async (req, res, next) => {

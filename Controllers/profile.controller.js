@@ -23,7 +23,7 @@ import { QueryTypes } from 'sequelize';
 import Connection from "../Models/connection.model.js";
 import Block from "../Models/block.model.js";
 import UserWhatsApp from "../Models/userWhatsapp.model.js";
-
+import { firebaseAdmin } from "./notification.controller.js";
 
 
 import {getSocketInstance} from '../config/socketConfig.js'
@@ -891,8 +891,6 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
     const connectedUserId = req.user.userId;
     const { userId } = req.body;
 
-   
-
     if (connectedUserId === userId) {
       return res.status(400).json({
         success: false,
@@ -902,9 +900,11 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
     // 🔍 Fetch viewed user
     const user = await User.findOne({ where: { userId } });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-    // 🔍 Fetch all profile data in parallel
+    // 🔍 Fetch all profile data
     const [
       personalData,
       qualificationDetailsData,
@@ -929,7 +929,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
 
     const answer = basic_lifestyle?.answer || "";
 
- 
+    // 🔔 NOTIFICATION BLOCK
     try {
       const viewerData = await personalDetails.findOne({ where: { userId: connectedUserId } });
       const viewerImageData = await imageUpload.findOne({ where: { userId: connectedUserId } });
@@ -949,8 +949,9 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           },
         });
 
-        console.log("Notification created:", notification.notificationId);
+        console.log("📝 Notification created:", notification.notificationId);
 
+        // 🔌 SOCKET
         const io = getSocketInstance();
         io.to(userId).emit("profile_viewed", {
           notificationId: notification.notificationId,
@@ -958,13 +959,48 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           message: notification.message,
           body: notification.body,
         });
-        console.log("📡 Notification emitted to socket");
+
+        console.log("📡 Notification emitted via socket");
+
+        // 🔥 FCM SEND (NO URL)
+        try {
+          const fcmToken = user?.fcmToken;
+
+          console.log("📲 FCM Token:", fcmToken);
+
+          if (fcmToken) {
+            const message = {
+              token: fcmToken,
+              notification: {
+                title: notification.title,
+                body: notification.message,
+              },
+              data: {
+                type: notification.body?.type || "profile_viewed",
+                senderId: notification.body?.senderId || "",
+                senderName: notification.body?.senderName || "",
+                senderImage: notification.body?.senderImage || "",
+                notificationId: notification.notificationId?.toString(),
+              },
+            };
+
+            console.log("🚀 Sending FCM:", message);
+
+            const fcmRes = await firebaseAdmin.messaging().send(message);
+
+            console.log("✅ FCM sent:", fcmRes);
+          } else {
+            console.warn("⚠️ No FCM token for user");
+          }
+        } catch (fcmErr) {
+          console.error("❌ FCM error:", fcmErr.message);
+        }
       }
     } catch (notifyErr) {
       console.warn("⚠️ Notification error:", notifyErr.message);
     }
 
-  
+    // 🔗 CONNECTION STATUS
     const connectionStatus = await connection.findOne({
       where: {
         [Op.or]: [
@@ -986,13 +1022,12 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
         : "receiver"
       : "none";
 
-    // 📚 Fetch toggle sections
+    // 📚 Toggle sections
     const toggleSections = await ToggleSection.findAll({ where: { userId } });
     const sectionStatus = toggleSections.reduce((acc, section) => {
       acc[section.section] = section.status;
       return acc;
     }, {});
-
 
     const profileData = [{
       publicUserId: user.public_user_id,
@@ -1000,6 +1035,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
       uid: user.uid,
       profileImage: imageUploadData?.image || "",
       userType: user.usertype,
+
       ...(sectionStatus["basic_and_lifestyle"] !== false && {
         basic_and_lifestyle: {
           userId,
@@ -1015,6 +1051,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           postedBy: postedby?.answer,
         },
       }),
+
       ...(sectionStatus["family_details"] !== false && {
         family_details: {
           fatherOccupation: otherDetailsData?.fatherOccupation,
@@ -1023,6 +1060,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           livingWithFamily: otherDetailsData?.livingWithFamily,
         },
       }),
+
       ...(sectionStatus["personal_details"] !== false && {
         personal_background: {
           height: otherDetailsData?.height,
@@ -1035,6 +1073,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           complexion: otherDetailsData?.complexion,
         },
       }),
+
       ...(sectionStatus["religious_details"] !== false && {
         religious_background: {
           religion: otherDetailsData?.religion,
@@ -1047,6 +1086,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           motherTongue: otherDetailsData?.motherTongue,
         },
       }),
+
       ...(sectionStatus["location_details"] !== false && {
         location_background: {
           country: locationDetailsData?.country || "Not specified",
@@ -1056,6 +1096,7 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           nationality: locationDetailsData?.nationality,
         },
       }),
+
       ...(sectionStatus["education_and_financial_details"] !== false && {
         education_and_financial: {
           qualification: qualificationDetailsData?.qualification,
@@ -1064,9 +1105,11 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
           income: qualificationDetailsData?.income,
         },
       }),
+
       ...(sectionStatus["interest_and_hobbies_details"] !== false && {
         interest_and_hobbies: answer,
       }),
+
       connection_status,
       connectionType,
     }];
@@ -1076,12 +1119,12 @@ export const UserDetails = catchAsyncError(async (req, res, next) => {
       data: profileData,
       message: "Profile fetched successfully!",
     });
+
   } catch (error) {
-    console.error("Error in UserDetails:", error.message);
+    console.error("❌ Error in UserDetails:", error.message);
     return next(new errorhandler(error.message, 500));
   }
 });
-
 
 
 export const filterProfiles = catchAsyncError(async (req, res, next) => {
