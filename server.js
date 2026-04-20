@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { app } from './app.js';
 
-
+import { startNotificationScheduler } from './microService/Chat-Notificaion/Worker/scheduler.js';
 import connectDB from './Utils/db.js';
 import {
   User,
@@ -126,6 +126,16 @@ const startServer = async () => {
     await Application.sync({forece:false });
     await UserWhatsApp.sync({force:false});
     console.log(' Tables synchronized');
+    startNotificationScheduler();
+    
+// safety: never crash the process
+process.on("uncaughtException", (err) => {
+  console.error("uncaughtException:", err?.message || err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("unhandledRejection:", err?.message || err);
+});
 
     server.listen(PORT, () => {
       console.log(` Server running on port ${PORT}`);
@@ -136,4 +146,7 @@ const startServer = async () => {
 };
 
 startServer();
+
+
+
 

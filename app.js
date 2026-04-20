@@ -35,7 +35,7 @@ import contactRouter from './routes/contactRoutes.js';
 import ApplicationRouter from "./routes/applicationRoutes.js"
 import documentUpload from './Models/document.upload.js';
 import connectDB from './Utils/db.js';
-
+import fcmNotficationRouter from './microService/Chat-Notificaion/notification.routes.js';
 dotenv.config();
 
 
@@ -100,7 +100,7 @@ app.use("/api/admin/banner", bannerRouter);
 app.use("/api/admin/contact",contactRouter)
 // adminControl
 app.use('/api/v1/application-plan', ApplicationRouter);
-
+app.use("/api/v1/fcm-notification", fcmNotficationRouter);
 app.use('/api/admin-dashboard', AdminUserRouter);
 app.use('/api/v1/application-plan', ApplicationRouter);
 app.use("/api/v1/payment-process", webhookRouter);

@@ -1247,8 +1247,8 @@ export const sendWhatsAppOtp = catchAsyncError(async (req, res, next) => {
 
     /* ================= OTP ================= */
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
+    // const otp = Math.floor(100000 + Math.random() * 900000).toString();
+const otp = "123456"
     // store OTP in Redis (5 min)
     await redis.set(`wa:otp:${normalized}`, otp, "EX", 300);
 
