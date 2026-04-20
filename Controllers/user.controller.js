@@ -25,11 +25,11 @@ import admin from 'firebase-admin';
 import { firebaseAdmin } from "./notification.controller.js"
 import sendWhatsApp from "../Utils/sendWhatsappOtp.js";
 import UserWhatsApp from "../Models/userWhatsapp.model.js";
-
+import { firebaseAdmin } from "./notification.controller.js";
 dotenv.config();
 
 // Register user
-export const registrationUser = catchAsyncError(async (req, res, next) => {
+export const registrationUser = catchAsyncError(async (req, res) => {
   try {
     const { email, whatsapp } = req.body;
 
@@ -43,7 +43,25 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
       });
     }
 
-    /* ================= EMAIL CHECK ================= */
+    /* ================= FIREBASE CHECK ================= */
+
+    try {
+      await firebaseAdmin.auth().getUserByEmail(email);
+
+      return res.status(400).json({
+        success: false,
+        field: "email",
+        message: "This email is already registered. Please log in instead.",
+      });
+
+    } catch (error) {
+      if (error.code !== "auth/user-not-found") {
+        console.error("Firebase error:", error);
+        throw error;
+      }
+    }
+
+    /* ================= DB EMAIL CHECK ================= */
 
     const isEmailExist = await User.findOne({ where: { email } });
 
@@ -101,7 +119,6 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
 
     const tasks = [];
 
-    // Email (mandatory)
     tasks.push(
       sendEmail({
         email,
@@ -111,7 +128,6 @@ export const registrationUser = catchAsyncError(async (req, res, next) => {
       })
     );
 
-    // WhatsApp (optional)
     if (normalizedWhatsapp) {
       tasks.push(
         sendWhatsApp({
