@@ -5,7 +5,7 @@ import { catchAsyncError } from '../../Middlewares/catchAsyncError.js';
 import connectDB from '../../Utils/db.js';
 import { Op } from 'sequelize';
 import sendEmail from '../../Utils/sendMail.js';
-
+import { firebaseAdmin } from '../notification.controller.js';
 import {
   User,
   Answer,
@@ -22,7 +22,7 @@ import {
   ToggleSection,
   gayatri,
   Recommendation,
-  Call
+  Call,UserWhatsApp
 } from '../../Models/association.js';
 
 const sequelize = connectDB(); // ✅ Ensure sequelize instance is available
@@ -33,26 +33,42 @@ export const deleteUserAccount = catchAsyncError(async (req, res, next) => {
 
   const transaction = await sequelize.transaction();
 
+  let firebaseUid = null;
+
   try {
-    // ✅ Delete all associated data
+    /* ================= GET USER ================= */
+
+    const user = await User.findOne({ where: { userId }, transaction });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    firebaseUid = user.uid; // 🔥 your firebase UID
+
+    /* ================= DELETE ASSOCIATED DATA ================= */
+
     await Promise.all([
       Answer.destroy({ where: { userId }, transaction }),
       personalDetails.destroy({ where: { userId }, transaction }),
       otherDetails.destroy({ where: { userId }, transaction }),
       locationDetails.destroy({ where: { userId }, transaction }),
-      await Call.destroy({ where: { userId }, transaction }),
+      Call.destroy({ where: { userId }, transaction }),
       imageUpload.destroy({ where: { userId }, transaction }),
       qualificationDetails.destroy({ where: { userId }, transaction }),
+
       FavProfile.destroy({
         where: {
           [Op.or]: [
-            { userId: userId },          // ✅ REQUIRED
-            { favoritedUserId: userId }  // ✅ REQUIRED
+            { userId },
+            { favoritedUserId: userId }
           ]
         },
         transaction
       }),
+
       happyStories.destroy({ where: { userId }, transaction }),
+
       Connection.destroy({
         where: {
           [Op.or]: [
@@ -62,48 +78,72 @@ export const deleteUserAccount = catchAsyncError(async (req, res, next) => {
         },
         transaction
       }),
+
       Subscription.destroy({ where: { userId }, transaction }),
       Notification.destroy({ where: { userId }, transaction }),
       ToggleSection.destroy({ where: { userId }, transaction }),
       gayatri.destroy({ where: { userId }, transaction }),
       Recommendation.destroy({ where: { userId }, transaction }),
+
+      // ✅ NEW: WhatsApp delete
+      UserWhatsApp.destroy({ where: { userId }, transaction }),
     ]);
 
-    // ✅ Delete document uploads and Cloudinary files
+    /* ================= CLOUDINARY ================= */
+
     const document = await documentUpload.findOne({ where: { userId }, transaction });
 
     if (document) {
       const extractPublicId = (url) => {
         const parts = url.split('/');
         const fileWithExt = parts[parts.length - 1];
-        const publicId = fileWithExt.substring(0, fileWithExt.lastIndexOf('.'));
-        return publicId;
+        return fileWithExt.substring(0, fileWithExt.lastIndexOf('.'));
       };
 
-      const frontPublicId = extractPublicId(document.documentFrontUrl);
-      const backPublicId = extractPublicId(document.documentBackUrl);
-
-      // ✅ Delete Cloudinary files and DB record
       await Promise.all([
-        deleteCloudinary(frontPublicId),
-        deleteCloudinary(backPublicId),
+        deleteCloudinary(extractPublicId(document.documentFrontUrl)),
+        deleteCloudinary(extractPublicId(document.documentBackUrl)),
         document.destroy({ transaction })
       ]);
     }
 
-    // ✅ Delete user account last
+    /* ================= DELETE USER ================= */
+
     await User.destroy({ where: { userId }, transaction });
 
-    // ✅ Commit all changes
+    /* ================= COMMIT ================= */
+
     await transaction.commit();
+
+    /* ================= FIREBASE DELETE ================= */
+
+    if (firebaseUid) {
+      try {
+        await firebaseAdmin.auth().deleteUser(firebaseUid);
+        console.log("🔥 Firebase user deleted:", firebaseUid);
+      } catch (err) {
+        console.error("⚠️ Firebase delete failed:", err.message);
+      }
+
+      /* ================= OPTIONAL: DELETE CHAT ================= */
+
+      try {
+        await firebaseAdmin.database().ref(`messages/${firebaseUid}`).remove();
+        await firebaseAdmin.database().ref(`calls/${firebaseUid}`).remove();
+        console.log("🔥 Firebase chat data deleted");
+      } catch (err) {
+        console.error("⚠️ Firebase DB cleanup failed:", err.message);
+      }
+    }
+
+    /* ================= RESPONSE ================= */
 
     res.status(200).json({
       success: true,
-      message: "User account and all associated data deleted successfully"
+      message: "User, WhatsApp, Firebase Auth & chat data deleted successfully",
     });
 
   } catch (error) {
-    // ❗ Safe rollback — only if still open
     if (!transaction.finished) {
       await transaction.rollback();
     }

@@ -965,41 +965,87 @@ export const createOrUpdateFCMToken = catchAsyncError(async (req, res, next) => 
 });
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
-    const userId = req.user.userId;
-    try {
-        const user = await User.findOne({ where: { userId } });
-        if (!user) {
-            return next(new errorhandler("User not found!", 404));
-        }
-        // Delete dependent records first
-        await Promise.all([
-            Subscription.destroy({ where: { userId } }),
-            Answer.destroy({ where: { userId } }),
-            locationDetails.destroy({ where: { userId } }),
-            FavProfile.destroy({ where: { userId } }),
-            otherDetails.destroy({ where: { userId } }),
-            personalDetails.destroy({ where: { userId } }),
-            qualificationDetails.destroy({ where: { userId } }),
-            imageUpload.destroy({ where: { userId } }),
-            recommendation.destroy({ where: { userId } }),
-            Call.destroy({ where: { userId } }),
-            ToggleSection.destroy({ where: { userId } }),
-            Notification.destroy({ where: { userId } }),
-            Connection.destroy({ where: { [Op.or]: [{ receiverId: userId }, { senderId: userId }] } }),
-        ]);
+  const userId = req.user.userId;
 
-        // Delete user last
-        await User.destroy({ where: { userId } });
+  const transaction = await sequelize.transaction();
 
-        // Send response immediately
-        res.status(200).json({ success: true, message: "Your account deleted successfully!" });
+  let firebaseUid = null;
 
-        // Remove from Redis (asynchronously)
-        redis.del(userId);
+  try {
+    /* ================= GET USER ================= */
+    const user = await User.findOne({ where: { userId }, transaction });
 
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
+    if (!user) {
+      return next(new errorhandler("User not found!", 404));
     }
+
+    firebaseUid = user.uid; // 🔥 Firebase UID
+
+    /* ================= DELETE DEPENDENCIES ================= */
+    await Promise.all([
+      Subscription.destroy({ where: { userId }, transaction }),
+      Answer.destroy({ where: { userId }, transaction }),
+      locationDetails.destroy({ where: { userId }, transaction }),
+      FavProfile.destroy({
+        where: {
+          [Op.or]: [{ userId }, { favoritedUserId: userId }]
+        },
+        transaction
+      }),
+      otherDetails.destroy({ where: { userId }, transaction }),
+      personalDetails.destroy({ where: { userId }, transaction }),
+      qualificationDetails.destroy({ where: { userId }, transaction }),
+      imageUpload.destroy({ where: { userId }, transaction }),
+      Recommendation.destroy({ where: { userId }, transaction }), // ✅ FIXED
+      Call.destroy({ where: { userId }, transaction }),
+      ToggleSection.destroy({ where: { userId }, transaction }),
+      Notification.destroy({ where: { userId }, transaction }),
+      Connection.destroy({
+        where: {
+          [Op.or]: [{ receiverId: userId }, { senderId: userId }]
+        },
+        transaction
+      }),
+
+      // ✅ NEW: delete WhatsApp
+      UserWhatsApp.destroy({ where: { userId }, transaction }),
+    ]);
+
+    /* ================= DELETE USER ================= */
+    await User.destroy({ where: { userId }, transaction });
+
+    /* ================= COMMIT ================= */
+    await transaction.commit();
+
+    /* ================= RESPONSE ================= */
+    res.status(200).json({
+      success: true,
+      message: "Your account deleted successfully!",
+    });
+
+    /* ================= ASYNC CLEANUP ================= */
+
+    // 🔥 Redis
+    redis.del(userId).catch(() => {});
+
+    // 🔥 Firebase Auth
+    if (firebaseUid) {
+      firebaseAdmin.auth().deleteUser(firebaseUid).catch((err) => {
+        console.error("Firebase delete failed:", err.message);
+      });
+
+      // 🔥 Firebase Realtime DB cleanup
+      firebaseAdmin.database().ref(`messages/${firebaseUid}`).remove().catch(() => {});
+      firebaseAdmin.database().ref(`calls/${firebaseUid}`).remove().catch(() => {});
+    }
+
+  } catch (error) {
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
+
+    return next(new errorhandler(error.message, 500));
+  }
 });
 
 
