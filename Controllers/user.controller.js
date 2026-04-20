@@ -25,7 +25,7 @@ import admin from 'firebase-admin';
 import { firebaseAdmin } from "./notification.controller.js"
 import sendWhatsApp from "../Utils/sendWhatsappOtp.js";
 import UserWhatsApp from "../Models/userWhatsapp.model.js";
-import { firebaseAdmin } from "./notification.controller.js";
+
 dotenv.config();
 
 // Register user
