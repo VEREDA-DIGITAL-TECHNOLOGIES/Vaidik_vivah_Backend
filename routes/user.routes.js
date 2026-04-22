@@ -1,7 +1,7 @@
 import express from "express";
 const userRouter = express.Router();
 
-import { registrationUser,activateUser,setPassword,sendWhatsAppOtp,verifyWhatsAppOtp,loginUser,getUserTypeAndGender,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile,createOrUpdateFCMToken,dummyRegister,dummyactivateUserForMobile,dummyPasswordForMobile,deleteUser, updateAccessToken,adminLogin,AllUsers,AllCustomers} from "../Controllers/user.controller.js";
+import { registrationUser,refreshSession,activateUser,setPassword,sendWhatsAppOtp,verifyWhatsAppOtp,loginUser,getUserTypeAndGender,logoutUser,forgotPassword,verifyOtp,resetPassword,activateUserForMobile ,setPasswordForMobile,verifyOtpForMobile,resetPasswordForMobile,createOrUpdateFCMToken,dummyRegister,dummyactivateUserForMobile,dummyPasswordForMobile,deleteUser, updateAccessToken,adminLogin,AllUsers,AllCustomers} from "../Controllers/user.controller.js";
 import { isAuthenticated } from "../Middlewares/auth.js";
 
 
@@ -34,6 +34,6 @@ userRouter.post("/dummy-register",dummyRegister);
 userRouter.post("/dummy-activate-user",dummyactivateUserForMobile);
 userRouter.post("/dummy-set-password",dummyPasswordForMobile);
 
-
+userRouter.get("/refresh-session", refreshSession);
 
 export default userRouter

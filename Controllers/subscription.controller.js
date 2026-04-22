@@ -141,41 +141,49 @@ export const handleAutoExpiry = catchAsyncError(async (req, res, next) => {
 });
 
 export const getSubscriptionPurchaseHistory = catchAsyncError(async (req, res, next) => {
-    try {
-        const userId = req.user.userId;
+    const userId = req.user.userId;
 
-        const subscriptionData = await subscription.findAll({
-            where: { userId },
-            order: [['createdAt', 'DESC']],
-        });
+    const subscriptionData = await subscription.findAll({
+        where: { userId },
+        order: [['createdAt', 'DESC']],
+    });
 
-        const planData = await plan.findAll({
-            where: { planId: { [Op.in]: subscriptionData.map(sub => sub.planId) } },
-        });
-
-        if (!subscriptionData || subscriptionData.length === 0) {
-            return next(new errorhandler("Subscription not found!", 404));
-        }
-
-        const data = subscriptionData.map((sub) => {
-            const planInfo = planData.find(plan => plan.planId === sub.planId);
-            return {
-                orderId: sub.orderId,
-                paymentStatus: sub.paymentStatus,
-                planName: planInfo.planName.split(' ').join('-'),
-                purchaseDate: moment(sub.createdAt).format('DD-MM-YYYY'),
-                amount: planInfo.price
-            };
-        });
-
-        res.status(200).json({
+    // ✅ Always return 200, even if empty
+    if (!subscriptionData || subscriptionData.length === 0) {
+        return res.status(200).json({
             success: true,
-            message: "Subscription fetched successfully!",
-            data
+            message: "No subscriptions found",
+            data: []
         });
-    } catch (error) {
-        return next(new errorhandler(error.message, 500));
     }
+
+    const planIds = subscriptionData
+        .map(sub => sub.planId)
+        .filter(Boolean); // ✅ remove nulls
+
+    const planData = await plan.findAll({
+        where: { planId: { [Op.in]: planIds } },
+    });
+
+    const data = subscriptionData.map((sub) => {
+        const planInfo = planData.find(p => p.planId === sub.planId);
+
+        return {
+            orderId: sub.orderId,
+            paymentStatus: sub.paymentStatus,
+            planName: planInfo?.planName
+                ? planInfo.planName.split(' ').join('-')
+                : "Unknown Plan", // ✅ safe fallback
+            purchaseDate: moment(sub.createdAt).format('DD-MM-YYYY'),
+            amount: planInfo?.price || 0 // ✅ safe fallback
+        };
+    });
+
+    return res.status(200).json({
+        success: true,
+        message: "Subscription fetched successfully!",
+        data
+    });
 });
 
 // Auto-expiry job scheduled at midnight

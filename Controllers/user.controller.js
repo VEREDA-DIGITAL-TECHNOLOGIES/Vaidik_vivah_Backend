@@ -1442,3 +1442,73 @@ const otp = "123456"
       return next(new errorhandler(error.message, 500));
     }
   });
+
+
+
+  export const refreshSession = catchAsyncError(async (req, res, next) => {
+    try {
+      const refresh_token =
+        req.cookies.refresh_token ||
+        req.headers["refresh_token"];
+  
+      if (!refresh_token) {
+        return next(new errorhandler("Not authenticated", 401));
+      }
+  
+      const decoded = jwt.verify(refresh_token, process.env.REFRESHTOKEN);
+  
+      if (!decoded) {
+        return next(new errorhandler("Invalid token", 401));
+      }
+  
+      // ✅ FIXED REDIS KEY
+      const session = await redis.get(`session:${decoded.userId}`);
+  
+      if (!session) {
+        return next(new errorhandler("Session expired", 401));
+      }
+  
+      const user = JSON.parse(session);
+  
+      const accessToken = jwt.sign(
+        { userId: user.userId },
+        process.env.ACCESSTOKEN,
+        { expiresIn: "5m" }
+      );
+  
+      /* ================= FIREBASE ================= */
+  
+      let firebaseUser;
+  
+      try {
+        firebaseUser = await admin.auth().getUserByEmail(user.email);
+      } catch {
+        firebaseUser = await admin.auth().createUser({
+          email: user.email,
+        });
+      }
+  
+      const firebaseToken = await admin
+        .auth()
+        .createCustomToken(firebaseUser.uid);
+  
+      /* ================= ROTATE REFRESH ================= */
+  
+      const newRefreshToken = jwt.sign(
+        { userId: user.userId },
+        process.env.REFRESHTOKEN,
+        { expiresIn: "7d" }
+      );
+  
+      res.cookie("refresh_token", newRefreshToken, refreshTokenOptions);
+  
+      return res.status(200).json({
+        success: true,
+        accessToken,
+        firebaseToken,
+      });
+  
+    } catch (error) {
+      return next(new errorhandler(error.message, 500));
+    }
+  });
