@@ -25,4 +25,5 @@ services:
 
 networks:
   app-network:
-    external: true   # 👈 reuse same network created by green
+    external: true
+    name: vaidik_vivah_backend_app-network

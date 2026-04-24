@@ -50,7 +50,8 @@ services:
 
 networks:
   app-network:
-    name: app-network   # 🔥 FIXED (no auto-prefix)
+    external: true
+    name: vaidik_vivah_backend_app-network
 
 volumes:
   postgres_data:
