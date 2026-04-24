@@ -15,7 +15,7 @@ const sendEmail = async ({ email, subject, template, data }) => {
 
   try {
     if (!template) {
-      throw new Error(" Template is not defined");
+      throw new Error(" Template is not defined completely");
     }
 
 
