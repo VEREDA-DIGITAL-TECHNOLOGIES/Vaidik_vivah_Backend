@@ -17,7 +17,7 @@ const connectDB = () => {
         {
             host: process.env.HOST,
             port: 5432,
-            dialect: 'postgres',
+            dialect: process.env.USER,
 
             // dialectOptions: {
                
