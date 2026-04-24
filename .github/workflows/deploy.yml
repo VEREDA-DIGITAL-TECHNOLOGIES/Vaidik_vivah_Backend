@@ -28,6 +28,9 @@ jobs:
             git reset --hard origin/Main
             git clean -fd
 
+            echo "Ensuring Docker network exists"
+            docker network create vaidik_vivah_backend_app-network || true
+
             echo "Detecting active container"
             if docker ps --format "{{.Names}}" | grep -q "backend-green"; then
               CURRENT_COLOR="green"
@@ -87,8 +90,9 @@ jobs:
             echo "Removing old image"
             docker rmi backend:$CURRENT_COLOR || true
 
-            echo "Cleaning unused Docker resources"
-            docker system prune -f || true
+            echo "Cleaning unused Docker resources (safe)"
+            docker image prune -f || true
+            docker container prune -f || true
 
             echo "Deployment completed successfully. Active version: $NEW_COLOR"
           EOF
