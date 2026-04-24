@@ -16,7 +16,7 @@ const s3 = new S3Client({
 export const uploadToS3 = async (localFilePaths) => {
   try {
     if (!localFilePaths) {
-      throw new Error("Local file paths are missing.");
+      throw new Error("Local file paths are missingg.");
     }
 
     const files = Array.isArray(localFilePaths) ? localFilePaths : [localFilePaths];
