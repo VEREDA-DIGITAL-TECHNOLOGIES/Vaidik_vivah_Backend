@@ -24,7 +24,7 @@ jobs:
             cd ~/Vaidik_vivah_Backend
 
             echo "Pulling latest code"
-            git pull origin main
+            git pull origin Main
 
             echo "Detecting active container"
             if docker ps --format "{{.Names}}" | grep -q "backend-green"; then
