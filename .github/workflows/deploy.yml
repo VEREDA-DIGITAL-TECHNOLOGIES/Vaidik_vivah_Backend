@@ -15,68 +15,57 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy to VPS (stable)
+      - name: Deploy (with real error logs)
         run: |
           ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << 'EOF'
-            set -e
+            set -ex   # ✅ VERY IMPORTANT (shows failing line)
 
-            echo "Changing to project directory"
             cd ~/Vaidik_vivah_Backend
 
-            echo "Pulling latest code"
+            echo "=== PULL ==="
             git fetch origin
             git reset --hard origin/Main
             git clean -fd
 
-            echo "Ensuring Docker network exists"
+            echo "=== NETWORK ==="
             docker network create vaidik_vivah_backend_app-network || true
 
-            echo "Detecting active container"
+            echo "=== DETECT COLOR ==="
             if docker ps --format "{{.Names}}" | grep -q "backend-green"; then
               CURRENT_COLOR="green"
               NEW_COLOR="blue"
-              NEW_PORT=3005
             else
               CURRENT_COLOR="blue"
               NEW_COLOR="green"
-              NEW_PORT=3006
             fi
 
-            echo "Current: $CURRENT_COLOR"
-            echo "Deploying: $NEW_COLOR (port $NEW_PORT)"
+            echo "Deploying $NEW_COLOR"
 
-            echo "Building Docker image"
-            docker-compose -f docker-compose.$NEW_COLOR.yml build --build-arg CACHEBUST=$(date +%s)
+            echo "=== FORCE REMOVE OLD SAME COLOR (FIX BUG) ==="
+            docker rm -f backend-$NEW_COLOR 2>/dev/null || true
 
-            echo "Starting new container"
+            echo "=== BUILD ==="
+            docker-compose -f docker-compose.$NEW_COLOR.yml build --no-cache
+
+            echo "=== START ==="
             docker-compose -f docker-compose.$NEW_COLOR.yml up -d
 
-            echo "Waiting for container startup"
+            echo "=== WAIT ==="
             sleep 5
 
-            echo "Showing recent logs"
-            docker logs backend-$NEW_COLOR --tail 100
+            echo "=== CHECK CONTAINER EXISTS ==="
+            docker ps -a
 
-            echo "Waiting for health check"
-            MAX_RETRIES=30
-            COUNT=0
+            echo "=== LOGS (IMPORTANT) ==="
+            docker logs backend-$NEW_COLOR --tail 100 || true
 
-            until [ "$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)" = "healthy" ]; do
+            echo "=== HEALTH CHECK ==="
+            for i in {1..20}; do
               STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)
               echo "Health: $STATUS"
-
-              sleep 5
-              COUNT=$((COUNT+1))
-
-              if [ $COUNT -ge $MAX_RETRIES ]; then
-                echo "ERROR: Health check timeout"
-                exit 1
-              fi
+              [ "$STATUS" = "healthy" ] && break
+              sleep 3
             done
 
-            
-
-            
-
-            echo "Deployment successful "
+            echo "=== DONE ==="
           EOF
