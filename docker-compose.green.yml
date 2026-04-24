@@ -1,28 +1,43 @@
-version: '3'
+version: '3.8'
 
 services:
-  backend_green:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  backend-green:
     image: backend:green
     container_name: backend-green
     ports:
-      - '3006:3005'
-    networks:
-      - backend
-    restart: always
+      - "3006:3005"
     env_file:
       - .env
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:16
+    container_name: postgres-db
+    restart: always
     environment:
-      - TZ=Asia/Kolkata
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3005/test"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      POSTGRES_DB: vaidik
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: vadikVivah
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    networks:
+      - app-network
 
 networks:
-  backend:
-    external: true
+  app-network:
+
+volumes:
+  postgres_data:
