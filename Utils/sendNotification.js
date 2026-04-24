@@ -7,7 +7,7 @@ const sendNotification = async () => {
    
       notification: {
        
-        title: "Test Notification 🚀",
+        title: "Test Notification ",
         body: "This is a simple notification",
       },
 
