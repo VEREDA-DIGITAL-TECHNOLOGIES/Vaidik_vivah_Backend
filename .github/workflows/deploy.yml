@@ -15,51 +15,34 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy with LIVE logs
+      - name: Deploy to VPS (simple + logs)
         run: |
-          ssh -i key.pem \
-            -o StrictHostKeyChecking=no \
-            -o ServerAliveInterval=60 \
-            -o ServerAliveCountMax=10 \
-            root@31.97.60.154 << 'EOF'
-
-            set -ex
+          ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << EOF
+            set -ex   # ✅ show commands + stop on error
 
             cd ~/Vaidik_vivah_Backend
 
-            echo "=== PULL ==="
+            echo "=== PULL LATEST CODE ==="
             git fetch origin
             git reset --hard origin/Main
             git clean -fd
 
-            echo "=== NETWORK ==="
+            echo "=== CREATE NETWORK (if not exists) ==="
             docker network create vaidik_vivah_backend_app-network || true
 
-            echo "=== CLEAN OLD ==="
+            echo "=== STOP OLD CONTAINERS ==="
+            docker rm -f backend-blue 2>/dev/null || true
             docker rm -f backend-green 2>/dev/null || true
 
-            echo "=== BUILD ==="
-            docker-compose -f docker-compose.green.yml build --no-cache
+            echo "=== BUILD & START (GREEN ONLY) ==="
+            docker compose -f docker-compose.green.yml build --no-cache
+            docker compose -f docker-compose.green.yml up -d
 
-            echo "=== START ==="
-            docker-compose -f docker-compose.green.yml up -d
-
-            echo "=== WAIT 5s ==="
-            sleep 5
-
-            echo "=== FORCE LOG STREAM (KEY FIX) ==="
-            docker logs -f backend-green --tail 100 &
-
-            echo "=== HEALTH CHECK ==="
-            for i in {1..30}; do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-green)
-              echo "Health: $STATUS"
-              [ "$STATUS" = "healthy" ] && break
-              sleep 3
-            done
-
-            echo "=== FINAL CONTAINERS ==="
+            echo "=== SHOW RUNNING CONTAINERS ==="
             docker ps
+
+            echo "=== SHOW LOGS (IMPORTANT) ==="
+            docker logs backend-green --tail 100
 
             echo "=== DONE ==="
           EOF
