@@ -15,7 +15,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy (clean logs)
+      - name: Deploy (fast + filtered logs)
         run: |
           ssh -i key.pem \
             -o StrictHostKeyChecking=no \
@@ -23,7 +23,7 @@ jobs:
             -o ServerAliveCountMax=10 \
             root@31.97.60.154 << 'EOF'
 
-            set -e   # ❌ removed -x (less spam)
+            set -e
 
             cd ~/Vaidik_vivah_Backend
 
@@ -38,24 +38,27 @@ jobs:
             echo "=== CLEAN OLD ==="
             docker rm -f backend-green 2>/dev/null || true
 
-            echo "=== BUILD ==="
-            docker-compose -f docker-compose.green.yml build --no-cache
+            echo "=== BUILD (SHOW PROGRESS) ==="
+            docker-compose -f docker-compose.green.yml build --progress=plain
 
             echo "=== START ==="
             docker-compose -f docker-compose.green.yml up -d
 
-            echo "=== WAIT ==="
-            sleep 5
+            echo "=== SHOW IMPORTANT LOGS (LIVE BUT LIMITED) ==="
 
-            echo "=== LAST 100 LOGS (NOT STREAM) ==="
-            docker logs backend-green --tail 100
+            for i in {1..10}; do
+              docker logs backend-green --tail 50 2>&1 | \
+              grep -E "Server running|Redis|Database|ERROR|Error|Connected" | \
+              tail -n 20
+              sleep 2
+            done
 
             echo "=== HEALTH CHECK ==="
-            for i in {1..20}; do
+            for i in {1..15}; do
               STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-green)
               echo "Health: $STATUS"
               [ "$STATUS" = "healthy" ] && break
-              sleep 3
+              sleep 2
             done
 
             echo "=== FINAL ==="
