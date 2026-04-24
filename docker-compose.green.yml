@@ -50,6 +50,7 @@ services:
 
 networks:
   app-network:
+    name: app-network   # 🔥 FIXED (no auto-prefix)
 
 volumes:
   postgres_data:

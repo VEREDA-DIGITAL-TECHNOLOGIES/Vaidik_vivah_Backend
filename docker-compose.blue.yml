@@ -8,12 +8,12 @@ services:
     image: backend:blue
     container_name: backend-blue
     ports:
-      - '3005:3005'
-    networks:
-      - app-network   # ✅ FIXED (same as green)
-    restart: always
+      - "3005:3005"
     env_file:
       - .env
+    networks:
+      - app-network
+    restart: always
     environment:
       - TZ=Asia/Kolkata
     healthcheck:
@@ -25,4 +25,4 @@ services:
 
 networks:
   app-network:
-    external: true   # ✅ use existing network created by green
+    external: true   # 👈 reuse same network created by green
