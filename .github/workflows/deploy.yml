@@ -15,10 +15,15 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy (with real error logs)
+      - name: Deploy with LIVE logs
         run: |
-          ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << 'EOF'
-            set -ex   # ✅ VERY IMPORTANT (shows failing line)
+          ssh -i key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=10 \
+            root@31.97.60.154 << 'EOF'
+
+            set -ex
 
             cd ~/Vaidik_vivah_Backend
 
@@ -30,42 +35,31 @@ jobs:
             echo "=== NETWORK ==="
             docker network create vaidik_vivah_backend_app-network || true
 
-            echo "=== DETECT COLOR ==="
-            if docker ps --format "{{.Names}}" | grep -q "backend-green"; then
-              CURRENT_COLOR="green"
-              NEW_COLOR="blue"
-            else
-              CURRENT_COLOR="blue"
-              NEW_COLOR="green"
-            fi
-
-            echo "Deploying $NEW_COLOR"
-
-            echo "=== FORCE REMOVE OLD SAME COLOR (FIX BUG) ==="
-            docker rm -f backend-$NEW_COLOR 2>/dev/null || true
+            echo "=== CLEAN OLD ==="
+            docker rm -f backend-green 2>/dev/null || true
 
             echo "=== BUILD ==="
-            docker-compose -f docker-compose.$NEW_COLOR.yml build --no-cache
+            docker-compose -f docker-compose.green.yml build --no-cache
 
             echo "=== START ==="
-            docker-compose -f docker-compose.$NEW_COLOR.yml up -d
+            docker-compose -f docker-compose.green.yml up -d
 
-            echo "=== WAIT ==="
+            echo "=== WAIT 5s ==="
             sleep 5
 
-            echo "=== CHECK CONTAINER EXISTS ==="
-            docker ps -a
-
-            echo "=== LOGS (IMPORTANT) ==="
-            docker logs backend-$NEW_COLOR --tail 100 || true
+            echo "=== FORCE LOG STREAM (KEY FIX) ==="
+            docker logs -f backend-green --tail 100 &
 
             echo "=== HEALTH CHECK ==="
-            for i in {1..20}; do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)
+            for i in {1..30}; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-green)
               echo "Health: $STATUS"
               [ "$STATUS" = "healthy" ] && break
               sleep 3
             done
+
+            echo "=== FINAL CONTAINERS ==="
+            docker ps
 
             echo "=== DONE ==="
           EOF
