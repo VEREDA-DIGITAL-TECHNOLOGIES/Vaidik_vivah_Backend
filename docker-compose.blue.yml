@@ -1,7 +1,7 @@
-version: '3'
+version: '3.8'
 
 services:
-  backend_blue:
+  backend-blue:
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +10,7 @@ services:
     ports:
       - '3005:3005'
     networks:
-      - backend
+      - app-network   # ✅ FIXED (same as green)
     restart: always
     env_file:
       - .env
@@ -24,5 +24,5 @@ services:
       start_period: 10s
 
 networks:
-  backend:
-    external: true
+  app-network:
+    external: true   # ✅ use existing network created by green
