@@ -2,6 +2,9 @@ version: '3.8'
 
 services:
   backend-green:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: backend:green
     container_name: backend-green
     ports:
@@ -13,6 +16,15 @@ services:
       - redis
     networks:
       - app-network
+    restart: always
+    environment:
+      - TZ=Asia/Kolkata
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   postgres:
     image: postgres:16
