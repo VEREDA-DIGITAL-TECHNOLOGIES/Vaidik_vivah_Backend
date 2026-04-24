@@ -20,18 +20,16 @@ jobs:
           ssh -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << 'EOF'
             set -e
 
-            echo "Changing to project directory"
             cd ~/Vaidik_vivah_Backend
 
-            echo "Pulling latest code"
             git fetch origin
             git reset --hard origin/Main
             git clean -fd
 
-            echo "Ensuring Docker network exists"
+            # Ensure network exists
             docker network create vaidik_vivah_backend_app-network || true
 
-            echo "Detecting active container"
+            # Detect active container
             if docker ps --format "{{.Names}}" | grep -q "backend-green"; then
               CURRENT_COLOR="green"
               NEW_COLOR="blue"
@@ -42,57 +40,46 @@ jobs:
               NEW_PORT=3006
             fi
 
-            echo "Current deployment: $CURRENT_COLOR"
-            echo "Deploying new version: $NEW_COLOR on port $NEW_PORT"
+            echo "Deploying $NEW_COLOR on port $NEW_PORT"
 
-            docker-compose -f docker-compose.$NEW_COLOR.yml build --build-arg CACHEBUST=$(date +%s)
-            docker-compose -f docker-compose.$NEW_COLOR.yml up -d
+            # ✅ USE COMPOSE V2
+            docker compose -f docker-compose.$NEW_COLOR.yml build --build-arg CACHEBUST=$(date +%s)
+            docker compose -f docker-compose.$NEW_COLOR.yml up -d
 
-            echo "Waiting for container initialization"
-            sleep 5
-
+            # Ensure container exists
             if ! docker inspect backend-$NEW_COLOR > /dev/null 2>&1; then
-              echo "Error: container backend-$NEW_COLOR was not created"
+              echo "Container not created"
               docker ps -a
               exit 1
             fi
 
-            echo "Waiting for health check"
+            # Wait for health
             MAX_RETRIES=30
             COUNT=0
 
             until [ "$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)" = "healthy" ]; do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)
-              echo "Current health status: $STATUS"
-
               sleep 5
               COUNT=$((COUNT+1))
-
               if [ $COUNT -ge $MAX_RETRIES ]; then
-                echo "Error: health check timeout"
+                echo "Health check failed"
                 exit 1
               fi
             done
 
-            echo "New container is healthy"
+            echo "New container healthy"
 
-            echo "Updating Nginx configuration"
-            cp /etc/nginx/sites-available/backend.vedvivah.in.conf /etc/nginx/sites-available/backend.vedvivah.in.conf.bak
-
+            # Switch Nginx
             sed -i -E "s/localhost:[0-9]+/localhost:$NEW_PORT/g" /etc/nginx/sites-available/backend.vedvivah.in.conf
-
             nginx -t && systemctl reload nginx
 
-            echo "Stopping old container"
+            # Stop old
             docker stop backend-$CURRENT_COLOR || true
             docker rm backend-$CURRENT_COLOR || true
-
-            echo "Removing old image"
             docker rmi backend:$CURRENT_COLOR || true
 
-            echo "Cleaning unused Docker resources (safe)"
+            # Clean safely (no redis/postgres delete)
             docker image prune -f || true
             docker container prune -f || true
 
-            echo "Deployment completed successfully. Active version: $NEW_COLOR"
+            echo "Deployment done → $NEW_COLOR active"
           EOF
