@@ -15,34 +15,51 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy to VPS (simple + logs)
+      - name: Deploy (clean logs)
         run: |
-          ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << EOF
-            set -ex   # ✅ show commands + stop on error
+          ssh -i key.pem \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=10 \
+            root@31.97.60.154 << 'EOF'
+
+            set -e   # ❌ removed -x (less spam)
 
             cd ~/Vaidik_vivah_Backend
 
-            echo "=== PULL LATEST CODE ==="
+            echo "=== PULL ==="
             git fetch origin
             git reset --hard origin/Main
             git clean -fd
 
-            echo "=== CREATE NETWORK (if not exists) ==="
+            echo "=== NETWORK ==="
             docker network create vaidik_vivah_backend_app-network || true
 
-            echo "=== STOP OLD CONTAINERS ==="
-            docker rm -f backend-blue 2>/dev/null || true
+            echo "=== CLEAN OLD ==="
             docker rm -f backend-green 2>/dev/null || true
 
-            echo "=== BUILD & START (GREEN ONLY) ==="
-            docker compose -f docker-compose.green.yml build --no-cache
-            docker compose -f docker-compose.green.yml up -d
+            echo "=== BUILD ==="
+            docker-compose -f docker-compose.green.yml build --no-cache
 
-            echo "=== SHOW RUNNING CONTAINERS ==="
-            docker ps
+            echo "=== START ==="
+            docker-compose -f docker-compose.green.yml up -d
 
-            echo "=== SHOW LOGS (IMPORTANT) ==="
+            echo "=== WAIT ==="
+            sleep 5
+
+            echo "=== LAST 100 LOGS (NOT STREAM) ==="
             docker logs backend-green --tail 100
+
+            echo "=== HEALTH CHECK ==="
+            for i in {1..20}; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-green)
+              echo "Health: $STATUS"
+              [ "$STATUS" = "healthy" ] && break
+              sleep 3
+            done
+
+            echo "=== FINAL ==="
+            docker ps
 
             echo "=== DONE ==="
           EOF
