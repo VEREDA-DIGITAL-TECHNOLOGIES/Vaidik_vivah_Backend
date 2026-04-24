@@ -1,26 +1,28 @@
 version: '3'
+
 services:
-    backend_green:
-        build:
-            context: .
-            dockerfile: ${DOCKERFILE}
-        image: backend:green
-        container_name: backend-green
-        ports:
-            - '3006:3005'
-        networks:
-            - backend
-        restart: always
-        env_file:
-            - .env
-        environment:
-            - TZ=Asia/Kolkata
-        healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:3005/test"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
-          start_period: 10s
+  backend_green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: backend:green
+    container_name: backend-green
+    ports:
+      - '3006:3005'
+    networks:
+      - backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Kolkata
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 networks:
   backend:
     external: true

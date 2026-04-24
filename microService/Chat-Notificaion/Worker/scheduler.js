@@ -1,6 +1,6 @@
 import { processNotifications } from "./notification.worker.js";
 
-const INTERVAL_MS = 30 * 1000;
+const INTERVAL_MS = 10 * 60 * 1000;
 
 let running = false;
 let intervalRef = null;

@@ -673,9 +673,9 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
     ));
 
     // Fetch matches from external API
-    const response = await axios.get("https://recommend.vedvivah.com/api/get_matches", {
+    // const response = await axios.get("https://recommend.vedvivah.com/api/get_matches", {
 
-    // const response = await axios.get("http://127.0.0.1:8000/api/get_matches", {
+    const response = await axios.get("http://127.0.0.1:8000/api/get_matches", {
       params: { userId, ...req.query }
     });
 
