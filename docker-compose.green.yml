@@ -24,7 +24,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
   postgres:
     image: postgres:16
@@ -45,6 +45,9 @@ services:
     image: redis:7
     container_name: redis
     restart: always
+    command: redis-server --requirepass VedVivahRedis123
+    ports:
+      - "6379:6379"
     networks:
       - app-network
 
