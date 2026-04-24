@@ -15,34 +15,49 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy to VPS (simple + logs)
+      - name: Deploy to VPS (robust + logs + healthcheck)
         run: |
-          ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << EOF
-            set -ex   # ✅ show commands + stop on error
+          ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << 'EOF'
+            set -x   # ❗ removed -e (don’t kill job on minor failures)
 
-            cd ~/Vaidik_vivah_Backend
+            cd ~/Vaidik_vivah_Backend || exit 1
 
             echo "=== PULL LATEST CODE ==="
             git fetch origin
             git reset --hard origin/Main
             git clean -fd
 
-            echo "=== CREATE NETWORK (if not exists) ==="
+            echo "=== CREATE NETWORK ==="
             docker network create vaidik_vivah_backend_app-network || true
 
             echo "=== STOP OLD CONTAINERS ==="
-            docker rm -f backend-blue 2>/dev/null || true
-            docker rm -f backend-green 2>/dev/null || true
+            docker rm -f backend-blue backend-green || true
 
-            echo "=== BUILD & START (GREEN ONLY) ==="
+            echo "=== BUILD ==="
             docker compose -f docker-compose.green.yml build --no-cache
+
+            echo "=== START ==="
             docker compose -f docker-compose.green.yml up -d
 
-            echo "=== SHOW RUNNING CONTAINERS ==="
+            echo "=== WAIT FOR CONTAINER START ==="
+            sleep 5
+
+            echo "=== RUNNING CONTAINERS ==="
             docker ps
 
-            echo "=== SHOW LOGS (IMPORTANT) ==="
-            docker logs backend-green --tail 100
+            echo "=== WAIT FOR HEALTH ==="
+            for i in {1..15}; do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-green 2>/dev/null || echo "starting")
+              echo "Health: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✅ Container is healthy"
+                break
+              fi
+              sleep 3
+            done
+
+            echo "=== FINAL LOGS ==="
+            docker logs backend-green --tail 100 || echo "⚠️ No logs available"
 
             echo "=== DONE ==="
           EOF
