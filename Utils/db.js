@@ -3,32 +3,26 @@ import { Sequelize } from 'sequelize';
 
 dotenv.config();
 
-console.log({
-  DATABASE: process.env.DATABASE,
-  USER: process.env.USER,
-  PASSWORD: process.env.PASSWORD,
-  HOST: process.env.HOST
-});
-
 const connectDB = () => {
   const sequelize = new Sequelize(
     process.env.DATABASE,
-    process.env.USER,        // ✅ correct username
+    process.env.USER,
     process.env.PASSWORD,
     {
       host: process.env.HOST,
       port: 5432,
-      dialect: 'postgres',   // ✅ correct dialect
-      logging: console.log,
+      dialect: 'postgres',
+
+      logging: false, // ✅ no SQL logs at all
     }
   );
 
   sequelize.authenticate()
     .then(() => {
-      console.log('Database connection established successfulll');
+      console.log('✅ Database connected');
     })
     .catch((error) => {
-      console.error('Database connection error:', error.message);
+      console.error('❌ Database connection error:', error.message);
       setTimeout(connectDB, 5000);
     });
 

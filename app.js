@@ -69,6 +69,13 @@ app.use(cors({
 app.options("*", cors());
 
 app.use((req, res, next) => {
+  // ❌ skip healthcheck spam
+  if (req.originalUrl === "/test") return next();
+
+  // ❌ skip static files (optional but useful)
+  if (req.originalUrl.startsWith("/public")) return next();
+
+  // ✅ log only useful requests
   console.log(`➡️ [${req.method}] ${req.originalUrl}`);
   next();
 });
