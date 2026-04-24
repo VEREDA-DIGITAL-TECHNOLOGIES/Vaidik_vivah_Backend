@@ -25,7 +25,7 @@ const connectDB = () => {
 
   sequelize.authenticate()
     .then(() => {
-      console.log('Database connection established successfull');
+      console.log('Database connection established successfulll');
     })
     .catch((error) => {
       console.error('Database connection error:', error.message);
