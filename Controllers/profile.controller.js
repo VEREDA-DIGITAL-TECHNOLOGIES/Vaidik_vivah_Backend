@@ -656,9 +656,13 @@ export const UpdatephotoUploadForWeb = catchAsyncError(async (req, res, next) =>
 
 export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
   try {
+    console.log("👉 MatchedProfiles START");
+    console.log("👉 user:", req.user);
+    console.log("👉 query:", req.query);
+
     const { userId } = req.user;
 
-    // Get blocked users
+    // ================= BLOCK USERS =================
     const blockRelations = await Block.findAll({
       where: {
         [Op.or]: [
@@ -668,18 +672,55 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       }
     });
 
-    const blockedUserIds = blockRelations.map(block => (
-      block.blockerUserId === userId ? block.blockedUserId : block.blockerUserId
-    ));
+    const blockedUserIds = blockRelations.map(block =>
+      block.blockerUserId === userId
+        ? block.blockedUserId
+        : block.blockerUserId
+    );
 
-    // Fetch matches from external API
-    const response = await axios.get("https://recommend.vedvivah.com/api/get_matches", {
+    console.log("👉 blockedUserIds:", blockedUserIds.length);
 
-    // const response = await axios.get("http://127.0.0.1:8000/api/get_matches", {
-      params: { userId, ...req.query }
-    });
+    // ================= RECOMMENDATION API =================
+    let response;
 
-    // Filter out incomplete profiles
+    try {
+      console.log("👉 Calling recommendation service...");
+
+      response = await axios.get(
+        "https://recommend.vedvivah.com/api/get_matches",
+        {
+          params: { userId, ...req.query },
+          timeout: 5000 // VERY IMPORTANT
+        }
+      );
+
+      console.log("✅ Recommendation response received");
+
+    } catch (err) {
+      console.error("❌ Recommendation API FAILED:");
+      console.error(err.message);
+      console.error(err.code);
+      console.error(err.response?.data);
+
+      return res.status(200).json({
+        success: true,
+        profiles: [],
+        message: "Recommendation service unavailable"
+      });
+    }
+
+    // ================= VALIDATE RESPONSE =================
+    if (!Array.isArray(response.data)) {
+      console.error("❌ Invalid response format:", response.data);
+
+      return res.status(200).json({
+        success: true,
+        profiles: [],
+        message: "Invalid recommendation response"
+      });
+    }
+
+    // ================= FILTER =================
     let profiles = response.data.filter(profile =>
       profile.gender &&
       profile.age &&
@@ -694,25 +735,30 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       profile.profileImages.length > 0
     );
 
-    // Remove blocked users
-    profiles = profiles.filter(profile => !blockedUserIds.includes(profile.userId));
+    console.log("👉 profiles after filter:", profiles.length);
 
-    if (!profiles || profiles.length === 0) {
-      return res.status(404).json({
-        success: false,
+    profiles = profiles.filter(
+      profile => !blockedUserIds.includes(profile.userId)
+    );
+
+    console.log("👉 profiles after block filter:", profiles.length);
+
+    if (profiles.length === 0) {
+      return res.status(200).json({
+        success: true,
         profiles: [],
-        message: "No matches found",
+        message: "No matches found"
       });
     }
 
-    
+    // ================= PUBLIC ID MAP =================
     const matchedUserIds = profiles.map(p => p.userId);
+
     const users = await User.findAll({
       where: { userId: matchedUserIds },
-      attributes: ['userId', 'public_user_id']
+      attributes: ["userId", "public_user_id"]
     });
 
-  
     const userMap = {};
     users.forEach(u => {
       userMap[u.userId] = u.public_user_id;
@@ -723,13 +769,16 @@ export const MatchedProfiles = catchAsyncError(async (req, res, next) => {
       public_user_id: userMap[profile.userId] || null
     }));
 
+    console.log("✅ MatchedProfiles SUCCESS:", profiles.length);
+
     return res.status(200).json({
       success: true,
-      profiles,
+      profiles
     });
 
   } catch (error) {
-    return next(new errorhandler(error.message, 500));
+    console.error("🔥 FINAL ERROR:", error);
+    return next(error);
   }
 });
 
