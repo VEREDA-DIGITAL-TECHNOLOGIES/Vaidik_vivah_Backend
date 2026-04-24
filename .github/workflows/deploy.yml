@@ -15,81 +15,34 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
           chmod 600 key.pem
 
-      - name: Deploy to VPS
+      - name: Deploy to VPS (simple + logs)
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << 'EOF'
-            set -e
+          ssh -tt -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << EOF
+            set -ex   # ✅ show commands + stop on error
 
-            echo "Changing to project directory"
             cd ~/Vaidik_vivah_Backend
 
-            echo "Pulling latest code"
+            echo "=== PULL LATEST CODE ==="
             git fetch origin
             git reset --hard origin/Main
             git clean -fd
 
-            echo "Ensuring Docker network exists"
+            echo "=== CREATE NETWORK (if not exists) ==="
             docker network create vaidik_vivah_backend_app-network || true
 
-            echo "Detecting active container"
-            if docker ps --format "{{.Names}}" | grep -q "backend-green"; then
-              CURRENT_COLOR="green"
-              NEW_COLOR="blue"
-              NEW_PORT=3005
-            else
-              CURRENT_COLOR="blue"
-              NEW_COLOR="green"
-              NEW_PORT=3006
-            fi
+            echo "=== STOP OLD CONTAINERS ==="
+            docker rm -f backend-blue 2>/dev/null || true
+            docker rm -f backend-green 2>/dev/null || true
 
-            echo "Current: $CURRENT_COLOR → New: $NEW_COLOR"
+            echo "=== BUILD & START (GREEN ONLY) ==="
+            docker compose -f docker-compose.green.yml build --no-cache
+            docker compose -f docker-compose.green.yml up -d
 
-            echo "Building new container"
-            docker compose -f docker-compose.$NEW_COLOR.yml build --build-arg CACHEBUST=$(date +%s)
+            echo "=== SHOW RUNNING CONTAINERS ==="
+            docker ps
 
-            echo "Removing existing $NEW_COLOR container if any (FIX)"
-            docker rm -f backend-$NEW_COLOR 2>/dev/null || true
+            echo "=== SHOW LOGS (IMPORTANT) ==="
+            docker logs backend-green --tail 100
 
-            echo "Starting new container"
-            docker compose -f docker-compose.$NEW_COLOR.yml up -d
-
-            echo "Checking container exists"
-            if ! docker inspect backend-$NEW_COLOR > /dev/null 2>&1; then
-              echo "Container not created"
-              docker ps -a
-              exit 1
-            fi
-
-            echo "Waiting for health check"
-            MAX_RETRIES=30
-            COUNT=0
-
-            until [ "$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)" = "healthy" ]; do
-              STATUS=$(docker inspect --format='{{.State.Health.Status}}' backend-$NEW_COLOR)
-              echo "Health: $STATUS"
-              sleep 5
-              COUNT=$((COUNT+1))
-
-              if [ $COUNT -ge $MAX_RETRIES ]; then
-                echo "Health check failed"
-                exit 1
-              fi
-            done
-
-            echo "New container is healthy"
-
-            echo "Switching Nginx"
-            sed -i -E "s/localhost:[0-9]+/localhost:$NEW_PORT/g" /etc/nginx/sites-available/backend.vedvivah.in.conf
-            nginx -t && systemctl reload nginx
-
-            echo "Stopping old container"
-            docker stop backend-$CURRENT_COLOR || true
-            docker rm backend-$CURRENT_COLOR || true
-            docker rmi backend:$CURRENT_COLOR || true
-
-            echo "Cleaning unused Docker resources"
-            docker image prune -f || true
-            docker container prune -f || true
-
-            echo "Deployment successful → $NEW_COLOR active"
+            echo "=== DONE ==="
           EOF
