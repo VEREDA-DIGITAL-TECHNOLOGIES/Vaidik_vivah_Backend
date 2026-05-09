@@ -675,56 +675,102 @@ export const adminLogin = catchAsyncError(async (req, res, next) => {
 
 
 export const forgotPassword = catchAsyncError(async (req, res, next) => {
-    try {
-        const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    /* ================= VALIDATION ================= */
 
-        if (!emailRegex.test(email)) {
-            return next(new errorhandler("Invalid email format!", 400));
-        }
-
-
-        if (!email) {
-            return next(new errorhandler("Email is required!", 400));
-        }
-
-        const user = await User.findOne({ where: { email } });
-
-        if (!user) {
-            return next(new errorhandler("User not registered !", 400));
-        }
-
-        const personalData = await personalDetails.findOne({ where: { userId: user.userId } });
-
-        if (!personalData) {
-            return next(new errorhandler("User not registered with Wedlock!", 400));
-        }
-
-
-        const activationToken = createActivationToken(email);
-        const activationCode = activationToken.activationCode;
-
-        const data = {
-            activationCode,
-            email,
-            name: personalData.firstName + " " + personalData.lastName
-        };
-
-
-
-        await sendEmail({ email, subject: "Reset Your Password", template: "forgotPassword-mail.ejs", data });
-
-        res.status(200).json({
-            success: true, message: `Please check your email: ${email} for a verification code!`,
-            activationToken: activationToken.token,
-        });
-    }
-    catch (error) {
-        return next(new errorhandler(error.message, 500));
+    // Email required
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        field: "email",
+        message: "Please enter your email address.",
+      });
     }
 
-})
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        field: "email",
+        message: "Please enter a valid email address.",
+      });
+    }
+
+    /* ================= USER CHECK ================= */
+
+    const user = await User.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        field: "email",
+        message:
+          "We couldn't find an account with this email address.",
+      });
+    }
+
+    /* ================= PROFILE CHECK ================= */
+
+    const personalData = await personalDetails.findOne({
+      where: { userId: user.userId },
+    });
+
+    if (!personalData) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Your account profile is incomplete. Please contact support.",
+      });
+    }
+
+    /* ================= CREATE TOKEN ================= */
+
+    const activationToken = createActivationToken({ email });
+
+    const activationCode = activationToken.activationCode;
+
+    /* ================= EMAIL DATA ================= */
+
+    const data = {
+      activationCode,
+      email,
+      name: `${personalData.firstName} ${personalData.lastName}`,
+    };
+
+    /* ================= SEND EMAIL ================= */
+
+    await sendEmail({
+      email,
+      subject: "Reset Your Password",
+      template: "forgotPassword-mail.ejs",
+      data,
+    });
+
+    /* ================= SUCCESS RESPONSE ================= */
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Verification code sent successfully to your email address.",
+      activationToken: activationToken.token,
+    });
+
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Something went wrong while processing your request. Please try again later.",
+    });
+  }
+});
 
 //for web app verify otp
 export const verifyOtp = catchAsyncError(async (req, res, next) => {
