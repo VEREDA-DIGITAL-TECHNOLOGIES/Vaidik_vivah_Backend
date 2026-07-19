@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New VedVivah Account Created</title>
+
+  <style>
+    body {
+      font-family: "Proxima Nova", sans-serif;
+      background-color: #ffe6eb;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+
+    .header {
+      background-color: #ffc0cb;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header img {
+      max-width: 180px;
+    }
+
+    .content {
+      padding: 30px;
+      text-align: center;
+    }
+
+    .content h1 {
+      color: #ff5b77;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .content h2 {
+      color: #333;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .details {
+      text-align: left;
+      background-color: #fff9fa;
+      border: 1px solid #ffe1e8;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .details p {
+      font-size: 16px;
+      margin: 8px 0;
+    }
+
+    .highlight {
+      color: #ff5b77;
+      font-weight: 600;
+    }
+
+    .footer {
+      background-color: #fff3f6;
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #777;
+    }
+
+    .footer a {
+      color: #ff5b77;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .content { padding: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="https://www.vedvivah.com">
+        <img src="https://admin.vedvivah.com/assets/v.png" alt="VedVivah Logo" />
+      </a>
+    </div>
+
+    <div class="content">
+      <h1>🪔 New Account Registered</h1>
+      <h2>VedVivah User Details</h2>
+
+      <div class="details">
+        <p><strong>Name:</strong> <span class="highlight"><%= name %></span></p>
+        <p><strong>User ID:</strong> <span class="highlight"><%= userId %></span></p>
+        <p><strong>Religion:</strong> <%= religion %></p>
+        <p><strong>Caste:</strong> <%= caste %></p>
+        <p><strong>Community:</strong> <%= community %></p>
+        <p><strong>Date of Birth:</strong> <%= dateOfBirth %></p>
+        <p><strong>Time of Birth:</strong> <%= timeOfBirth %></p>
+        <p><strong>Place of Birth:</strong> <%= placeOfBirth %></p>
+      </div>
+
+      <p>
+        A new user has successfully completed their profile setup.  
+        You can review or verify their details from the <strong>Admin Dashboard</strong>.
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>🪔 The vedvivah Team</p>
+      <p><a href="https://www.vedvivah.in">https://admin.vedvivah.com</a></p>
+      <p>© 2025 VedVivah. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Profile Has Been Approved</title>
+  <style>
+    @font-face {
+      font-family: "Proxima Nova regular";
+      src: url('../public/font/Proxima-Nova-Regular.otf') format("opentype");
+    }
+    @font-face {
+      font-family: "Proxima Nova thin";
+      src: url('../public/font/Proxima-Nova-Thin.otf') format("opentype");
+    }
+
+    body {
+      font-family: "Proxima Nova regular", sans-serif;
+      background-color: #FFF5F7;
+      background-image: radial-gradient(#FFC0CB 1px, transparent 1px);
+      background-size: 20px 20px;
+      color: #5E5E5E;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 15px;
+      min-height: 100vh;
+    }
+
+    .main {
+      background: #fff;
+      max-width: 700px;
+      width: 100%;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 30px rgba(233, 30, 99, 0.1);
+      border: 1px solid #FFEBEE;
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    .main::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 8px;
+      width: 100%;
+      background: linear-gradient(90deg, #FF4081, #FF80AB);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .logo img {
+      max-width: 220px;
+    }
+
+    h2 {
+      color: #D81B60;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+
+    .message {
+      font-family: "Proxima Nova thin", sans-serif;
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .highlight {
+      color: #D81B60;
+      font-weight: 700;
+    }
+
+    .info-box {
+      background: #FFF0F5;
+      border-left: 5px solid #FF4081;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #888;
+      border-top: 1px solid #FFEBEE;
+      padding-top: 20px;
+    }
+
+    a {
+      color: #D81B60;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover {
+      color: #FF4081;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main">
+      <div class="logo">
+        <img src="https://admin.vedvivah.com/assets/v.png" alt="Ved Vivah Logo">
+      </div>
+
+      <h2> Your Account Has Been Approved!</h2>
+
+      <div class="message">
+        <p>Dear <span class="highlight"><%= name %></span>,</p>
+
+        <p>We’re delighted to inform you that your submitted documents have been successfully verified and your profile is now <strong>approved</strong> on <b>Ved Vivah</b>.</p>
+
+        <div class="info-box">
+          <p><strong>User ID:</strong> <%= userId %></p>
+          <p><strong>Membership Type:</strong> <%= usertype %></p>
+          <p><strong>Verified On:</strong> <%= updatedAt %></p>
+        </div>
+
+        <p>You can now enjoy all the features of your account and connect with other verified members.</p>
+        <p>We’re thrilled to have you as part of our growing family!</p>
+
+        <p>Warm regards,<br><strong>The Ved Vivah Team</strong></p>
+      </div>
+
+      <div class="footer">
+        <p>© 2025 Ved Vivah. All rights reserved.</p>
+     
+        <p><a href="mailto:info@vedvivah.com">info@vedvivah.com</a></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

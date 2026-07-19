@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ved Vivah Admin OTP Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @font-face {
+            font-family: "Proxima Nova regular";
+            src: url('../public/font/Proxima-Nova-Regular.otf') format("opentype");
+            font-family: "Proxima Nova thin";
+            src: url('../public/font/Proxima-Nova-Thin.otf') format("opentype");
+        }
+
+        body {
+            font-family: "Proxima Nova regular", sans-serif;
+            background-color: #FFF5F7;
+            background-image: radial-gradient(#FFC0CB 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        p {
+            font-family: "Proxima Nova thin", sans-serif;
+            color: #5E5E5E;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main {
+            width: 100%;
+            max-width: 800px;
+            background-color: #FFFFFF;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(233, 30, 99, 0.1);
+            border: 1px solid #FFEBEE;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #FF4081, #FF80AB);
+        }
+
+        #title {
+            margin-top: 1rem;
+            margin-bottom: 10px;
+            font-size: 18px;
+            line-height: 21.92px;
+            font-weight: 400;
+            color: #5E5E5E;
+        }
+
+        #name {
+            color: #D81B60;
+            font-weight: 700;
+        }
+
+        .content h3 {
+            margin: 1rem 0 2rem;
+            color: #D81B60;
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 48.72px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .content h3::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #FF4081, #FF80AB);
+            border-radius: 2px;
+        }
+
+        .content p {
+            margin: 2rem 0;
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        /* ✅ Reduced OTP box size */
+        .otp {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .otp div {
+            font-size: 30px;
+            font-weight: 700;
+            color: #FFFFFF;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #FF4081, #FF80AB);
+            border-radius: 10px;
+            min-width: 50px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(216, 27, 96, 0.15);
+            animation: pulse 2s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .otp div::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        #char {
+            margin-right: 10px;
+        }
+
+        #thakyou {
+            margin-top: 10px;
+            font-weight: 600;
+            color: #D81B60;
+        }
+
+        .footer {
+            font-size: 14px;
+            color: #888;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #FFEBEE;
+        }
+
+        a {
+            color: #D81B60;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            color: #FF4081;
+            text-decoration: underline;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        img:hover {
+            transform: scale(1.02);
+        }
+
+        .heart {
+            color: #FF4081;
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @media screen and (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .main {
+                padding: 1.8rem;
+            }
+
+            .content h3 {
+                font-size: 32px;
+                line-height: 38px;
+            }
+
+            .otp div {
+                font-size: 26px;
+                padding: 8px 14px;
+                min-width: 40px;
+            }
+            
+            .content p {
+                font-size: 14px;
+                line-height: 22px;
+            }
+
+            #title {
+                font-size: 16px;
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            .otp div {
+                font-size: 24px;
+                padding: 7px 12px;
+                min-width: 35px;
+            }
+            
+            #char {
+                margin-right: 6px;
+            }
+
+            .content h3 {
+                font-size: 26px;
+                line-height: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main">
+            <a href="https://www.vedvivah.com" class="floating">
+                <img src="https://admin.vedvivah.com/assets/v.png" alt="Ved Vivah Logo" style="max-width: 300px;">
+            </a>
+            <div class="content">
+                <h2 id="title">Welcome to <span id="name">Ved Vivah Admin</span>!</h2>
+                <h3>Your Secure OTP</h3>
+                <p>Dear Admin,</p>
+                <p>To authenticate your login, please use the following One Time Password (OTP):</p>
+                <div class="otp">
+                    <% activationCode.split('').forEach((char) => { %>
+                        <div id="char"><%= char %></div>
+                    <% }) %>
+                </div>
+                <p>This OTP is valid for 5 minutes. For security reasons, please do not share this code with anyone. Our system will never ask you for this OTP via phone or email.</p>
+                <p>If you didn't request this OTP, please secure your account immediately by changing your password and contacting our support team.</p>
+                <p id="thakyou">With <span class="heart">♥</span>, The Ved Vivah Admin Team</p>
+            </div>
+            <div class="footer">
+                <p>© 2025 Ved Vivah Admin Portal. All rights reserved.</p>
+                <p><a href="https://admin.vedvivah.com">https://admin.vedvivah.com</a></p>
+                <p>Need help? <a href="mailto:support@vedvivah.com">Contact our support team</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

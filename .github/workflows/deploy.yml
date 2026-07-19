@@ -1,0 +1,49 @@
+name: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - Main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > key.pem
+          chmod 600 key.pem
+
+      - name: Deploy to VPS (clean + stable)
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no root@31.97.60.154 << 'EOF'
+            set -x
+
+            cd ~/Vaidik_vivah_Backend || exit 1
+
+            echo "=== UPDATE CODE ==="
+            git fetch origin
+            git reset --hard origin/Main
+            git clean -fd
+
+            echo "=== CLEAN OLD ==="
+            docker rm -f backend-green backend-blue || true
+
+            echo "=== BUILD ==="
+            docker compose -f docker-compose.green.yml build --no-cache --progress=plain
+
+            echo "=== START ==="
+            docker compose -f docker-compose.green.yml up -d
+
+            echo "=== WAIT ==="
+            sleep 5
+
+            echo "=== STATUS ==="
+            docker ps | grep backend-green || true
+
+            echo "=== HEALTH ==="
+            docker inspect --format='{{.State.Health.Status}}' backend-green || echo "unknown"
+
+            echo "✅ DEPLOY SUCCESS"
+          EOF
